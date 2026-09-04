@@ -1,0 +1,149 @@
+.wrapper {
+  margin-top: 16px;
+
+  padding: 14px;
+
+  background: #ffffff;
+
+  border-radius: 22px;
+
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  margin: 0 0 12px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.weekNavigation {
+  display: flex;
+  gap: 6px;
+}
+
+.weekArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  border: none;
+  background: transparent;
+
+  color: #e30613;
+
+  cursor: pointer;
+}
+
+.weekArrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.days {
+  display: flex;
+  gap: 8px;
+
+  overflow-x: auto;
+  scroll-behavior: smooth;
+
+  padding-bottom: 6px;
+
+  padding-bottom: 4px;
+
+  scrollbar-width: none;
+}
+
+.days::-webkit-scrollbar {
+  display: none;
+}
+
+.day {
+  flex-shrink: 0;
+
+  width: 62px;
+
+  padding: 10px 6px;
+
+  border: 1px solid #eef1f4;
+  border-radius: 12px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.active {
+  color: #e30613;
+}
+
+.number {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.week {
+  margin-top: 2px;
+
+  font-size: 11px;
+
+  color: #6b7280;
+}
+
+.boxes {
+  width: 100%;
+  margin-top: 12px;
+
+  text-align: center;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.unit {
+  width: 100%;
+
+  text-align: center;
+
+  font-size: 11px;
+
+  color: #6b7280;
+}
+
+.details {
+  margin-top: 14px;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border: none;
+  background: transparent;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #111827;
+
+  cursor: pointer;
+}
+
+.details svg {
+  color: #e30613;
+}

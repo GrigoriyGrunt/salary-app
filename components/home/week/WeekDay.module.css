@@ -1,0 +1,79 @@
+.card {
+  width: 100%;
+  height: 80px;
+
+  background: #ffffff;
+  border-radius: 18px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 3px 0 6px;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.weekday {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 1px;
+}
+
+.date {
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+}
+
+.month {
+  margin-top: 1px;
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: #888;
+
+  text-align: center;
+  width: 100%;
+}
+.day {
+  background: #e30613;
+}
+
+.day .date,
+.day .month,
+.day .shift {
+  color: #ffffff;
+}
+
+.night {
+  background: #8b0010;
+}
+
+.night .date,
+.night .month,
+.night .shift {
+  color: #ffffff;
+}
+
+.worked {
+  background: #8b8b8b;
+}
+
+.worked .date,
+.worked .month,
+.worked .shift {
+  color: #ffffff;
+}
+
+.shift {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.card:not(.day):not(.night):not(.worked) .shift {
+  color: #e30613;
+}

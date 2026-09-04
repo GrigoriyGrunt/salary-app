@@ -1,0 +1,149 @@
+.card {
+  background: linear-gradient(135deg, #ef1c24 0%, #d90f19 100%);
+  border-radius: 24px;
+  padding: 14px;
+  margin-bottom: 8px;
+
+  color: white;
+
+  box-shadow: 0 16px 40px rgba(239, 28, 36, 0.28);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.label {
+  margin: 0;
+  font-size: 13px;
+  opacity: .9;
+}
+
+.amount {
+  margin: 2px 0 1px;
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.update {
+  font-size: 13px;
+  opacity: .85;
+}
+
+.forecast {
+  background: rgba(255,255,255,.14);
+
+  border-radius: 18px;
+
+  padding: 10px;
+
+  min-width: 110px;
+
+  text-align: left;
+}
+
+.forecastTitle {
+  display: block;
+  font-size: 12px;
+  opacity: .85;
+}
+
+.forecast strong {
+  display: block;
+  margin-top: 1px;
+
+  font-size: 18px;
+}
+
+.forecast small {
+  display: block;
+  margin-top: 1px;
+
+  font-size: 12px;
+  opacity: .85;
+}
+
+.chart {
+  margin: 18px 0;
+
+  height: 70px;
+
+  border-radius: 18px;
+
+  background: rgba(255,255,255,.08);
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+.line {
+  position: absolute;
+
+  left: 14px;
+  right: 14px;
+  bottom: 16px;
+
+  height: 3px;
+
+  background: white;
+
+  border-radius: 999px;
+
+  transform: rotate(-8deg);
+}
+
+.details {
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  border: none;
+
+  border-radius: 18px;
+
+  background: rgba(255,255,255,.14);
+
+  color: white;
+
+  padding: 12px;
+
+  cursor: pointer;
+}
+
+.details strong {
+  display: block;
+  text-align: left;
+  font-size: 13px;
+}
+
+.details span {
+  display: block;
+
+  margin-top: 4px;
+
+  text-align: left;
+
+  font-size: 10px;
+
+  opacity: .9;
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 24px;
+  font-weight: 600;
+
+  color: #ffffff;
+}

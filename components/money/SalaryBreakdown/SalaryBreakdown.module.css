@@ -1,0 +1,376 @@
+.card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px;
+  margin-top: 16px;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #222;
+}
+
+.sectionTitle {
+  margin-top: 14px;
+  padding: 10px 0;
+
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.sectionTitle:first-of-type {
+  margin-top: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  flex: 1;
+
+  font-size: 13px;
+  color: #666;
+  line-height: 1.35;
+}
+
+.amount {
+  flex-shrink: 0;
+
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff4d4f;
+}
+
+.deductionsTitle {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 14px;
+  padding: 12px;
+
+  border: 1px solid #a5a5a5;
+  border-radius: 12px;
+
+  background: #fff;
+  color: #222;
+
+  text-align: left;
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.deductionsArrow {
+  color: #050505;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.modal {
+  width: 100%;
+  max-width: 360px;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  border-radius: 20px;
+  background: #ffffff;
+
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px 18px 14px;
+
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.modalTitle {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+}
+
+.modalClose {
+  display: flex;
+  width: 32px;
+  height: 32px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f4f5f7;
+  color: #777;
+
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modalList {
+  padding: 4px 18px;
+}
+
+.modalRow {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+
+  min-height: 52px;
+
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.modalRow:last-child {
+  border-bottom: none;
+}
+
+.modalLabel {
+  font-size: 14px;
+  color: #555;
+}
+
+.modalAmount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e30613;
+}
+
+.deleteButton {
+  display: flex;
+  width: 28px;
+  height: 28px;
+
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+
+  color: #9ca3af;
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+.emptyState {
+  padding: 30px 18px;
+
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Шапка начислений */
+
+.accrualsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 14px;
+
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.accrualsHeader .sectionTitle {
+  margin-top: 0;
+  border-bottom: none;
+}
+
+/* Кнопка + Премия */
+
+.addPremiumButton {
+  padding: 10px 0;
+
+  border: none;
+  background: transparent;
+
+  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+/* Кликабельная строка доп. премирования */
+
+.premiumRow {
+  width: 100%;
+  box-sizing: border-box;
+
+  border-top: none;
+  border-right: none;
+  border-left: none;
+
+  background: transparent;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.premiumLeft {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+
+  min-width: 0;
+}
+
+.premiumLeft .label {
+  flex: 0 1 auto;
+}
+
+.premiumArrow {
+  flex-shrink: 0;
+
+  color: #666;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.premiumEditor {
+  display: flex;
+  flex-direction: column;
+
+  padding: 8px 14px 14px;
+}
+
+.premiumFieldLabel {
+  margin: 14px 0 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.premiumInput {
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+
+  padding: 0 14px;
+
+  border: 1px solid #d7d7d7;
+  border-radius: 12px;
+
+  background: #fff;
+  color: #222;
+
+  font-family: inherit;
+  font-size: 15px;
+
+  outline: none;
+}
+
+.premiumInput:focus {
+  border-color: #a5a5a5;
+}
+
+.savePremiumButton {
+  width: 100%;
+  height: 48px;
+
+  margin-top: 18px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #e30613;
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s ease;
+}
+
+.savePremiumButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Окно дополнительных премий */
+
+.premiumModalRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-height: 58px;
+
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.premiumModalRow:last-child {
+  border-bottom: none;
+}
+
+.premiumInfo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 10px 0;
+}
+
+.premiumComment {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.35;
+}
+
+.premiumModalAmount {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ff4d4f;
+}

@@ -1,0 +1,31 @@
+.card {
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 18px;
+  margin-top: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 15px;
+  color: #374151;
+}
+
+.divider {
+  height: 1px;
+  background: #ececec;
+  margin: 8px 0;
+}

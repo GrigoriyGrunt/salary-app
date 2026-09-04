@@ -1,0 +1,188 @@
+.calendar {
+  background: #E1E4E8;
+  border-radius: 20px;
+  padding: 12px;
+  margin: 1px 1px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 10px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8a8a8a;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.monthButton {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f6f8;
+  color: #d71920;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.monthButton:hover {
+  background: #eceef2;
+}
+
+.day {
+  height: 62px;
+  background: #ffffff;
+  box-sizing: border-box;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: 0.2s ease;
+  border: none;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+overflow: visible;
+position: relative;
+}
+
+.emptyDay {
+  height: 42px;
+}
+
+.dayNumber {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.dayShift {
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shiftType {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #7b7b7b;
+  letter-spacing: 0.4px;
+}
+
+.shiftIcon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.dayCard {
+  background: #D71920;
+}
+
+.nightCard {
+  background: #8E0E14;
+}
+
+.workedCard {
+  background: #8B8B8B;
+}
+
+.offCard {
+  background: #FFFFFF;
+}
+
+.dayCard .dayNumber,
+.dayCard .shiftType,
+.nightCard .dayNumber,
+.nightCard .shiftType,
+.workedCard .dayNumber,
+.workedCard .shiftType {
+  color: #FFFFFF;
+}
+
+.offCard .dayNumber {
+  color: #1F2937;
+}
+
+.offCard .shiftType {
+  color: #7B7B7B;
+}
+
+.selectedDay.dayCard {
+  width: 45px !important;
+height: 60px !important;
+border: 2px solid #000000 !important;
+border-radius: 90% !important;
+margin: auto;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.selectedDay.nightCard {
+  width: 45px !important;
+height: 60px !important;
+border: 2px solid #000000 !important;
+border-radius: 90% !important;
+margin: auto;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.selectedDay.offCard {
+  border: 2px solid #ff0101 !important;
+  width: 45px !important;
+height: 60px !important;
+border-radius: 90% !important;
+margin: auto;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.selectedDay.workedCard {
+  width: 45px !important;
+  height: 60px !important;
+  border: 2px solid #000000 !important;
+  border-radius: 90% !important;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statusType {
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
+  line-height: 1;
+  margin-top: 2px;
+}

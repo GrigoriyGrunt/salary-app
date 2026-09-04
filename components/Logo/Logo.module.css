@@ -1,0 +1,15 @@
+.logo {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.image {
+  display: block;
+  width: 200px;
+  height: auto;
+  object-fit: contain;
+}
+
+.icon {
+  width: 100px;
+}

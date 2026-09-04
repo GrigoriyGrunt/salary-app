@@ -1,0 +1,346 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+  z-index: 1000;
+}
+
+.sheet {
+  width: 100%;
+  height: 88vh;
+  max-height: 88vh;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  padding: 12px 20px calc(env(safe-area-inset-bottom) + 20px);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.handle {
+  width: 42px;
+  height: 5px;
+
+  background: #d6d6d6;
+  border-radius: 999px;
+
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 18px;
+}
+
+.title {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.headerAction {
+  border: none;
+  background: transparent;
+  padding: 0;
+
+  min-width: 72px;
+
+  color: #d71920;
+  font-size: 16px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.headerAction:first-child {
+  text-align: left;
+}
+
+.headerAction:last-child {
+  text-align: right;
+}
+
+.dateBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 20px 0 14px;
+  margin-top: -20px;
+  border-bottom: 1px solid #ececec;
+}
+
+.dateWeekday {
+  display: inline;
+  font-size: 14px;
+  font-weight: 500;
+  color: #7b7b7b;
+  text-transform: capitalize;
+  margin-right: 8px;
+}
+
+.dateValue {
+  display: inline;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.content {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: visible;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
+}
+
+.label {
+  display: block;
+  margin: 0;
+
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+
+  letter-spacing: 0.2px;
+}
+
+.saveButton {
+  height: 52px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #d71920;
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.selectButton {
+  width: 100%;
+
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 16px;
+
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+}
+
+.selectValue {
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.selectArrow {
+  color: #D71920;
+
+  font-size: 30px;
+  line-height: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.dropdown {
+  position: absolute;
+
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+
+  border: 1px solid #e4e4e7;
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+
+  z-index: 100;
+}
+
+.dropdown button {
+  border: none;
+  background: #ffffff;
+
+  padding: 14px 16px;
+
+  text-align: left;
+
+  font-size: 15px;
+
+  cursor: pointer;
+}
+
+.dropdown button:not(:last-child) {
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.dropdown button:hover {
+  background: #f8f8f8;
+}
+
+.selectWrapper {
+  position: relative;
+}
+
+.radioGroup {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+
+  width: 100%;
+
+  padding: 4px 12px;
+}
+
+.radioItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+
+  padding-left: 26px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+  font-weight: 500;
+  color: #2F3640;
+}
+
+.radioItem input[type="radio"] {
+  width: 18px;
+  height: 18px;
+
+  margin: 0;
+
+  accent-color: #D71920;
+
+  cursor: pointer;
+}
+
+.radioItem input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+
+  margin: 0;
+
+  accent-color: #D71920;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+
+  order: -1;
+}
+
+.input {
+  width: 100%;
+  height: 56px;
+
+  padding: 0 16px;
+
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+
+  background: #F9FAFB;
+
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827;
+
+  outline: none;
+
+  transition: .2s ease;
+}
+
+.input::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+.input:hover {
+  border-color: #D1D5DB;
+}
+
+.input:focus {
+  background: #FFFFFF;
+  border-color: #D71920;
+  box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.12);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+.buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.shiftButton {
+  flex: 1;
+
+  height: 48px;
+
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+
+  background: #FFFFFF;
+
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+
+  cursor: pointer;
+
+  transition: .2s;
+}
+
+.shiftButton:hover {
+  border-color: #D71920;
+}
+
+.active {
+  background: #D71920;
+  border-color: #D71920;
+  color: #FFFFFF;
+}

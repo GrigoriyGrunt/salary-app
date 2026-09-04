@@ -1,0 +1,122 @@
+.card {
+  margin-top: 18px;
+
+  padding: 16px;
+
+  background: #ffffff;
+
+  border-radius: 22px;
+
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.arrows {
+  display: flex;
+  gap: 12px;
+}
+
+.arrow {
+  border: none;
+  background: transparent;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: #e30613;
+
+  cursor: pointer;
+}
+
+.days {
+  display: flex;
+  gap: 8px;
+
+  overflow-x: auto;
+
+  padding-bottom: 6px;
+
+  scrollbar-width: none;
+}
+
+.days::-webkit-scrollbar {
+  display: none;
+}
+
+.dayCard {
+  flex: 0 0 58px;
+
+  padding: 10px 6px;
+
+  border: 1px solid #eceff3;
+  border-radius: 12px;
+
+  text-align: center;
+}
+
+.day {
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #374151;
+}
+
+.week {
+  margin-top: 2px;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #9ca3af;
+}
+
+.amount {
+  margin-top: 10px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #e30613;
+}
+
+.details {
+  width: 100%;
+
+  margin-top: 14px;
+
+  border: none;
+  background: transparent;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  color: #4b5563;
+
+  cursor: pointer;
+}
+
+.details span {
+  color: #e30613;
+  font-size: 18px;
+}

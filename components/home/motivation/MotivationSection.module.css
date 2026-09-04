@@ -1,0 +1,28 @@
+.section {
+  margin-bottom: 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 1px 0;
+  margin-bottom: 28px;
+}
+
+.header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: #e30613;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+}

@@ -1,0 +1,90 @@
+.wrapper {
+  margin-top: 18px;
+
+  padding: 14px;
+
+  background: #ffffff;
+
+  border-radius: 22px;
+
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+.title {
+  margin: 0 0 10px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+.card {
+  padding: 12px;
+
+  background: #ffffff;
+
+  border: 1px solid #eef1f4;
+  border-radius: 16px;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.label {
+  margin-bottom: 8px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #6b7280;
+
+  text-align: center;
+}
+
+.value {
+  font-size: 24px;
+  font-weight: 700;
+
+  color: #e30613;
+
+  text-align: center;
+}
+
+.unit {
+  margin-top: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #6b7280;
+
+  text-align: center;
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-top: 8px;
+}
+
+.dayRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 2px 0;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #374151;
+}

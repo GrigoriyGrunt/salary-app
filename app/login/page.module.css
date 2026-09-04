@@ -1,0 +1,126 @@
+.page {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #f5f6f8;
+
+  padding: clamp(20px, 5vw, 40px);
+}
+
+.container {
+  width: min(92vw, 420px);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logo {
+  width: clamp(260px, 70vw, 420px);
+}
+
+.subtitle {
+  margin-top: 20px;
+
+  text-align: center;
+
+  font-size: clamp(18px, 4vw, 24px);
+  line-height: 1.4;
+  font-weight: 500;
+
+  color: #555555;
+}
+
+.card {
+  width: 100%;
+
+  margin-top: 32px;
+
+  background: #ffffff;
+
+  border-radius: 24px;
+
+  padding: 24px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  cursor: pointer;
+
+  font-size: 15px;
+  color: #555555;
+}
+
+.rememberInput {
+  position: absolute;
+  opacity: 0;
+}
+
+.rememberCheck {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border: 1.5px solid #d7d7d7;
+  border-radius: 7px;
+
+  color: transparent;
+
+  transition: 0.2s ease;
+}
+
+.rememberInput:checked + .rememberCheck {
+  background: #d71920;
+  border-color: #d71920;
+
+  color: #ffffff;
+}
+
+.rememberText {
+  line-height: 1;
+}
+
+.codeInputWrapper {
+  position: relative;
+
+  width: 100%;
+}
+
+.codeInputWrapper input {
+  padding-right: 50px;
+}
+
+.eyeButton {
+  position: absolute;
+
+  top: 50%;
+  right: 14px;
+
+  transform: translateY(-50%);
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}

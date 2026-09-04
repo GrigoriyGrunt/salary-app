@@ -1,0 +1,39 @@
+.card {
+  flex: 1;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  padding: 4px;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+
+  display: flex;
+align-items: center;
+justify-content: flex-start;
+gap: 14px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.content strong {
+  font-size: 13px;
+  color: #222;
+  line-height: 1.2;
+}
+
+.content span {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #777;
+}

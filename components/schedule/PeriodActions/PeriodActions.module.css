@@ -1,0 +1,33 @@
+.periodActions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 76px;
+  margin-top: -2px;
+  margin-bottom: -6px;
+  padding: 0 4px;
+}
+
+.periodAction {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  background: transparent;
+  border: none;
+  padding: 0;
+
+  cursor: pointer;
+
+  color: #1F2937;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.plus {
+  color: #D71920;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}

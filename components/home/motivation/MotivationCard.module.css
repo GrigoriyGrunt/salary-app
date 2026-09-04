@@ -1,0 +1,105 @@
+.card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,.06);
+  margin-top: -16px;
+}
+
+.label {
+  display: block;
+
+  font-size: 10px;
+  line-height: 1.2;
+
+  color: #888;
+
+  margin-bottom: 3px;
+}
+
+.value {
+  margin-top: auto;
+  padding-top: 6px;
+
+  display: block;
+
+  text-align: center;
+
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.notice {
+  width: 100%;
+
+  margin-top: 1px;
+
+  text-align: center;
+
+  font-size: 11px;
+  line-height: 1;
+
+  color: #444;
+}
+
+.notice strong {
+  font-size: 18px;
+  color: #e30613;
+}
+
+.stats {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.statCard {
+  background: #fafafa;
+  border-radius: 10px;
+
+  padding: 8px;
+
+  min-height: 58px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.info {
+  width: 100%;
+
+  margin-top: -6px;
+
+  text-align: center;
+
+  font-size: 11px;
+
+  color: #777;
+}
+
+.goalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  margin-bottom: 4px;
+}
+
+.goalCenter {
+  display: block;
+
+  margin-top: 6px;
+
+  text-align: center;
+
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}

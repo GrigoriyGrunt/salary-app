@@ -1,0 +1,102 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+
+  gap: 16px;
+
+  padding: 12px 0;
+}
+
+.title {
+  margin: 0;
+
+  text-align: center;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #6b7280;
+}
+
+.field input {
+  width: 100%;
+
+  padding: 12px 14px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+
+  outline: none;
+
+  font-size: 16px;
+}
+
+.button {
+  margin-top: 8px;
+
+  height: 48px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #e30613;
+
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.inputWrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+}
+
+.inputWrapper input {
+  width: 100%;
+}
+
+.clearButton {
+  position: absolute;
+
+  right: 12px;
+
+  width: 28px;
+  height: 28px;
+
+  border: none;
+  background: transparent;
+
+  color: #9ca3af;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clearButton:hover {
+  color: #374151;
+}

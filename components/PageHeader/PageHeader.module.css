@@ -1,0 +1,289 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 16px) 20px;
+  margin: 0 12px 12px;
+  margin-top: 0;
+    background: #f5f6f8;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: #111827;
+  text-decoration: none;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.greeting {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+}
+
+.date {
+  margin-top: 1px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8a8a8a;
+}
+
+.notification {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 16px;
+
+  background: #f5f6f8;
+
+  cursor: pointer;
+  padding: 0;
+
+  position: absolute;
+  top: 42px;
+  right: 18px;
+}
+
+.notificationWrapper {
+  position: absolute;
+
+  top: 50%;
+  right: 18px;
+
+  transform: translateY(-110%);
+
+  z-index: 200;
+
+  width: 48px;
+  height: 48px;
+}
+
+.title :global(img) {
+  width: 30px;
+  height: 30px;
+}
+
+.title span {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.right {
+  width: 40px;
+}
+
+.homeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  padding-top: max(env(safe-area-inset-top), 1px);
+  padding-left: 18px;
+  padding-right: 18px;
+  padding-bottom: 14px;
+
+  position: relative;
+}
+
+.homeLeft {
+  display: flex;
+  flex-direction: column;
+  padding-top: 18px;
+}
+
+.homeTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+}
+
+.badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+
+  min-width: 18px;
+  height: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 5px;
+
+  border-radius: 999px;
+
+  background: #e31b23;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  border: 2px solid #f5f6f8;
+}
+
+.notificationPanel {
+  position: absolute;
+  top: 90px;
+  right: 0;
+
+  width: min(
+    340px,
+    calc(100vw - 24px)
+  );
+
+  background: #ffffff;
+  border-radius: 18px;
+
+  box-shadow:
+    0 12px 32px
+    rgba(0, 0, 0, 0.14);
+
+  overflow: hidden;
+  z-index: 201;
+}
+
+.notificationCard {
+  padding: 18px;
+}
+
+.notificationCard h3 {
+  margin: 0 0 12px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.notificationCard p {
+  margin: 0 0 10px;
+
+  font-size: 13px;
+  line-height: 1.45;
+
+  color: #4b5563;
+}
+
+.notificationCard p:last-child {
+  margin-bottom: 0;
+}
+
+.notificationWarning {
+  padding-top: 10px;
+
+  border-top:
+    1px solid #eeeeee;
+
+  color: #e31b23 !important;
+}
+
+.emptyNotifications {
+  padding: 18px;
+
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+.shiftNotificationCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 16px 18px;
+
+  font-size: 13px;
+  line-height: 1.45;
+
+  color: #374151;
+
+  border-top: 1px solid #eeeeee;
+}
+
+.shiftNotificationIcon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.shiftNotificationCard strong {
+  color: #111827;
+}
+
+.notificationCard,
+.shiftNotificationCard {
+  position: relative;
+}
+
+.notificationClose {
+  position: absolute;
+
+  top: 10px;
+  right: 4px;
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #8a8a8a;
+
+  cursor: pointer;
+}
+
+.notificationClose:hover {
+  background: #f3f4f6;
+
+  color: #111827;
+}
+
+.addPaymentButton {
+  width: 100%;
+
+  margin-top: 12px;
+
+  padding: 10px 14px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #e30613;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
