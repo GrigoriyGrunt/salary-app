@@ -2,6 +2,17 @@
 
 ```
 salary-app
+├── .windsurf
+│   └── skills
+│       ├── prisma-cli
+│       ├── prisma-client-api
+│       ├── prisma-compute
+│       ├── prisma-database-setup
+│       ├── prisma-driver-adapter-implementation
+│       ├── prisma-mongodb-upgrade
+│       ├── prisma-postgres
+│       ├── prisma-postgres-setup
+│       └── prisma-upgrade-v7
 ├── app
 │   ├── hire-date
 │   │   ├── page.module.css
@@ -185,6 +196,27 @@ salary-app
 │   ├── project-structure.md
 │   └── roadmap.md
 ├── lib
+│   ├── generated
+│   │   └── prisma
+│   │       ├── internal
+│   │       │   ├── class.ts
+│   │       │   ├── prismaNamespace.ts
+│   │       │   └── prismaNamespaceBrowser.ts
+│   │       ├── models
+│   │       │   ├── Deduction.ts
+│   │       │   ├── DismissedNotification.ts
+│   │       │   ├── FinanceSettings.ts
+│   │       │   ├── OriginalMainShift.ts
+│   │       │   ├── Payment.ts
+│   │       │   ├── Premium.ts
+│   │       │   ├── ScheduleChange.ts
+│   │       │   ├── Shift.ts
+│   │       │   └── User.ts
+│   │       ├── browser.ts
+│   │       ├── client.ts
+│   │       ├── commonInputTypes.ts
+│   │       ├── enums.ts
+│   │       └── models.ts
 │   ├── applyScheduleChanges.ts
 │   ├── buildSegment.ts
 │   ├── dateUtils.ts
@@ -197,10 +229,17 @@ salary-app
 │   ├── getPaymentNotifications.ts
 │   ├── getScheduleNotification.ts
 │   ├── getShiftNotifications.ts
+│   ├── prisma.ts
 │   ├── profile.ts
 │   ├── storage.ts
 │   ├── theme.ts
 │   └── validateShifts.ts
+├── prisma
+│   ├── migrations
+│   │   ├── 20260904234729_init
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   └── schema.prisma
 ├── public
 │   ├── images
 │   │   ├── icons
@@ -240,6 +279,7 @@ salary-app
 ├── types
 │   ├── schedule.ts
 │   └── user.ts
+├── .env
 ├── .gitignore
 ├── AGENTS.md
 ├── CLAUDE.md
@@ -250,6 +290,7 @@ salary-app
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.mjs
+├── prisma7.config.ts
 ├── README.md
 └── tsconfig.json
 

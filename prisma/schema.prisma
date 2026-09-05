@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  admin
+  employee
+}
+
+model User {
+  id               String   @id @default(cuid())
+
+  lastName         String
+  firstName        String
+  middleName       String
+
+  login            String   @unique
+  accessCodeHash   String
+
+  role             UserRole @default(employee)
+  isSetupCompleted Boolean  @default(false)
+
+  warehouse        String   @default("")
+  position         String   @default("")
+  schedule         String   @default("")
+  hireDate         String   @default("")
+
+  firstShiftDate   String   @default("")
+  firstShiftType   String   @default("")
+
+  secondShiftDate  String   @default("")
+  secondShiftType  String   @default("")
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  scheduleChanges        ScheduleChange[]
+  shifts                 Shift[]
+  originalMainShifts     OriginalMainShift[]
+  financeSettings        FinanceSettings?
+  payments               Payment[]
+  deductions             Deduction[]
+  premiums               Premium[]
+  dismissedNotifications DismissedNotification[]
+}
+
+model ScheduleChange {
+  id              String   @id @default(cuid())
+
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  changeDate      DateTime
+  schedule        String
+
+  firstShiftDate  String?
+  firstShiftType  String?
+
+  secondShiftDate String?
+  secondShiftType String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId, changeDate])
+}
+
+model Shift {
+  id                     String   @id @default(cuid())
+
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date                   DateTime
+
+  type                   String
+  workType               String?
+  status                 String?
+
+  workZone               String?
+
+  salaryHours            Float    @default(0)
+  baseHours              Float    @default(0)
+  tobaccoHours           Float    @default(0)
+
+  boxes                  Float    @default(0)
+  blocks                 Float    @default(0)
+  nonProfileHours        Float    @default(0)
+
+  mentor                 Boolean  @default(false)
+
+  transitionDistribution Json?
+
+  isWorked               Boolean  @default(false)
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model OriginalMainShift {
+  id       String @id @default(cuid())
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  monthKey String
+  count    Int
+
+  @@unique([userId, monthKey])
+}
+
+model FinanceSettings {
+  id           String @id @default(cuid())
+
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  totalSalary  Float  @default(0)
+
+  goal         Float  @default(0)
+  goalMonthKey String?
+}
+
+model Payment {
+  id       String @id
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date     String
+  type     String
+  amount   String
+  monthKey String
+
+  @@index([userId, monthKey])
+}
+
+model Deduction {
+  id       String @id
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type     String
+  amount   String
+  monthKey String
+
+  @@index([userId, monthKey])
+}
+
+model Premium {
+  id       String @id
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount   String
+  comment  String
+  monthKey String
+
+  @@index([userId, monthKey])
+}
+
+model DismissedNotification {
+  id             String @id @default(cuid())
+
+  userId         String
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notificationId String
+
+  @@unique([userId, notificationId])
+}

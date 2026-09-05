@@ -7,12 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-"structure": "node scripts/generate-structure.js"
+    "structure": "node scripts/generate-structure.js",
+    "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.25.0",
     "next": "16.2.9",
+    "pg": "^8.23.0",
+    "prisma": "^7.10.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zustand": "^5.0.14"
