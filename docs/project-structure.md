@@ -2,18 +2,10 @@
 
 ```
 salary-app
-├── .windsurf
-│   └── skills
-│       ├── prisma-cli
-│       ├── prisma-client-api
-│       ├── prisma-compute
-│       ├── prisma-database-setup
-│       ├── prisma-driver-adapter-implementation
-│       ├── prisma-mongodb-upgrade
-│       ├── prisma-postgres
-│       ├── prisma-postgres-setup
-│       └── prisma-upgrade-v7
 ├── app
+│   ├── api
+│   │   └── users
+│   │       └── route.ts
 │   ├── hire-date
 │   │   ├── page.module.css
 │   │   └── page.tsx
