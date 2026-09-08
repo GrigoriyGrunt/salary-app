@@ -168,27 +168,49 @@ try {
     return;
   }
 
-  const response = await fetch("/api/users", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: currentUser.id,
-        firstShiftDate: firstDate.toISOString(),
-        secondShiftDate: secondDate.toISOString(),
-        firstShiftType: resolvedFirstShift,
-        secondShiftType: resolvedSecondShift,
-        isSetupCompleted: true,
-      }),
-    });
+  const rememberLogin =
+  localStorage.getItem("rememberLogin") === "true";
 
-    if (!response.ok) {
-      alert("Не удалось сохранить настройки смен");
-      return;
-    }
+const response = await fetch(
+  "/api/auth/complete-setup",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      firstShiftDate:
+        firstDate.toISOString(),
 
-    updateUser(currentUser.id, {
+      secondShiftDate:
+        secondDate.toISOString(),
+
+      firstShiftType:
+        resolvedFirstShift,
+
+      secondShiftType:
+        resolvedSecondShift,
+
+      rememberLogin,
+    }),
+  }
+);
+
+if (!response.ok) {
+  alert("Не удалось сохранить настройки смен");
+  return;
+}
+
+const completeSetupData = await response.json();
+
+if (
+  rememberLogin &&
+  completeSetupData.sessionExpiresAt
+) {
+  localStorage.removeItem("loginExpiresAt");
+}
+
+updateUser(currentUser.id, {
       firstShiftDate: firstDate.toISOString(),
       secondShiftDate: secondDate.toISOString(),
       firstShiftType: resolvedFirstShift,

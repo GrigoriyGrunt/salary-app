@@ -4,15 +4,33 @@ import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE_NAME = "salary_app_session";
 
-const SESSION_DURATION =
+const TEMPORARY_SESSION_DURATION =
+  5 * 60 * 1000;
+
+const REMEMBERED_SESSION_DURATION =
   30 * 24 * 60 * 60 * 1000;
 
-export async function createSession(
-  userId: string
+type SessionDuration =
+  | "temporary"
+  | "remembered";
+
+function getSessionExpiresAt(
+  duration: SessionDuration
 ) {
-  const expiresAt = new Date(
-    Date.now() + SESSION_DURATION
-  );
+  const durationMs =
+    duration === "remembered"
+      ? REMEMBERED_SESSION_DURATION
+      : TEMPORARY_SESSION_DURATION;
+
+  return new Date(Date.now() + durationMs);
+}
+
+export async function createSession(
+  userId: string,
+  duration: SessionDuration
+) {
+  const expiresAt =
+    getSessionExpiresAt(duration);
 
   const session =
     await prisma.session.create({
@@ -41,7 +59,7 @@ export async function createSession(
   return session;
 }
 
-export async function getCurrentUser() {
+export async function getCurrentSession() {
   const cookieStore = await cookies();
 
   const sessionId =
@@ -84,7 +102,57 @@ export async function getCurrentUser() {
     return null;
   }
 
-  return session.user;
+  return session;
+}
+
+export async function getCurrentUser() {
+  const session =
+    await getCurrentSession();
+
+  return session?.user ?? null;
+}
+
+export async function extendCurrentSession() {
+  const session =
+    await getCurrentSession();
+
+  if (!session) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  const expiresAt =
+    getSessionExpiresAt("remembered");
+
+  const updatedSession =
+    await prisma.session.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        expiresAt,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+  const cookieStore = await cookies();
+
+  cookieStore.set(
+    SESSION_COOKIE_NAME,
+    updatedSession.id,
+    {
+      httpOnly: true,
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+      sameSite: "lax",
+      expires: expiresAt,
+      path: "/",
+    }
+  );
+
+  return updatedSession;
 }
 
 export async function deleteCurrentSession() {

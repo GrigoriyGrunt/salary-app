@@ -5,6 +5,8 @@ salary-app
 ├── app
 │   ├── api
 │   │   ├── auth
+│   │   │   ├── complete-setup
+│   │   │   │   └── route.ts
 │   │   │   ├── login
 │   │   │   │   └── route.ts
 │   │   │   └── logout
@@ -301,7 +303,6 @@ salary-app
 ├── postcss.config.mjs
 ├── prisma7.config.ts
 ├── README.md
-├── salary-app.zip
 └── tsconfig.json
 
 ```

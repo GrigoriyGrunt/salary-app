@@ -8,7 +8,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { login, accessCode } = body;
+    const {
+      login,
+      accessCode,
+      rememberLogin,
+    } = body;
 
     if (!login || !accessCode) {
       return NextResponse.json(
@@ -60,8 +64,22 @@ export async function POST(request: Request) {
         }
       );
     }
-    await createSession(user.id);
+
+    const sessionDuration =
+      !user.isSetupCompleted
+        ? "temporary"
+        : rememberLogin
+          ? "remembered"
+          : "temporary";
+
+    const session = await createSession(
+  user.id,
+  sessionDuration
+);
+
     return NextResponse.json({
+      sessionExpiresAt:
+  session.expiresAt.toISOString(),
       id: user.id,
 
       lastName: user.lastName,

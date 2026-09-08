@@ -69,6 +69,38 @@ export default function AuthGuard({
       "/hire-date",
       "/next-shift",
     ];
+    const expireSession = async () => {
+  if (setupInProgress) {
+    try {
+      await fetch("/api/users/reset", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error(
+        "Failed to reset unfinished setup:",
+        error
+      );
+    }
+
+    resetUser(currentUser.id);
+    clearSchedule();
+    clearFinance();
+  }
+
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+  } catch (error) {
+    console.error(
+      "Failed to logout:",
+      error
+    );
+  }
+
+  clearSession();
+  router.replace("/splash");
+};
 
     if (
       setupInProgress &&
@@ -92,29 +124,15 @@ export default function AuthGuard({
     }
 
     if (!loginExpiresAt || Date.now() >= loginExpiresAt) {
-      if (setupInProgress) {
-        resetUser(currentUser.id);
-        clearSchedule();
-        clearFinance();
-      }
-
-      clearSession();
-      router.replace("/splash");
-      return;
-    }
+  void expireSession();
+  return;
+}
 
     allowPage();
 
     const timeout = window.setTimeout(() => {
-      if (setupInProgress) {
-        resetUser(currentUser.id);
-        clearSchedule();
-        clearFinance();
-      }
-
-      clearSession();
-      router.replace("/splash");
-    }, loginExpiresAt - Date.now());
+  void expireSession();
+}, loginExpiresAt - Date.now());
 
     return () => {
       window.clearTimeout(timeout);

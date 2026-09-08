@@ -60,9 +60,10 @@ const setScheduleCurrentUser =
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        login: login.trim(),
-        accessCode: code,
-      }),
+  login: login.trim(),
+  accessCode: code,
+  rememberLogin,
+}),
     });
 
     if (!response.ok) {
@@ -70,12 +71,17 @@ const setScheduleCurrentUser =
       return;
     }
 
-    const serverUser = await response.json();
+    const loginData = await response.json();
 
-    const user = {
-      ...serverUser,
-      accessCode: "",
-    };
+const {
+  sessionExpiresAt,
+  ...serverUser
+} = loginData;
+
+const user = {
+  ...serverUser,
+  accessCode: "",
+};
 
     setCurrentUserFromServer(user);
 
@@ -159,18 +165,17 @@ setNotificationCurrentUser(user.id);
       !isProfileConfigured || !rememberLogin;
 
     if (needsTemporarySession) {
-      const expiresAt =
-        Date.now() + 5 * 60 * 1000;
-
-      localStorage.setItem(
-        "loginExpiresAt",
-        String(expiresAt)
-      );
-    } else {
-      localStorage.removeItem(
-        "loginExpiresAt"
-      );
-    }
+  localStorage.setItem(
+    "loginExpiresAt",
+    String(
+      new Date(sessionExpiresAt).getTime()
+    )
+  );
+} else {
+  localStorage.removeItem(
+    "loginExpiresAt"
+  );
+}
 
     if (isProfileConfigured) {
       router.push("/");
