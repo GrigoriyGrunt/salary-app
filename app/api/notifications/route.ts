@@ -1,28 +1,19 @@
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import {
+  getAuthErrorResponse,
+  requireUser,
+} from "@/lib/auth";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Не указан ID пользователя",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    const user = await requireUser();
 
     const notifications =
       await prisma.dismissedNotification.findMany({
         where: {
-          userId,
+          userId: user.id,
         },
         select: {
           notificationId: true,
@@ -36,6 +27,13 @@ export async function GET(request: Request) {
       ),
     });
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to get dismissed notifications:",
       error
@@ -57,15 +55,13 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const {
-      userId,
       notificationId,
     } = body;
 
-    if (!userId || !notificationId) {
+    if (!notificationId) {
       return NextResponse.json(
         {
-          error:
-            "Не указан пользователь или уведомление",
+          error: "Не указано уведомление",
         },
         {
           status: 400,
@@ -73,16 +69,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const user = await requireUser();
+
     await prisma.dismissedNotification.upsert({
       where: {
         userId_notificationId: {
-          userId,
+          userId: user.id,
           notificationId,
         },
       },
       update: {},
       create: {
-        userId,
+        userId: user.id,
         notificationId,
       },
     });
@@ -91,6 +89,13 @@ export async function POST(request: Request) {
       success: true,
     });
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to dismiss notification:",
       error

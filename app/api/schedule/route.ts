@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
+import {
+  getAuthErrorResponse,
+  requireUser,
+} from "@/lib/auth";
 
 function normalizeDate(date: string | Date) {
   const value = new Date(date);
@@ -13,37 +18,27 @@ function normalizeDate(date: string | Date) {
   );
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const userId = request.nextUrl.searchParams.get("userId");
+    const user = await requireUser();
 
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Не указан userId",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    const [shifts, originalMainShifts] =
+      await Promise.all([
+        prisma.shift.findMany({
+          where: {
+            userId: user.id,
+          },
+          orderBy: {
+            date: "asc",
+          },
+        }),
 
-    const [shifts, originalMainShifts] = await Promise.all([
-      prisma.shift.findMany({
-        where: {
-          userId,
-        },
-        orderBy: {
-          date: "asc",
-        },
-      }),
-
-      prisma.originalMainShift.findMany({
-        where: {
-          userId,
-        },
-      }),
-    ]);
+        prisma.originalMainShift.findMany({
+          where: {
+            userId: user.id,
+          },
+        }),
+      ]);
 
     const originalMainShiftsByMonth =
       Object.fromEntries(
@@ -58,6 +53,13 @@ export async function GET(request: NextRequest) {
       originalMainShiftsByMonth,
     });
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to get schedule:",
       error
@@ -74,12 +76,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest
+) {
   try {
+    const user = await requireUser();
+
     const body = await request.json();
 
     const {
-      userId,
       date,
       type,
       workType,
@@ -96,10 +101,10 @@ export async function PATCH(request: NextRequest) {
       isWorked,
     } = body;
 
-    if (!userId || !date) {
+    if (!date) {
       return NextResponse.json(
         {
-          error: "Не указан userId или date",
+          error: "Не указана date",
         },
         {
           status: 400,
@@ -112,7 +117,7 @@ export async function PATCH(request: NextRequest) {
     const shift = await prisma.shift.upsert({
       where: {
         userId_date: {
-          userId,
+          userId: user.id,
           date: normalizedDate,
         },
       },
@@ -134,13 +139,13 @@ export async function PATCH(request: NextRequest) {
         mentor,
 
         transitionDistribution:
-  transitionDistribution ?? null,
+          transitionDistribution ?? null,
 
         isWorked,
       },
 
       create: {
-        userId,
+        userId: user.id,
         date: normalizedDate,
 
         type,
@@ -159,7 +164,7 @@ export async function PATCH(request: NextRequest) {
         mentor,
 
         transitionDistribution:
-  transitionDistribution ?? null,
+          transitionDistribution ?? null,
 
         isWorked,
       },
@@ -167,6 +172,13 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(shift);
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to save shift:",
       error
@@ -183,26 +195,18 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest
+) {
   try {
+    const user = await requireUser();
+
     const body = await request.json();
 
     const {
-      userId,
       shifts,
       originalMainShiftsByMonth,
     } = body;
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Не указан userId",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
 
     if (!Array.isArray(shifts)) {
       return NextResponse.json(
@@ -218,14 +222,13 @@ export async function POST(request: NextRequest) {
     await prisma.$transaction(
       async (tx) => {
         for (const shift of shifts) {
-          const normalizedDate = normalizeDate(
-            shift.date
-          );
+          const normalizedDate =
+            normalizeDate(shift.date);
 
           await tx.shift.upsert({
             where: {
               userId_date: {
-                userId,
+                userId: user.id,
                 date: normalizedDate,
               },
             },
@@ -265,7 +268,7 @@ export async function POST(request: NextRequest) {
             },
 
             create: {
-              userId,
+              userId: user.id,
               date: normalizedDate,
 
               type: shift.type,
@@ -317,7 +320,7 @@ export async function POST(request: NextRequest) {
             await tx.originalMainShift.upsert({
               where: {
                 userId_monthKey: {
-                  userId,
+                  userId: user.id,
                   monthKey,
                 },
               },
@@ -327,7 +330,7 @@ export async function POST(request: NextRequest) {
               },
 
               create: {
-                userId,
+                userId: user.id,
                 monthKey,
                 count: Number(count),
               },
@@ -341,6 +344,13 @@ export async function POST(request: NextRequest) {
       success: true,
     });
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to save schedule:",
       error

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useShiftEditor } from "@/components/common/ShiftEditorProvider/ShiftEditorProvider";
 import { useScheduleStore } from "@/store/scheduleStore";
@@ -64,9 +64,14 @@ export default function DailyStatistics({
   const [showDetails, setShowDetails] =
     useState(false);
 
+  const daysRef = useRef<HTMLDivElement>(null);
+
   const today = new Date();
 
 today.setHours(0, 0, 0, 0);
+
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth();
 
 const weekDays = [
   "Вс",
@@ -159,6 +164,36 @@ const days = Array.from(
   }
 );
 
+  useEffect(() => {
+    const daysElement = daysRef.current;
+
+    const isCurrentMonth =
+      selectedDate.getFullYear() === todayYear &&
+      selectedDate.getMonth() === todayMonth;
+
+    if (!daysElement || !isCurrentMonth) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const todayElement = daysElement.querySelector<HTMLElement>(
+        '[data-today="true"]'
+      );
+
+      if (!todayElement) {
+        return;
+      }
+
+      daysElement.scrollLeft = Math.max(
+        0,
+        todayElement.offsetLeft -
+          (daysElement.clientWidth - todayElement.offsetWidth) / 2
+      );
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectedDate, todayYear, todayMonth]);
+
   const selectedShift = shifts.find((shift) =>
     isSameDay(
       new Date(shift.date),
@@ -174,10 +209,11 @@ const days = Array.from(
         </h2>
       </div>
 
-      <div className={styles.days}>
+      <div className={styles.days} ref={daysRef}>
         {days.map((item) => (
           <div
             key={item.date.toISOString()}
+            data-today={isSameDay(item.date, today)}
             className={`${styles.day} ${
               item.active
                 ? styles.active

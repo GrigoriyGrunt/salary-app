@@ -5,7 +5,9 @@ salary-app
 ├── app
 │   ├── api
 │   │   ├── auth
-│   │   │   └── login
+│   │   │   ├── login
+│   │   │   │   └── route.ts
+│   │   │   └── logout
 │   │   │       └── route.ts
 │   │   ├── finance
 │   │   │   └── route.ts
@@ -213,6 +215,7 @@ salary-app
 │   │       │   ├── Payment.ts
 │   │       │   ├── Premium.ts
 │   │       │   ├── ScheduleChange.ts
+│   │       │   ├── Session.ts
 │   │       │   ├── Shift.ts
 │   │       │   └── User.ts
 │   │       ├── browser.ts
@@ -221,6 +224,7 @@ salary-app
 │   │       ├── enums.ts
 │   │       └── models.ts
 │   ├── applyScheduleChanges.ts
+│   ├── auth.ts
 │   ├── buildSegment.ts
 │   ├── dateUtils.ts
 │   ├── detectShiftPosition.ts
@@ -240,6 +244,8 @@ salary-app
 ├── prisma
 │   ├── migrations
 │   │   ├── 20260904234729_init
+│   │   │   └── migration.sql
+│   │   ├── 20260908024123_add_sessions
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma
@@ -295,6 +301,7 @@ salary-app
 ├── postcss.config.mjs
 ├── prisma7.config.ts
 ├── README.md
+├── salary-app.zip
 └── tsconfig.json
 
 ```

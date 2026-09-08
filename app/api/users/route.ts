@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
+import {
+  getAuthErrorResponse,
+  requireAdmin,
+  requireUser,
+} from "@/lib/auth";
 
 const userSelect = {
   id: true,
@@ -26,12 +31,20 @@ const userSelect = {
   secondShiftDate: true,
   secondShiftType: true,
 
+  scheduleChanges: {
+    orderBy: {
+      changeDate: "asc",
+    },
+  },
+
   createdAt: true,
   updatedAt: true,
 } as const;
 
 export async function GET() {
   try {
+    await requireAdmin();
+
     const users = await prisma.user.findMany({
       orderBy: {
         createdAt: "asc",
@@ -41,11 +54,22 @@ export async function GET() {
 
     return NextResponse.json(users);
   } catch (error) {
-    console.error("Failed to get users:", error);
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
+    console.error(
+      "Failed to get users:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Не удалось получить пользователей",
+        error:
+          "Не удалось получить пользователей",
       },
       {
         status: 500,
@@ -54,8 +78,12 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(
+  request: Request
+) {
   try {
+    await requireAdmin();
+
     const body = await request.json();
 
     const {
@@ -64,7 +92,6 @@ export async function POST(request: Request) {
       middleName,
       login,
       accessCode,
-      role = "employee",
     } = body;
 
     if (
@@ -76,7 +103,8 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          error: "Не заполнены обязательные поля",
+          error:
+            "Не заполнены обязательные поля",
         },
         {
           status: 400,
@@ -84,16 +112,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: {
-        login,
-      },
-    });
+    const existingUser =
+      await prisma.user.findUnique({
+        where: {
+          login,
+        },
+      });
 
     if (existingUser) {
       return NextResponse.json(
         {
-          error: "Пользователь с таким логином уже существует",
+          error:
+            "Пользователь с таким логином уже существует",
         },
         {
           status: 409,
@@ -101,7 +131,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const accessCodeHash = await bcrypt.hash(accessCode, 10);
+    const accessCodeHash =
+      await bcrypt.hash(accessCode, 10);
 
     const user = await prisma.user.create({
       data: {
@@ -112,20 +143,34 @@ export async function POST(request: Request) {
         login,
         accessCodeHash,
 
-        role,
+        role: "employee",
       },
       select: userSelect,
     });
 
-    return NextResponse.json(user, {
-      status: 201,
-    });
+    return NextResponse.json(
+      user,
+      {
+        status: 201,
+      }
+    );
   } catch (error) {
-    console.error("Failed to create user:", error);
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
+    console.error(
+      "Failed to create user:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Не удалось создать пользователя",
+        error:
+          "Не удалось создать пользователя",
       },
       {
         status: 500,
@@ -134,8 +179,13 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(
+  request: Request
+) {
   try {
+    const currentUser =
+      await requireUser();
+
     const body = await request.json();
 
     const {
@@ -161,12 +211,14 @@ export async function PATCH(request: Request) {
       secondShiftType,
 
       isSetupCompleted,
+      scheduleChanges,
     } = body;
 
     if (!id) {
       return NextResponse.json(
         {
-          error: "Не указан ID пользователя",
+          error:
+            "Не указан ID пользователя",
         },
         {
           status: 400,
@@ -174,17 +226,40 @@ export async function PATCH(request: Request) {
       );
     }
 
-    if (login) {
-      const existingUser = await prisma.user.findUnique({
-        where: {
-          login,
-        },
-      });
+    const isOwnProfile =
+      id === currentUser.id;
 
-      if (existingUser && existingUser.id !== id) {
+    const isAdmin =
+      currentUser.role === "admin";
+
+    if (!isOwnProfile && !isAdmin) {
+      return NextResponse.json(
+        {
+          error:
+            "Недостаточно прав",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    if (login) {
+      const existingUser =
+        await prisma.user.findUnique({
+          where: {
+            login,
+          },
+        });
+
+      if (
+        existingUser &&
+        existingUser.id !== id
+      ) {
         return NextResponse.json(
           {
-            error: "Пользователь с таким логином уже существует",
+            error:
+              "Пользователь с таким логином уже существует",
           },
           {
             status: 409,
@@ -211,55 +286,79 @@ export async function PATCH(request: Request) {
       data.login = login;
     }
 
-    if (role !== undefined) {
-  data.role = role;
-}
+    if (
+      role !== undefined &&
+      isAdmin
+    ) {
+      data.role = role;
+    }
 
     if (accessCode) {
-  if (oldAccessCode !== undefined) {
-    const currentUser = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        accessCodeHash: true,
-      },
-    });
-
-    if (!currentUser) {
-      return NextResponse.json(
-        {
-          error: "Пользователь не найден",
-        },
-        {
-          status: 404,
+      if (
+        isOwnProfile &&
+        !isAdmin
+      ) {
+        if (
+          oldAccessCode === undefined
+        ) {
+          return NextResponse.json(
+            {
+              error:
+                "Не указан старый код",
+            },
+            {
+              status: 400,
+            }
+          );
         }
-      );
-    }
 
-    const isOldCodeCorrect =
-      await bcrypt.compare(
-        oldAccessCode,
-        currentUser.accessCodeHash
-      );
+        const userForCode =
+          await prisma.user.findUnique({
+            where: {
+              id: currentUser.id,
+            },
+            select: {
+              accessCodeHash: true,
+            },
+          });
 
-    if (!isOldCodeCorrect) {
-      return NextResponse.json(
-        {
-          error: "Старый код введён неверно",
-        },
-        {
-          status: 400,
+        if (!userForCode) {
+          return NextResponse.json(
+            {
+              error:
+                "Пользователь не найден",
+            },
+            {
+              status: 404,
+            }
+          );
         }
-      );
-    }
-  }
 
-  data.accessCodeHash = await bcrypt.hash(
-    accessCode,
-    10
-  );
-}
+        const isOldCodeCorrect =
+          await bcrypt.compare(
+            oldAccessCode,
+            userForCode.accessCodeHash
+          );
+
+        if (!isOldCodeCorrect) {
+          return NextResponse.json(
+            {
+              error:
+                "Старый код введён неверно",
+            },
+            {
+              status: 400,
+            }
+          );
+        }
+      }
+
+      data.accessCodeHash =
+        await bcrypt.hash(
+          accessCode,
+          10
+        );
+    }
 
     if (warehouse !== undefined) {
       data.warehouse = warehouse;
@@ -277,41 +376,125 @@ export async function PATCH(request: Request) {
       data.hireDate = hireDate;
     }
 
-    if (firstShiftDate !== undefined) {
-      data.firstShiftDate = firstShiftDate;
+    if (
+      firstShiftDate !== undefined
+    ) {
+      data.firstShiftDate =
+        firstShiftDate;
     }
 
-    if (firstShiftType !== undefined) {
-      data.firstShiftType = firstShiftType;
+    if (
+      firstShiftType !== undefined
+    ) {
+      data.firstShiftType =
+        firstShiftType;
     }
 
-    if (secondShiftDate !== undefined) {
-      data.secondShiftDate = secondShiftDate;
+    if (
+      secondShiftDate !== undefined
+    ) {
+      data.secondShiftDate =
+        secondShiftDate;
     }
 
-    if (secondShiftType !== undefined) {
-      data.secondShiftType = secondShiftType;
+    if (
+      secondShiftType !== undefined
+    ) {
+      data.secondShiftType =
+        secondShiftType;
     }
 
-    if (isSetupCompleted !== undefined) {
-      data.isSetupCompleted = isSetupCompleted;
+    if (
+      isSetupCompleted !== undefined
+    ) {
+      data.isSetupCompleted =
+        isSetupCompleted;
     }
 
-    const user = await prisma.user.update({
-      where: {
-        id,
-      },
-      data,
-      select: userSelect,
-    });
+    if (
+      scheduleChanges !== undefined
+    ) {
+      if (
+        !Array.isArray(
+          scheduleChanges
+        )
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Некорректные изменения графика",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      data.scheduleChanges = {
+        deleteMany: {},
+        create: scheduleChanges.map(
+          (change) => ({
+            changeDate:
+              new Date(
+                change.changeDate
+              ),
+
+            schedule:
+              change.schedule,
+
+            firstShiftDate:
+              change.firstShiftDate
+                ? new Date(
+                    change.firstShiftDate
+                  ).toISOString()
+                : null,
+
+            firstShiftType:
+              change.firstShiftType ??
+              null,
+
+            secondShiftDate:
+              change.secondShiftDate
+                ? new Date(
+                    change.secondShiftDate
+                  ).toISOString()
+                : null,
+
+            secondShiftType:
+              change.secondShiftType ??
+              null,
+          })
+        ),
+      };
+    }
+
+    const user =
+      await prisma.user.update({
+        where: {
+          id,
+        },
+        data,
+        select: userSelect,
+      });
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Failed to update user:", error);
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
+    console.error(
+      "Failed to update user:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Не удалось обновить пользователя",
+        error:
+          "Не удалось обновить пользователя",
       },
       {
         status: 500,
@@ -320,8 +503,12 @@ export async function PATCH(request: Request) {
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(
+  request: Request
+) {
   try {
+    await requireAdmin();
+
     const body = await request.json();
 
     const { id } = body;
@@ -329,7 +516,8 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json(
         {
-          error: "Не указан ID пользователя",
+          error:
+            "Не указан ID пользователя",
         },
         {
           status: 400,
@@ -347,11 +535,22 @@ export async function DELETE(request: Request) {
       success: true,
     });
   } catch (error) {
-    console.error("Failed to delete user:", error);
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
+    console.error(
+      "Failed to delete user:",
+      error
+    );
 
     return NextResponse.json(
       {
-        error: "Не удалось удалить пользователя",
+        error:
+          "Не удалось удалить пользователя",
       },
       {
         status: 500,

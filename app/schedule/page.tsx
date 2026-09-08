@@ -27,6 +27,9 @@ const [periodType, setPeriodType] = useState<"vacation" | "sick" | null>(null);
 const updateShift = useScheduleStore(
   (state) => state.updateShift
 );
+const syncSchedule = useScheduleStore(
+  (state) => state.syncSchedule
+);
 
 const handlePeriodSave = (
   startDate: Date,
@@ -97,6 +100,8 @@ if (type === "vacation") {
       currentDate.getDate() + 1
     );
   }
+
+  void syncSchedule();
 
   setPeriodType(null);
 };

@@ -81,10 +81,12 @@ async function loadUsers() {
   }
 }
 
-useEffect(() => {
-  loadUsers();
-}, []);
   const user = useUsersStore((state) => state.currentUser);
+  useEffect(() => {
+  if (user?.role === "admin") {
+    loadUsers();
+  }
+}, [user?.role]);
   const updateUser = useUsersStore(
   (state) => state.updateUser
 );
@@ -106,14 +108,30 @@ const clearNotifications = useNotificationStore(
 const router = useRouter();
 const logout = useUsersStore((state) => state.logout);
 
-function handleLogout() {
-  logout();
+async function handleLogout() {
+  try {
+    const response = await fetch(
+      "/api/auth/logout",
+      {
+        method: "POST",
+      }
+    );
 
-  localStorage.removeItem("currentUserId");
-  localStorage.removeItem("rememberLogin");
-  localStorage.removeItem("loginExpiresAt");
+    if (!response.ok) {
+      alert("Не удалось выйти из аккаунта");
+      return;
+    }
 
-  router.push("/splash");
+    logout();
+
+    localStorage.removeItem("currentUserId");
+    localStorage.removeItem("rememberLogin");
+    localStorage.removeItem("loginExpiresAt");
+
+    router.push("/splash");
+  } catch {
+    alert("Не удалось выйти из аккаунта");
+  }
 }
   const experience = getExperienceYears(
   user?.hireDate || ""

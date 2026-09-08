@@ -220,7 +220,7 @@ hasDatesError={shiftDatesError}
     />
 
     <Button
-  onClick={() => {
+  onClick={async () => {
     if (
       !changeDate ||
       !scheduleType ||
@@ -293,24 +293,89 @@ const savedChanges = [
   ...currentUser.scheduleChanges,
 ];
 
-const shifts = generateSchedule(currentUser);
+const scheduleChanges = [
+  ...savedChanges,
+  newChange,
+];
+
+try {
+  const response = await fetch(
+    "/api/users",
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: currentUser.id,
+        scheduleChanges,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    alert("Не удалось сохранить изменение графика");
+    return;
+  }
+
+  const shifts = generateSchedule(currentUser);
+
+  const existingShifts =
+    useScheduleStore.getState().shifts;
+
+  const existingShiftsByDate = new Map(
+    existingShifts.map((shift) => [
+      new Date(shift.date).toDateString(),
+      shift,
+    ])
+  );
+
+  const changeStart = new Date(changeDate);
+  changeStart.setHours(0, 0, 0, 0);
 
 updateUser(currentUser.id, {
-  scheduleChanges: [
-    ...savedChanges,
-    newChange,
-  ],
+  scheduleChanges,
 });
 
-const updatedShifts =
+const recalculatedShifts =
   applyScheduleChanges(
     shifts,
-    [...savedChanges, newChange]
+    scheduleChanges
   );
+
+const updatedShifts = recalculatedShifts.map(
+  (shift) => {
+    const existingShift = existingShiftsByDate.get(
+      new Date(shift.date).toDateString()
+    );
+
+    const shiftDate = new Date(shift.date);
+    shiftDate.setHours(0, 0, 0, 0);
+
+    if (
+      existingShift &&
+      (
+        shiftDate < changeStart ||
+        existingShift.isWorked
+      )
+    ) {
+      return existingShift;
+    }
+
+    return shift;
+  }
+);
 
 setShifts(updatedShifts);
 void syncSchedule();
 handleClose();
+} catch (error) {
+  console.error(
+    "Ошибка сохранения изменения графика:",
+    error
+  );
+  alert("Не удалось сохранить изменение графика");
+}
   }}
 >
   Сохранить изменения

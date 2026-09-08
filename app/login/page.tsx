@@ -75,7 +75,6 @@ const setScheduleCurrentUser =
     const user = {
       ...serverUser,
       accessCode: "",
-      scheduleChanges: [],
     };
 
     setCurrentUserFromServer(user);

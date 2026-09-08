@@ -10,11 +10,20 @@ export default function TopStats() {
   );
 
   const today = new Date();
-  const currentMonthName = today
-  .toLocaleString("ru-RU", {
-    month: "long",
-  })
-  .replace(/^./, (letter) => letter.toUpperCase());
+  const currentMonthName = [
+    "январе",
+    "феврале",
+    "марте",
+    "апреле",
+    "мае",
+    "июне",
+    "июле",
+    "августе",
+    "сентябре",
+    "октябре",
+    "ноябре",
+    "декабре",
+  ][today.getMonth()];
 
   const currentMonthShifts = shifts.filter((shift) => {
     const shiftDate = new Date(shift.date);

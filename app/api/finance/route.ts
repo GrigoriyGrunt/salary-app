@@ -1,24 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import {
+  getAuthErrorResponse,
+  requireUser,
+} from "@/lib/auth";
 
-export async function GET(
-  request: NextRequest
-) {
+export async function GET() {
   try {
-    const userId =
-      request.nextUrl.searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Не указан userId",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
+    const user = await requireUser();
 
     const [
       financeSettings,
@@ -28,13 +18,13 @@ export async function GET(
     ] = await Promise.all([
       prisma.financeSettings.findUnique({
         where: {
-          userId,
+          userId: user.id,
         },
       }),
 
       prisma.payment.findMany({
         where: {
-          userId,
+          userId: user.id,
         },
 
         orderBy: {
@@ -44,13 +34,13 @@ export async function GET(
 
       prisma.deduction.findMany({
         where: {
-          userId,
+          userId: user.id,
         },
       }),
 
       prisma.premium.findMany({
         where: {
-          userId,
+          userId: user.id,
         },
       }),
     ]);
@@ -70,6 +60,13 @@ export async function GET(
       premiums,
     });
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to load finance:",
       error
@@ -85,14 +82,16 @@ export async function GET(
     );
   }
 }
+
 export async function POST(
   request: NextRequest
 ) {
   try {
+    const user = await requireUser();
+
     const body = await request.json();
 
     const {
-      userId,
       totalSalary,
       goal,
       goalMonthKey,
@@ -100,17 +99,6 @@ export async function POST(
       deductions,
       premiums,
     } = body;
-
-    if (!userId) {
-      return NextResponse.json(
-        {
-          error: "Не указан userId",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
 
     if (
       !Array.isArray(payments) ||
@@ -132,7 +120,7 @@ export async function POST(
       async (tx) => {
         await tx.financeSettings.upsert({
           where: {
-            userId,
+            userId: user.id,
           },
 
           update: {
@@ -147,7 +135,7 @@ export async function POST(
           },
 
           create: {
-            userId,
+            userId: user.id,
 
             totalSalary:
               Number(totalSalary) || 0,
@@ -162,7 +150,7 @@ export async function POST(
 
         await tx.payment.deleteMany({
           where: {
-            userId,
+            userId: user.id,
           },
         });
 
@@ -172,7 +160,7 @@ export async function POST(
               (payment) => ({
                 id: String(payment.id),
 
-                userId,
+                userId: user.id,
 
                 date: payment.date,
                 type: payment.type,
@@ -185,7 +173,7 @@ export async function POST(
 
         await tx.deduction.deleteMany({
           where: {
-            userId,
+            userId: user.id,
           },
         });
 
@@ -195,7 +183,7 @@ export async function POST(
               (deduction) => ({
                 id: String(deduction.id),
 
-                userId,
+                userId: user.id,
 
                 type: deduction.type,
                 amount: deduction.amount,
@@ -208,7 +196,7 @@ export async function POST(
 
         await tx.premium.deleteMany({
           where: {
-            userId,
+            userId: user.id,
           },
         });
 
@@ -218,7 +206,7 @@ export async function POST(
               (premium) => ({
                 id: String(premium.id),
 
-                userId,
+                userId: user.id,
 
                 amount: premium.amount,
                 comment: premium.comment,
@@ -234,6 +222,13 @@ export async function POST(
       success: true,
     });
   } catch (error) {
+    const authError =
+      getAuthErrorResponse(error);
+
+    if (authError) {
+      return authError;
+    }
+
     console.error(
       "Failed to save finance:",
       error

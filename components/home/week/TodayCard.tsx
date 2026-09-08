@@ -14,15 +14,20 @@ export default function TodayCard({
 const today = shifts.find((shift) =>
   isSameDate(new Date(shift.date), new Date())
 );
+const todayDate = new Date();
+const todayLabel = new Intl.DateTimeFormat(
+  "ru-RU",
+  {
+    day: "numeric",
+    month: "long",
+  }
+).format(todayDate);
   return (
     <div className={styles.card}>
 
       <div className={styles.content}>
         <span className={styles.date}>
-  {`Сегодня, ${new Date().getDate()} ${new Date().toLocaleString(
-    "ru-RU",
-    { month: "long" }
-  )}`}
+  {`Сегодня, ${todayLabel}`}
 </span>
 
 <div className={styles.shiftRow}>

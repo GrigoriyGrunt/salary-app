@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
+import { createSession } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -23,6 +24,13 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({
       where: {
         login,
+      },
+      include: {
+        scheduleChanges: {
+          orderBy: {
+            changeDate: "asc",
+          },
+        },
       },
     });
 
@@ -52,7 +60,7 @@ export async function POST(request: Request) {
         }
       );
     }
-
+    await createSession(user.id);
     return NextResponse.json({
       id: user.id,
 
@@ -75,6 +83,8 @@ export async function POST(request: Request) {
 
       secondShiftDate: user.secondShiftDate,
       secondShiftType: user.secondShiftType,
+
+      scheduleChanges: user.scheduleChanges,
 
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
