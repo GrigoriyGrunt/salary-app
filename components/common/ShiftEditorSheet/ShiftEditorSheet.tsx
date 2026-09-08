@@ -43,6 +43,9 @@ export default function ShiftEditorSheet({
 const shifts = useScheduleStore(
   (state) => state.shifts
 );
+const currentUserId = useScheduleStore(
+  (state) => state.currentUserId
+);
   const [dayType, setDayType] = useState("");
 const [shiftTime, setShiftTime] = useState("");
 const [workZone, setWorkZone] = useState<
@@ -600,8 +603,51 @@ if (currentShift.status === "vacation") {
   setIsDayTypeOpen(false);
   setIsWorkZoneOpen(false);
 }, [selectedDate, shifts]);
-function saveShift() {
-  if (!selectedDate) return false;
+async function saveShift() {
+  if (!selectedDate || !currentUserId) {
+    return false;
+  }
+
+  const dateToSave = selectedDate;
+
+  async function persistShift(
+    data: Parameters<typeof updateShift>[1]
+  ) {
+    try {
+      const response = await fetch("/api/schedule", {
+        method: "PATCH",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          userId: currentUserId,
+          date: dateToSave.toISOString(),
+          ...data,
+        }),
+      });
+
+      if (!response.ok) {
+        alert("Не удалось сохранить смену");
+
+        return false;
+      }
+
+      updateShift(dateToSave, data);
+
+      return true;
+    } catch (error) {
+      console.error(
+        "Ошибка сохранения смены:",
+        error
+      );
+
+      alert("Не удалось сохранить смену");
+
+      return false;
+    }
+  }
 
   if (["main", "overtime", "extra"].includes(dayType)) {
     if (
@@ -611,146 +657,173 @@ function saveShift() {
       return false;
     }
 
-    updateShift(selectedDate, {
-  type: shiftTime,
-  workType:
-    dayType === "overtime"
-      ? "overtime"
-      : dayType === "extra"
-      ? "extra"
-      : "main",
-  status: "none",
+    return await persistShift({
+      type: shiftTime,
 
-  workZone: workZone === "" ? "none" : workZone,
+      workType:
+        dayType === "overtime"
+          ? "overtime"
+          : dayType === "extra"
+          ? "extra"
+          : "main",
 
-  salaryHours: Number(salaryHours) || 0,
-  baseHours: Number(baseHours) || 0,
-  tobaccoHours: Number(tobaccoHours) || 0,
+      status: "none",
 
-  boxes: Number(boxes) || 0,
-  blocks: Number(blocks) || 0,
-  nonProfileHours: Number(nonProfileHours) || 0,
+      workZone:
+        workZone === ""
+          ? "none"
+          : workZone,
 
-    mentor: isMentor,
+      salaryHours:
+        Number(salaryHours) || 0,
 
-  transitionDistribution:
-  isTransitionShift &&
-  transitionMode !== null
-    ? {
-        mode: transitionMode,
+      baseHours:
+        Number(baseHours) || 0,
 
-          firstMonth: {
-            baseHours:
-              Number(firstBaseHours) || 0,
+      tobaccoHours:
+        Number(tobaccoHours) || 0,
 
-            tobaccoHours:
-              Number(firstTobaccoHours) || 0,
+      boxes:
+        Number(boxes) || 0,
 
-            boxes:
-              Number(firstBoxes) || 0,
+      blocks:
+        Number(blocks) || 0,
 
-            blocks:
-              Number(firstBlocks) || 0,
+      nonProfileHours:
+        Number(nonProfileHours) || 0,
 
-            nonProfileHours:
-              Number(firstNonProfileHours) || 0,
+      mentor: isMentor,
 
-            mentorHours:
-              Number(firstMentorHours) || 0,
-          },
+      transitionDistribution:
+        isTransitionShift &&
+        transitionMode !== null
+          ? {
+              mode: transitionMode,
 
-          secondMonth: {
-            baseHours:
-              Number(secondBaseHours) || 0,
+              firstMonth: {
+                baseHours:
+                  Number(firstBaseHours) || 0,
 
-            tobaccoHours:
-              Number(secondTobaccoHours) || 0,
+                tobaccoHours:
+                  Number(firstTobaccoHours) || 0,
 
-            boxes:
-              Number(secondBoxes) || 0,
+                boxes:
+                  Number(firstBoxes) || 0,
 
-            blocks:
-              Number(secondBlocks) || 0,
+                blocks:
+                  Number(firstBlocks) || 0,
 
-            nonProfileHours:
-              Number(secondNonProfileHours) || 0,
+                nonProfileHours:
+                  Number(firstNonProfileHours) || 0,
 
-            mentorHours:
-              Number(secondMentorHours) || 0,
-          },
-        }
-      : undefined,
+                mentorHours:
+                  Number(firstMentorHours) || 0,
+              },
 
-  isWorked: workZone !== "" && workZone !== "none",
-});
+              secondMonth: {
+                baseHours:
+                  Number(secondBaseHours) || 0,
 
-    return true;
+                tobaccoHours:
+                  Number(secondTobaccoHours) || 0,
+
+                boxes:
+                  Number(secondBoxes) || 0,
+
+                blocks:
+                  Number(secondBlocks) || 0,
+
+                nonProfileHours:
+                  Number(secondNonProfileHours) || 0,
+
+                mentorHours:
+                  Number(secondMentorHours) || 0,
+              },
+            }
+          : undefined,
+
+      isWorked:
+        workZone !== "" &&
+        workZone !== "none",
+    });
   }
 
   if (dayType === "off") {
-  updateShift(selectedDate, {
-    type: "off",
-    workType: null,
-    status: "none",
+    return await persistShift({
+      type: "off",
+      workType: null,
+      status: "none",
 
-    workZone: "none",
-    salaryHours: 0,
-    baseHours: 0,
-    tobaccoHours: 0,
-    boxes: 0,
-    blocks: 0,
-    nonProfileHours: 0,
-    mentor: false,
-    isWorked: false,
-  });
+      workZone: "none",
 
-  return true;
-}
+      salaryHours: 0,
+      baseHours: 0,
+      tobaccoHours: 0,
 
-  if (dayType === "do" || dayType === "absence" || dayType === "sick") {
-  updateShift(selectedDate, {
-    type: "off",
-    workType: dayType,
-    status:
-      dayType === "do"
-        ? "dayOff"
-        : dayType === "absence"
-        ? "absence"
-        : "sick",
+      boxes: 0,
+      blocks: 0,
+      nonProfileHours: 0,
 
-    workZone: "none",
-    salaryHours: 0,
-    baseHours: 0,
-    tobaccoHours: 0,
-    boxes: 0,
-    blocks: 0,
-    nonProfileHours: 0,
-    mentor: false,
-    isWorked: false,
-  });
+      mentor: false,
 
-  return true;
-}
+      isWorked: false,
+    });
+  }
+
+  if (
+    dayType === "do" ||
+    dayType === "absence" ||
+    dayType === "sick"
+  ) {
+    return await persistShift({
+      type: "off",
+
+      workType: dayType,
+
+      status:
+        dayType === "do"
+          ? "dayOff"
+          : dayType === "absence"
+          ? "absence"
+          : "sick",
+
+      workZone: "none",
+
+      salaryHours: 0,
+      baseHours: 0,
+      tobaccoHours: 0,
+
+      boxes: 0,
+      blocks: 0,
+      nonProfileHours: 0,
+
+      mentor: false,
+
+      isWorked: false,
+    });
+  }
 
   if (dayType === "vacation") {
-  updateShift(selectedDate, {
-    type: "vacation",
-    workType: "vacation",
-    status: "vacation",
+    return await persistShift({
+      type: "vacation",
+      workType: "vacation",
+      status: "vacation",
 
-    workZone: "none",
-    salaryHours: 0,
-    baseHours: 0,
-    tobaccoHours: 0,
-    boxes: 0,
-    blocks: 0,
-    nonProfileHours: 0,
-    mentor: false,
-    isWorked: false,
-  });
+      workZone: "none",
 
-  return true;
-}
+      salaryHours: 0,
+      baseHours: 0,
+      tobaccoHours: 0,
+
+      boxes: 0,
+      blocks: 0,
+      nonProfileHours: 0,
+
+      mentor: false,
+
+      isWorked: false,
+    });
+  }
 
   return false;
 }
@@ -889,8 +962,12 @@ function handleMentorChange(checked: boolean) {
   <button
   type="button"
   className={styles.headerAction}
-  onClick={() => {
-  if (saveShift()) onClose();
+  onClick={async () => {
+  const isSaved = await saveShift();
+
+  if (isSaved) {
+    onClose();
+  }
 }}
 disabled={!canSave}
 >

@@ -20,6 +20,10 @@ type ScheduleState = {
   setCurrentUser: (userId: string | null) => void;
 
   setShifts: (shifts: Shift[]) => void;
+  setScheduleData: (
+  shifts: Shift[],
+  originalMainShiftsByMonth: Record<string, number>
+) => void;
 
   setOriginalMainShifts: (
     monthKey: string,
@@ -34,6 +38,7 @@ type ScheduleState = {
   clear: () => void;
 
   deleteUserSchedule: (userId: string) => void;
+  syncSchedule: () => Promise<void>;
 };
 
 const getUserSchedule = (
@@ -51,7 +56,7 @@ const getUserSchedule = (
 export const useScheduleStore =
   create<ScheduleState>()(
     persist(
-      (set) => ({
+      (set, get) => ({
         currentUserId: null,
 
         shifts: [],
@@ -107,7 +112,33 @@ export const useScheduleStore =
               },
             };
           }),
+setScheduleData: (
+  shifts,
+  originalMainShiftsByMonth
+) =>
+  set((state) => {
+    if (!state.currentUserId) {
+      return {
+        shifts,
+        originalMainShiftsByMonth,
+      };
+    }
 
+    return {
+      shifts,
+
+      originalMainShiftsByMonth,
+
+      schedulesByUser: {
+        ...state.schedulesByUser,
+
+        [state.currentUserId]: {
+          shifts,
+          originalMainShiftsByMonth,
+        },
+      },
+    };
+  }),
         setOriginalMainShifts: (
           monthKey,
           count
@@ -240,7 +271,54 @@ export const useScheduleStore =
               },
             };
           }),
+syncSchedule: async () => {
+  const state = get();
 
+  if (!state.currentUserId) {
+    return;
+  }
+
+  try {
+    try {
+  const response = await fetch(
+    "/api/schedule",
+    {
+      method: "POST",
+
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+
+      body: JSON.stringify({
+        userId: state.currentUserId,
+
+        shifts: state.shifts,
+
+        originalMainShiftsByMonth:
+          state.originalMainShiftsByMonth,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Не удалось сохранить график"
+    );
+  }
+} catch (error) {
+  console.error(
+    "Ошибка синхронизации графика:",
+    error
+  );
+}
+  } catch (error) {
+    console.error(
+      "Ошибка синхронизации графика:",
+      error
+    );
+  }
+},
         clear: () =>
           set((state) => {
             if (!state.currentUserId) {

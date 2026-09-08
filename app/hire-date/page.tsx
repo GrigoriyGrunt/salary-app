@@ -26,16 +26,41 @@ const updateUser = useUsersStore(
     : undefined
 );
 
-  function handleContinue() {
-    if (!date) return;
-    if (currentUser) {
-  updateUser(currentUser.id, {
-    hireDate: date.toISOString(),
-  });
-}
+  async function handleContinue() {
+  if (!date) return;
+  if (!currentUser) return;
+
+  try {
+    const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: currentUser.id,
+        hireDate: date.toISOString(),
+      }),
+    });
+
+    if (!response.ok) {
+      alert("Не удалось сохранить дату устройства");
+      return;
+    }
+
+    updateUser(currentUser.id, {
+      hireDate: date.toISOString(),
+    });
 
     router.push("/next-shift");
+  } catch (error) {
+    console.error(
+      "Ошибка сохранения даты устройства:",
+      error
+    );
+
+    alert("Не удалось сохранить дату устройства");
   }
+}
 
   return (
     <main className={styles.page}>

@@ -25,6 +25,10 @@ export default function ChangeScheduleSheet({
 const setShifts = useScheduleStore(
   (state) => state.setShifts
 );
+
+const syncSchedule = useScheduleStore(
+  (state) => state.syncSchedule
+);
 const updateUser = useUsersStore(
   (state) => state.updateUser
 );
@@ -305,6 +309,7 @@ const updatedShifts =
   );
 
 setShifts(updatedShifts);
+void syncSchedule();
 handleClose();
   }}
 >

@@ -61,7 +61,7 @@ const isDayNight =
 const isWatch1515 =
   currentUser?.schedule === "15/15 вахта";
 
-function handleContinue() {
+async function handleContinue() {
   if (!firstDate || !secondDate) return;
 
   if (!currentUser) return;
@@ -146,15 +146,65 @@ Object.entries(mainShiftsByMonth).forEach(
 
 setShifts(shifts);
 
-  updateUser(currentUser.id, {
-    firstShiftDate: firstDate.toISOString(),
-    secondShiftDate: secondDate.toISOString(),
-    firstShiftType: resolvedFirstShift,
-    secondShiftType: resolvedSecondShift,
-    isSetupCompleted: true,
-  });
+try {
+  const scheduleResponse = await fetch(
+    "/api/schedule",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: currentUser.id,
+        shifts,
+        originalMainShiftsByMonth:
+          mainShiftsByMonth,
+      }),
+    }
+  );
 
-  router.push("/");
+  if (!scheduleResponse.ok) {
+    alert("Не удалось сохранить график");
+    return;
+  }
+
+  const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: currentUser.id,
+        firstShiftDate: firstDate.toISOString(),
+        secondShiftDate: secondDate.toISOString(),
+        firstShiftType: resolvedFirstShift,
+        secondShiftType: resolvedSecondShift,
+        isSetupCompleted: true,
+      }),
+    });
+
+    if (!response.ok) {
+      alert("Не удалось сохранить настройки смен");
+      return;
+    }
+
+    updateUser(currentUser.id, {
+      firstShiftDate: firstDate.toISOString(),
+      secondShiftDate: secondDate.toISOString(),
+      firstShiftType: resolvedFirstShift,
+      secondShiftType: resolvedSecondShift,
+      isSetupCompleted: true,
+    });
+
+    router.push("/");
+  } catch (error) {
+    console.error(
+      "Ошибка сохранения настроек смен:",
+      error
+    );
+
+    alert("Не удалось сохранить настройки смен");
+  }
 }
 
   return (

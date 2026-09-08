@@ -49,7 +49,8 @@ type FinanceState = {
   financeByUser: Record<string, UserFinanceData>;
 
   setCurrentUser: (userId: string | null) => void;
-
+setFinanceData: (data: UserFinanceData) => void;
+syncFinance: () => Promise<void>;
   setTotalSalary: (totalSalary: number) => void;
 
   setGoal: (goal: number) => void;
@@ -114,7 +115,7 @@ const getUserFinance = (
 export const useFinanceStore =
   create<FinanceState>()(
     persist(
-      (set) => ({
+      (set, get) => ({
         currentUserId: null,
 
         payments: [],
@@ -169,69 +170,153 @@ export const useFinanceStore =
                 userFinance.premiums,
             };
           }),
+setFinanceData: (data) =>
+  set((state) => {
+    if (!state.currentUserId) {
+      return {
+        payments: data.payments,
+        totalSalary: data.totalSalary,
 
-        setTotalSalary: (totalSalary) =>
-          set((state) => {
-            if (!state.currentUserId) {
-              return { totalSalary };
-            }
+        goal: data.goal,
+        goalMonthKey: data.goalMonthKey,
 
-            const userFinance = {
-              ...getUserFinance(
-                state.financeByUser,
-                state.currentUserId
-              ),
+        deductions: data.deductions,
+        premiums: data.premiums,
+      };
+    }
 
-              totalSalary,
-            };
+    return {
+      payments: data.payments,
+      totalSalary: data.totalSalary,
 
-            return {
-              totalSalary,
+      goal: data.goal,
+      goalMonthKey: data.goalMonthKey,
 
-              financeByUser: {
-                ...state.financeByUser,
+      deductions: data.deductions,
+      premiums: data.premiums,
 
-                [state.currentUserId]:
-                  userFinance,
-              },
-            };
-          }),
+      financeByUser: {
+        ...state.financeByUser,
 
-        setGoal: (goal) =>
-          set((state) => {
-            const goalMonthKey =
-              getCurrentMonthKey();
+        [state.currentUserId]: data,
+      },
+    };
+  }),
+syncFinance: async () => {
+  const state =
+    useFinanceStore.getState();
 
-            if (!state.currentUserId) {
-              return {
-                goal,
-                goalMonthKey,
-              };
-            }
+  if (!state.currentUserId) {
+    return;
+  }
 
-            const userFinance = {
-              ...getUserFinance(
-                state.financeByUser,
-                state.currentUserId
-              ),
+  const response = await fetch(
+    "/api/finance",
+    {
+      method: "POST",
 
-              goal,
-              goalMonthKey,
-            };
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
 
-            return {
-              goal,
-              goalMonthKey,
+      body: JSON.stringify({
+        userId: state.currentUserId,
 
-              financeByUser: {
-                ...state.financeByUser,
+        totalSalary:
+          state.totalSalary,
 
-                [state.currentUserId]:
-                  userFinance,
-              },
-            };
-          }),
+        goal: state.goal,
 
+        goalMonthKey:
+          state.goalMonthKey,
+
+        payments:
+          state.payments,
+
+        deductions:
+          state.deductions,
+
+        premiums:
+          state.premiums,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Не удалось сохранить финансовые данные"
+    );
+  }
+},
+
+        setTotalSalary: (totalSalary) => {
+  set((state) => {
+    const updatedData = {
+      payments: state.payments,
+      totalSalary,
+      goal: state.goal,
+      goalMonthKey: state.goalMonthKey,
+      deductions: state.deductions,
+      premiums: state.premiums,
+    };
+
+    if (!state.currentUserId) {
+      return {
+        totalSalary,
+      };
+    }
+
+    return {
+      totalSalary,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]: updatedData,
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
+        setGoal: (goal) => {
+  set((state) => {
+    const goalMonthKey =
+      getCurrentMonthKey();
+
+    if (!state.currentUserId) {
+      return {
+        goal,
+        goalMonthKey,
+      };
+    }
+
+    const userFinance = {
+      ...getUserFinance(
+        state.financeByUser,
+        state.currentUserId
+      ),
+
+      goal,
+      goalMonthKey,
+    };
+
+    return {
+      goal,
+      goalMonthKey,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]:
+          userFinance,
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
         syncGoalMonth: () =>
           set((state) => {
             const currentMonthKey =
@@ -277,264 +362,275 @@ export const useFinanceStore =
             };
           }),
 
-        savePayment: (payment, id) =>
-          set((state) => {
-            const payments =
-              id !== undefined
-                ? state.payments.map(
-                    (item) =>
-                      item.id === id
-                        ? {
-                            ...payment,
-                            id,
-                          }
-                        : item
-                  )
-                : [
-                    ...state.payments,
-                    {
-                      ...payment,
-                      id: Date.now(),
-                    },
-                  ];
-
-            if (!state.currentUserId) {
-              return { payments };
-            }
-
-            const userFinance = {
-              ...getUserFinance(
-                state.financeByUser,
-                state.currentUserId
-              ),
-
-              payments,
-            };
-
-            return {
-              payments,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]:
-                  userFinance,
-              },
-            };
-          }),
-
-        removePayment: (id) =>
-          set((state) => {
-            const payments =
-              state.payments.filter(
-                (payment) =>
-                  payment.id !== id
-              );
-
-            if (!state.currentUserId) {
-              return { payments };
-            }
-
-            return {
-              payments,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]: {
-                  ...getUserFinance(
-                    state.financeByUser,
-                    state.currentUserId
-                  ),
-
-                  payments,
-                },
-              },
-            };
-          }),
-
-        addDeduction: (deduction) =>
-          set((state) => {
-            const deductions = [
-              ...state.deductions,
-
-              {
-                ...deduction,
-                id: Date.now(),
-              },
-            ];
-
-            if (!state.currentUserId) {
-              return { deductions };
-            }
-
-            return {
-              deductions,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]: {
-                  ...getUserFinance(
-                    state.financeByUser,
-                    state.currentUserId
-                  ),
-
-                  deductions,
-                },
-              },
-            };
-          }),
-
-        removeDeduction: (id) =>
-          set((state) => {
-            const deductions =
-              state.deductions.filter(
-                (deduction) =>
-                  deduction.id !== id
-              );
-
-            if (!state.currentUserId) {
-              return { deductions };
-            }
-
-            return {
-              deductions,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]: {
-                  ...getUserFinance(
-                    state.financeByUser,
-                    state.currentUserId
-                  ),
-
-                  deductions,
-                },
-              },
-            };
-          }),
-
-        addPremium: (premium) =>
-          set((state) => {
-            const premiums = [
-              ...state.premiums,
-
-              {
-                ...premium,
-                id: Date.now(),
-              },
-            ];
-
-            if (!state.currentUserId) {
-              return { premiums };
-            }
-
-            return {
-              premiums,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]: {
-                  ...getUserFinance(
-                    state.financeByUser,
-                    state.currentUserId
-                  ),
-
-                  premiums,
-                },
-              },
-            };
-          }),
-
-        removePremium: (id) =>
-          set((state) => {
-            const premiums =
-              state.premiums.filter(
-                (premium) =>
-                  premium.id !== id
-              );
-
-            if (!state.currentUserId) {
-              return { premiums };
-            }
-
-            return {
-              premiums,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]: {
-                  ...getUserFinance(
-                    state.financeByUser,
-                    state.currentUserId
-                  ),
-
-                  premiums,
-                },
-              },
-            };
-          }),
-
-        decrementDeduction: (id) =>
-          set((state) => {
-            const deductions =
-              state.deductions
-                .map((deduction) => {
-                  if (
-                    deduction.id !== id
-                  ) {
-                    return deduction;
+        savePayment: (payment, id) => {
+  set((state) => {
+    const payments =
+      id !== undefined
+        ? state.payments.map(
+            (item) =>
+              item.id === id
+                ? {
+                    ...payment,
+                    id,
                   }
+                : item
+          )
+        : [
+            ...state.payments,
+            {
+              ...payment,
+              id: Date.now(),
+            },
+          ];
 
-                  const amount = Number(
-                    deduction.amount
-                  );
+    if (!state.currentUserId) {
+      return { payments };
+    }
 
-                  if (amount <= 1) {
-                    return null;
-                  }
+    const userFinance = {
+      ...getUserFinance(
+        state.financeByUser,
+        state.currentUserId
+      ),
 
-                  return {
-                    ...deduction,
+      payments,
+    };
 
-                    amount: String(
-                      amount - 1
-                    ),
-                  };
-                })
-                .filter(
-                  (
-                    deduction
-                  ): deduction is Deduction =>
-                    deduction !== null
-                );
+    return {
+      payments,
 
-            if (!state.currentUserId) {
-              return { deductions };
-            }
+      financeByUser: {
+        ...state.financeByUser,
 
-            return {
-              deductions,
+        [state.currentUserId]:
+          userFinance,
+      },
+    };
+  });
 
-              financeByUser: {
-                ...state.financeByUser,
+  void get().syncFinance();
+},
+        removePayment: (id) => {
+  set((state) => {
+    const payments =
+      state.payments.filter(
+        (payment) => payment.id !== id
+      );
 
-                [state.currentUserId]: {
-                  ...getUserFinance(
-                    state.financeByUser,
-                    state.currentUserId
-                  ),
+    if (!state.currentUserId) {
+      return { payments };
+    }
 
-                  deductions,
-                },
-              },
-            };
-          }),
+    const userFinance = {
+      ...getUserFinance(
+        state.financeByUser,
+        state.currentUserId
+      ),
 
+      payments,
+    };
+
+    return {
+      payments,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]:
+          userFinance,
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
+        addDeduction: (deduction) => {
+  set((state) => {
+    const deductions = [
+      ...state.deductions,
+
+      {
+        ...deduction,
+        id: Date.now(),
+      },
+    ];
+
+    if (!state.currentUserId) {
+      return { deductions };
+    }
+
+    return {
+      deductions,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]: {
+          ...getUserFinance(
+            state.financeByUser,
+            state.currentUserId
+          ),
+
+          deductions,
+        },
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
+        removeDeduction: (id) => {
+  set((state) => {
+    const deductions =
+      state.deductions.filter(
+        (deduction) =>
+          deduction.id !== id
+      );
+
+    if (!state.currentUserId) {
+      return { deductions };
+    }
+
+    return {
+      deductions,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]: {
+          ...getUserFinance(
+            state.financeByUser,
+            state.currentUserId
+          ),
+
+          deductions,
+        },
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
+
+        addPremium: (premium) => {
+  set((state) => {
+    const premiums = [
+      ...state.premiums,
+      {
+        ...premium,
+        id: Date.now(),
+      },
+    ];
+
+    if (!state.currentUserId) {
+      return { premiums };
+    }
+
+    return {
+      premiums,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]: {
+          ...getUserFinance(
+            state.financeByUser,
+            state.currentUserId
+          ),
+
+          premiums,
+        },
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
+        removePremium: (id) => {
+  set((state) => {
+    const premiums =
+      state.premiums.filter(
+        (premium) => premium.id !== id
+      );
+
+    if (!state.currentUserId) {
+      return { premiums };
+    }
+
+    return {
+      premiums,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]: {
+          ...getUserFinance(
+            state.financeByUser,
+            state.currentUserId
+          ),
+
+          premiums,
+        },
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
+        decrementDeduction: (id) => {
+  set((state) => {
+    const deductions =
+      state.deductions
+        .map((deduction) => {
+          if (deduction.id !== id) {
+            return deduction;
+          }
+
+          const amount = Number(
+            deduction.amount
+          );
+
+          if (amount <= 1) {
+            return null;
+          }
+
+          return {
+            ...deduction,
+
+            amount: String(amount - 1),
+          };
+        })
+        .filter(
+          (
+            deduction
+          ): deduction is Deduction =>
+            deduction !== null
+        );
+
+    if (!state.currentUserId) {
+      return { deductions };
+    }
+
+    return {
+      deductions,
+
+      financeByUser: {
+        ...state.financeByUser,
+
+        [state.currentUserId]: {
+          ...getUserFinance(
+            state.financeByUser,
+            state.currentUserId
+          ),
+
+          deductions,
+        },
+      },
+    };
+  });
+
+  void get().syncFinance();
+},
         clear: () =>
           set((state) => {
             if (!state.currentUserId) {

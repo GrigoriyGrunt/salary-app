@@ -4,7 +4,18 @@
 salary-app
 ├── app
 │   ├── api
+│   │   ├── auth
+│   │   │   └── login
+│   │   │       └── route.ts
+│   │   ├── finance
+│   │   │   └── route.ts
+│   │   ├── notifications
+│   │   │   └── route.ts
+│   │   ├── schedule
+│   │   │   └── route.ts
 │   │   └── users
+│   │       ├── reset
+│   │       │   └── route.ts
 │   │       └── route.ts
 │   ├── hire-date
 │   │   ├── page.module.css

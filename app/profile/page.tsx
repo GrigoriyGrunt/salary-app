@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader/PageHeader";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
 
@@ -63,26 +63,32 @@ const [newUserLogin, setNewUserLogin] =
 
 const [newUserCode, setNewUserCode] =
   useState("");
+  const [users, setUsers] = useState<any[]>([]);
+
+async function loadUsers() {
+  try {
+    const response = await fetch("/api/users");
+
+    if (!response.ok) {
+      throw new Error();
+    }
+
+    const data = await response.json();
+
+    setUsers(data);
+  } catch {
+    alert("Не удалось загрузить пользователей");
+  }
+}
+
+useEffect(() => {
+  loadUsers();
+}, []);
   const user = useUsersStore((state) => state.currentUser);
-const users = useUsersStore((state) => state.users);
-const addUser = useUsersStore((state) => state.addUser);
-const updateUser = useUsersStore(
+  const updateUser = useUsersStore(
   (state) => state.updateUser
 );
-const deleteUser = useUsersStore(
-  (state) => state.deleteUser
-);
-const deleteUserSchedule = useScheduleStore(
-  (state) => state.deleteUserSchedule
-);
 
-const deleteUserFinance = useFinanceStore(
-  (state) => state.deleteUserFinance
-);
-
-const deleteUserNotifications = useNotificationStore(
-  (state) => state.deleteUserNotifications
-);
   const resetUser = useUsersStore(
   (state) => state.resetUser
 );
@@ -139,7 +145,7 @@ const currentSchedule = (() => {
     user.schedule ||
     "-";
 })();
-function handleChangeCode() {
+async function handleChangeCode() {
   if (!user) return;
 
   if (oldCode.trim() === "") {
@@ -152,35 +158,86 @@ function handleChangeCode() {
     return;
   }
 
-  if (oldCode !== user.accessCode) {
-    alert("Старый код введён неверно");
-    return;
+  try {
+    const response = await fetch(
+      "/api/users",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          id: user.id,
+          oldAccessCode: oldCode.trim(),
+          accessCode: newCode.trim(),
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(
+        result.error ||
+          "Не удалось изменить код"
+      );
+      return;
+    }
+
+    setOldCode("");
+    setNewCode("");
+    setIsChangeCodeOpen(false);
+
+    alert("Код входа успешно изменён");
+  } catch {
+    alert("Не удалось изменить код");
   }
-
-  updateUser(user.id, {
-    accessCode: newCode,
-  });
-
-  setOldCode("");
-  setNewCode("");
-  setIsChangeCodeOpen(false);
-
-  alert("Код входа успешно изменён");
 }
-function handleResetProfile() {
+async function handleResetProfile() {
   if (!user) return;
 
-  resetUser(user.id);
-clearSchedule();
-clearFinance();
-clearNotifications();
-  localStorage.removeItem("currentUserId");
-localStorage.removeItem("rememberLogin");
-localStorage.removeItem("loginExpiresAt");
+  try {
+    const response = await fetch(
+      "/api/users/reset",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          id: user.id,
+        }),
+      }
+    );
 
-  setIsResetOpen(false);
+    const result = await response.json();
 
-  router.push("/splash");
+    if (!response.ok) {
+      alert(
+        result.error ||
+          "Не удалось сбросить данные профиля"
+      );
+      return;
+    }
+
+    resetUser(user.id);
+
+    clearSchedule();
+    clearFinance();
+    clearNotifications();
+
+    localStorage.removeItem("currentUserId");
+    localStorage.removeItem("rememberLogin");
+    localStorage.removeItem("loginExpiresAt");
+
+    setIsResetOpen(false);
+
+    router.push("/splash");
+  } catch {
+    alert("Не удалось сбросить данные профиля");
+  }
 }
   return (
     <main className={styles.page}>
@@ -317,11 +374,11 @@ localStorage.removeItem("loginExpiresAt");
   className={styles.iconButton}
   aria-label="Редактировать пользователя"
   onClick={() => {
-    setEditingUserId(managedUser.id);
-    setEditUserLogin(managedUser.login);
-    setEditUserCode(managedUser.accessCode);
-    setIsEditUserOpen(true);
-  }}
+  setEditingUserId(managedUser.id);
+  setEditUserLogin(managedUser.login);
+  setEditUserCode("");
+  setIsEditUserOpen(true);
+}}
 >
   ✏️
 </button>
@@ -370,17 +427,31 @@ localStorage.removeItem("loginExpiresAt");
 
         <button
           className={styles.confirmButton}
-          onClick={() => {
+          onClick={async () => {
   if (!deletingUserId) return;
 
-  deleteUserSchedule(deletingUserId);
-  deleteUserFinance(deletingUserId);
-  deleteUserNotifications(deletingUserId);
+  try {
+    const response = await fetch("/api/users", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: deletingUserId,
+      }),
+    });
 
-  deleteUser(deletingUserId);
+    if (!response.ok) {
+      throw new Error();
+    }
 
-  setDeletingUserId(null);
-  setIsDeleteUserOpen(false);
+    await loadUsers();
+
+    setDeletingUserId(null);
+    setIsDeleteUserOpen(false);
+  } catch {
+    alert("Не удалось удалить пользователя");
+  }
 }}
         >
           Удалить
@@ -429,25 +500,55 @@ localStorage.removeItem("loginExpiresAt");
 
         <button
           className={styles.confirmButton}
-          onClick={() => {
-            if (
-              !editingUserId ||
-              !editUserLogin.trim() ||
-              !editUserCode.trim()
-            ) {
-              return;
-            }
+          onClick={async () => {
+  if (
+    !editingUserId ||
+    !editUserLogin.trim()
+  ) {
+    return;
+  }
 
-            updateUser(editingUserId, {
-              login: editUserLogin.trim(),
-              accessCode: editUserCode.trim(),
-            });
+  try {
+    const data: {
+      id: string;
+      login: string;
+      accessCode?: string;
+    } = {
+      id: editingUserId,
+      login: editUserLogin.trim(),
+    };
 
-            setEditingUserId(null);
-            setEditUserLogin("");
-            setEditUserCode("");
-            setIsEditUserOpen(false);
-          }}
+    if (editUserCode.trim()) {
+      data.accessCode =
+        editUserCode.trim();
+    }
+
+    const response = await fetch(
+      "/api/users",
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error();
+    }
+
+    await loadUsers();
+
+    setEditingUserId(null);
+    setEditUserLogin("");
+    setEditUserCode("");
+    setIsEditUserOpen(false);
+  } catch {
+    alert("Не удалось изменить пользователя");
+  }
+}}
         >
           Сохранить
         </button>
@@ -500,7 +601,7 @@ localStorage.removeItem("loginExpiresAt");
 
               <button
   className={styles.confirmButton}
-  onClick={() => {
+  onClick={async () => {
     const nameParts = newUserFullName
       .trim()
       .split(/\s+/);
@@ -510,34 +611,45 @@ localStorage.removeItem("loginExpiresAt");
       !newUserLogin.trim() ||
       !newUserCode.trim()
     ) {
+      alert("Заполните все поля");
       return;
     }
 
-    addUser({
-  id: crypto.randomUUID(),
-  lastName: nameParts[0],
-  firstName: nameParts[1],
-  middleName: nameParts.slice(2).join(" "),
-  login: newUserLogin.trim(),
-  accessCode: newUserCode.trim(),
-  role: "employee",
-  isSetupCompleted: false,
-  warehouse: "",
-  position: "",
-  schedule: "",
-  hireDate: "",
-  firstShiftDate: "",
-  firstShiftType: "day",
-  secondShiftDate: "",
-  secondShiftType: "day",
-  scheduleChanges: [],
-});
+    try {
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          lastName: nameParts[0],
+          firstName: nameParts[1],
+          middleName: nameParts.slice(2).join(" "),
+          login: newUserLogin.trim(),
+          accessCode: newUserCode.trim(),
+          role: "employee",
+        }),
+      });
 
-    setNewUserFullName("");
-    setNewUserLogin("");
-    setNewUserCode("");
+      const result = await response.json();
 
-    setIsAddUserOpen(false);
+      if (!response.ok) {
+        alert(
+          result.error ||
+            "Не удалось создать пользователя"
+        );
+        return;
+      }
+
+      await loadUsers();
+
+      setNewUserFullName("");
+      setNewUserLogin("");
+      setNewUserCode("");
+      setIsAddUserOpen(false);
+    } catch {
+      alert("Не удалось создать пользователя");
+    }
   }}
 >
   Добавить пользователя

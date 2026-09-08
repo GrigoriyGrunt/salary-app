@@ -34,18 +34,45 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
   (currentUser?.schedule as WorkSchedule) ?? ""
 );
 
-  function handleContinue() {
+  async function handleContinue() {
   if (!warehouse || !position || !schedule) return;
 
   if (!currentUser) return;
 
-  updateUser(currentUser.id, {
-    warehouse,
-    position,
-    schedule,
-  });
+  try {
+    const response = await fetch("/api/users", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: currentUser.id,
+        warehouse,
+        position,
+        schedule,
+      }),
+    });
 
-  router.push("/hire-date");
+    if (!response.ok) {
+      alert("Не удалось сохранить настройки");
+      return;
+    }
+
+    updateUser(currentUser.id, {
+      warehouse,
+      position,
+      schedule,
+    });
+
+    router.push("/hire-date");
+  } catch (error) {
+    console.error(
+      "Ошибка сохранения onboarding:",
+      error
+    );
+
+    alert("Не удалось сохранить настройки");
+  }
 }
 
   return (

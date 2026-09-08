@@ -19,67 +19,174 @@ const [code, setCode] = useState("");
 const [isCodeVisible, setIsCodeVisible] = useState(false);
    const [rememberLogin, setRememberLogin] =
   useState(false);
-   const users = useUsersStore((state) => state.users);
-   const setCurrentUser = useUsersStore(
-  (state) => state.setCurrentUser
+   const setCurrentUserFromServer = useUsersStore(
+  (state) => state.setCurrentUserFromServer
 );
 const setScheduleCurrentUser =
   useScheduleStore(
     (state) => state.setCurrentUser
   );
+  const setScheduleData =
+  useScheduleStore(
+    (state) => state.setScheduleData
+  );
   const setFinanceCurrentUser =
   useFinanceStore(
     (state) => state.setCurrentUser
+  );
+  const setFinanceData =
+  useFinanceStore(
+    (state) => state.setFinanceData
   );
   const setNotificationCurrentUser =
   useNotificationStore(
     (state) => state.setCurrentUser
   );
-   function handleLogin() {
+   async function handleLogin() {
   if (login.trim() === "") {
-  alert("Введите логин");
-  return;
-}
-
-if (code.trim() === "") {
-  alert("Введите код сотрудника");
-  return;
-}
-
-const user = users.find(
-  (user) =>
-    user.login === login.trim() &&
-    user.accessCode === code
-);
-
-if (!user) {
-  alert("Неверный логин или код");
-  return;
-}
-  setCurrentUser(user.id);
-setScheduleCurrentUser(user.id);
-setFinanceCurrentUser(user.id);
-setNotificationCurrentUser(user.id);
-
-const isProfileConfigured = user.isSetupCompleted;
-
-  localStorage.setItem("currentUserId", user.id);
-  localStorage.setItem("rememberLogin", String(rememberLogin));
-
-  const needsTemporarySession =
-    !isProfileConfigured || !rememberLogin;
-
-  if (needsTemporarySession) {
-    const expiresAt = Date.now() + 5 * 60 * 1000;
-    localStorage.setItem("loginExpiresAt", String(expiresAt));
-  } else {
-    localStorage.removeItem("loginExpiresAt");
+    alert("Введите логин");
+    return;
   }
 
-  if (isProfileConfigured) {
-    router.push("/");
-  } else {
-    router.push("/onboarding");
+  if (code.trim() === "") {
+    alert("Введите код сотрудника");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        login: login.trim(),
+        accessCode: code,
+      }),
+    });
+
+    if (!response.ok) {
+      alert("Неверный логин или код");
+      return;
+    }
+
+    const serverUser = await response.json();
+
+    const user = {
+      ...serverUser,
+      accessCode: "",
+      scheduleChanges: [],
+    };
+
+    setCurrentUserFromServer(user);
+
+    setScheduleCurrentUser(user.id);
+
+try {
+  const scheduleResponse = await fetch(
+    `/api/schedule?userId=${user.id}`
+  );
+
+  if (!scheduleResponse.ok) {
+    throw new Error(
+      "Не удалось загрузить график"
+    );
+  }
+
+  const scheduleData =
+    await scheduleResponse.json();
+
+  const shifts = scheduleData.shifts.map(
+    (shift: {
+      date: string;
+      [key: string]: unknown;
+    }) => ({
+      ...shift,
+      date: new Date(shift.date),
+    })
+  );
+
+  setScheduleData(
+    shifts,
+    scheduleData.originalMainShiftsByMonth
+  );
+} catch (error) {
+  console.error(
+    "Ошибка загрузки графика:",
+    error
+  );
+}
+
+setFinanceCurrentUser(user.id);
+
+try {
+  const financeResponse = await fetch(
+    `/api/finance?userId=${user.id}`
+  );
+
+  if (!financeResponse.ok) {
+    throw new Error(
+      "Не удалось загрузить финансовые данные"
+    );
+  }
+
+  const financeData =
+    await financeResponse.json();
+
+  setFinanceData(financeData);
+} catch (error) {
+  console.error(
+    "Ошибка загрузки финансовых данных:",
+    error
+  );
+}
+
+setNotificationCurrentUser(user.id);
+
+    const isProfileConfigured =
+      user.isSetupCompleted;
+
+    localStorage.setItem(
+      "currentUserId",
+      user.id
+    );
+
+    localStorage.setItem(
+      "rememberLogin",
+      String(rememberLogin)
+    );
+
+    const needsTemporarySession =
+      !isProfileConfigured || !rememberLogin;
+
+    if (needsTemporarySession) {
+      const expiresAt =
+        Date.now() + 5 * 60 * 1000;
+
+      localStorage.setItem(
+        "loginExpiresAt",
+        String(expiresAt)
+      );
+    } else {
+      localStorage.removeItem(
+        "loginExpiresAt"
+      );
+    }
+
+    if (isProfileConfigured) {
+      router.push("/");
+    } else {
+      router.push("/onboarding");
+    }
+  } catch (error) {
+    console.error(
+      "Ошибка входа:",
+      error
+    );
+
+    alert(
+      "Не удалось выполнить вход. Попробуйте ещё раз."
+    );
   }
 }
   return (

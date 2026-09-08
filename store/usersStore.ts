@@ -2,36 +2,15 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { User } from "@/types/user";
 
-const defaultUsers: User[] = [
-  {
-    id: "1",
-    lastName: "Грунт",
-firstName: "Григорий",
-middleName: "Андреевич",
-    login: "gruntgrigoriy",
-    accessCode: "4573",
-    role: "admin",
-    isSetupCompleted: false,
-    warehouse: "",
-    position: "",
-    schedule: "",
-    hireDate: "",
-    firstShiftDate: "",
-    firstShiftType: "day",
-    secondShiftDate: "",
-    secondShiftType: "day",
-    scheduleChanges: [],
-  },
-];
-
 type UsersStore = {
   users: User[];
   currentUserId: string | null;
   currentUser: User | null;
 
   addUser: (user: User) => void;
-  setCurrentUser: (id: string) => void;
-  updateUser: (id: string, data: Partial<User>) => void;
+setCurrentUser: (id: string) => void;
+setCurrentUserFromServer: (user: User) => void;
+updateUser: (id: string, data: Partial<User>) => void;
   deleteUser: (id: string) => void;
   resetUser: (id: string) => void;
   logout: () => void;
@@ -40,7 +19,7 @@ type UsersStore = {
 export const useUsersStore = create<UsersStore>()(
   persist(
     (set) => ({
-      users: defaultUsers,
+      users: [],
       currentUserId: null,
       currentUser: null,
 
@@ -59,6 +38,26 @@ export const useUsersStore = create<UsersStore>()(
       currentUser: user,
     };
   }),
+setCurrentUserFromServer: (user: User) =>
+  set((state) => {
+    const existingUser = state.users.find(
+      (item) => item.id === user.id
+    );
+
+    const users = existingUser
+      ? state.users.map((item) =>
+          item.id === user.id
+            ? user
+            : item
+        )
+      : [...state.users, user];
+
+    return {
+      users,
+      currentUserId: user.id,
+      currentUser: user,
+    };
+  }),  
     updateUser: (id, data) =>
   set((state) => {
     const users = state.users.map((user) =>
