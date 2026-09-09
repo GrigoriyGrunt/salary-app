@@ -47,9 +47,7 @@ export async function createSession(
     session.id,
     {
       httpOnly: true,
-      secure:
-        process.env.NODE_ENV ===
-        "production",
+      secure: false,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
@@ -143,9 +141,7 @@ export async function extendCurrentSession() {
     updatedSession.id,
     {
       httpOnly: true,
-      secure:
-        process.env.NODE_ENV ===
-        "production",
+      secure: false,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
