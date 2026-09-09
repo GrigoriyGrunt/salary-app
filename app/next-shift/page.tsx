@@ -13,7 +13,30 @@ import { useScheduleStore } from "@/store/scheduleStore";
 import { useUsersStore } from "@/store/usersStore";
 
 import styles from "./page.module.css";
+function formatCalendarDate(date: Date) {
+  const year = date.getFullYear();
 
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function parseCalendarDate(value: string) {
+  const [year, month, day] =
+    value.split("-").map(Number);
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+}
 export default function NextShiftPage() {
   const router = useRouter();
 
@@ -34,15 +57,19 @@ const updateUser = useUsersStore(
 const [firstDate, setFirstDate] =
   useState<Date | undefined>(
     currentUser?.firstShiftDate
-      ? new Date(currentUser.firstShiftDate)
-      : undefined
+  ? parseCalendarDate(
+      currentUser.firstShiftDate
+    )
+  : undefined
   );
 
 const [secondDate, setSecondDate] =
   useState<Date | undefined>(
     currentUser?.secondShiftDate
-      ? new Date(currentUser.secondShiftDate)
-      : undefined
+  ? parseCalendarDate(
+      currentUser.secondShiftDate
+    )
+  : undefined
   );
 
 const [firstShift, setFirstShift] =
@@ -110,12 +137,14 @@ async function handleContinue() {
   }
 
   const userForSchedule = {
-    ...currentUser,
-    firstShiftDate: firstDate.toISOString(),
-    secondShiftDate: secondDate.toISOString(),
-    firstShiftType: resolvedFirstShift,
-    secondShiftType: resolvedSecondShift,
-  };
+  ...currentUser,
+  firstShiftDate:
+    formatCalendarDate(firstDate),
+  secondShiftDate:
+    formatCalendarDate(secondDate),
+  firstShiftType: resolvedFirstShift,
+  secondShiftType: resolvedSecondShift,
+};
 
   const shifts = generateSchedule(userForSchedule);
 
@@ -179,20 +208,20 @@ const response = await fetch(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      firstShiftDate:
-        firstDate.toISOString(),
+  firstShiftDate:
+    formatCalendarDate(firstDate),
 
-      secondShiftDate:
-        secondDate.toISOString(),
+  secondShiftDate:
+    formatCalendarDate(secondDate),
 
-      firstShiftType:
-        resolvedFirstShift,
+  firstShiftType:
+    resolvedFirstShift,
 
-      secondShiftType:
-        resolvedSecondShift,
+  secondShiftType:
+    resolvedSecondShift,
 
-      rememberLogin,
-    }),
+  rememberLogin,
+}),
   }
 );
 
@@ -211,8 +240,12 @@ if (
 }
 
 updateUser(currentUser.id, {
-      firstShiftDate: firstDate.toISOString(),
-      secondShiftDate: secondDate.toISOString(),
+      firstShiftDate:
+        formatCalendarDate(firstDate),
+
+      secondShiftDate:
+        formatCalendarDate(secondDate),
+
       firstShiftType: resolvedFirstShift,
       secondShiftType: resolvedSecondShift,
       isSetupCompleted: true,

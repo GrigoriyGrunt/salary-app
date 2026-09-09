@@ -176,19 +176,33 @@ function getStartDate(hireDate: Date) {
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
+function parseCalendarDate(value: string): Date {
+  const [year, month, day] = value
+    .split("-")
+    .map(Number);
 
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+}
 export function generateSchedule(
   user: User
 ): Shift[] {
   const shifts: Shift[] = [];
 
-  const hireDate = new Date(user.hireDate);
-  const firstShiftDate = new Date(
-    user.firstShiftDate
-  );
-  const secondShiftDate = new Date(
-    user.secondShiftDate
-  );
+  const hireDate = parseCalendarDate(
+  user.hireDate
+);
+
+const firstShiftDate = parseCalendarDate(
+  user.firstShiftDate
+);
+
+const secondShiftDate = parseCalendarDate(
+  user.secondShiftDate
+);
 
   const startDate = getStartDate(hireDate);
   const firstWorkingDay = startOfDay(hireDate);
