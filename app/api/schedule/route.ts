@@ -7,13 +7,28 @@ import {
 } from "@/lib/auth";
 
 function normalizeDate(date: string | Date) {
-  const value = new Date(date);
+  if (typeof date === "string") {
+    const match =
+      /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+
+    if (!match) {
+      throw new Error("Некорректный формат даты");
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    return new Date(
+      Date.UTC(year, month - 1, day)
+    );
+  }
 
   return new Date(
     Date.UTC(
-      value.getFullYear(),
-      value.getMonth(),
-      value.getDate()
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
     )
   );
 }

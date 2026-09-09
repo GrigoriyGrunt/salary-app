@@ -3,6 +3,20 @@ import { persist } from "zustand/middleware";
 
 import type { Shift } from "@/lib/generateSchedule";
 
+function formatCalendarDate(date: Date) {
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 type UserScheduleData = {
   shifts: Shift[];
   originalMainShiftsByMonth: Record<string, number>;
@@ -291,13 +305,18 @@ syncSchedule: async () => {
       },
 
       body: JSON.stringify({
-        userId: state.currentUserId,
+  userId: state.currentUserId,
 
-        shifts: state.shifts,
+  shifts: state.shifts.map(
+    (shift) => ({
+      ...shift,
+      date: formatCalendarDate(shift.date),
+    })
+  ),
 
-        originalMainShiftsByMonth:
-          state.originalMainShiftsByMonth,
-      }),
+  originalMainShiftsByMonth:
+    state.originalMainShiftsByMonth,
+}),
     }
   );
 

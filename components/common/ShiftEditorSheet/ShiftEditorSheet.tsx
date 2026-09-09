@@ -9,6 +9,20 @@ import {
 import styles from "./ShiftEditorSheet.module.css";
 import { useScheduleStore } from "@/store/scheduleStore";
 
+function formatCalendarDate(date: Date) {
+  const year = date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 interface ShiftEditorSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -623,7 +637,7 @@ async function saveShift() {
 
         body: JSON.stringify({
           userId: currentUserId,
-          date: dateToSave.toISOString(),
+          date: formatCalendarDate(dateToSave),
           ...data,
         }),
       });

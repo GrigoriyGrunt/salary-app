@@ -174,7 +174,12 @@ Object.entries(mainShiftsByMonth).forEach(
 );
 
 setShifts(shifts);
-
+const shiftsForServer = shifts.map(
+  (shift) => ({
+    ...shift,
+    date: formatCalendarDate(shift.date),
+  })
+);
 try {
   const scheduleResponse = await fetch(
     "/api/schedule",
@@ -185,7 +190,7 @@ try {
       },
       body: JSON.stringify({
         userId: currentUser.id,
-        shifts,
+        shifts: shiftsForServer,
         originalMainShiftsByMonth:
           mainShiftsByMonth,
       }),
