@@ -121,28 +121,32 @@ setCurrentUserFromServer: (user: User) =>
       name: "users-storage",
       skipHydration: true,
       merge: (persistedState, currentState) => {
-        const persisted = persistedState as Partial<UsersStore>;
-        const users = (persisted.users ?? currentState.users).map((user) => ({
-          ...user,
-          scheduleChanges: user.scheduleChanges.map((change) => ({
-            ...change,
-            changeDate: new Date(change.changeDate),
-            firstShiftDate: new Date(change.firstShiftDate),
-            secondShiftDate: new Date(change.secondShiftDate),
-          })),
-        }));
-        const currentUserId = persisted.currentUserId ?? null;
+  const persisted = persistedState as Partial<UsersStore>;
 
-        return {
-          ...currentState,
-          ...persisted,
-          users,
-          currentUserId,
-          currentUser: currentUserId
-            ? users.find((user) => user.id === currentUserId) ?? null
-            : null,
-        };
-      },
+  const users = (persisted.users ?? currentState.users).map((user) => ({
+    ...user,
+    scheduleChanges: Array.isArray(user.scheduleChanges)
+      ? user.scheduleChanges.map((change) => ({
+          ...change,
+          changeDate: new Date(change.changeDate),
+          firstShiftDate: new Date(change.firstShiftDate),
+          secondShiftDate: new Date(change.secondShiftDate),
+        }))
+      : [],
+  }));
+
+  const currentUserId = persisted.currentUserId ?? null;
+
+  return {
+    ...currentState,
+    ...persisted,
+    users,
+    currentUserId,
+    currentUser: currentUserId
+      ? users.find((user) => user.id === currentUserId) ?? null
+      : null,
+  };
+},
     }
   )
 );
