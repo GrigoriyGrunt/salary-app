@@ -47,7 +47,7 @@ export async function createSession(
     session.id,
     {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
@@ -141,7 +141,7 @@ export async function extendCurrentSession() {
     updatedSession.id,
     {
       httpOnly: true,
-      secure: false,
+      secure: true,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
