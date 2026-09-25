@@ -88,6 +88,9 @@ salary-app
 │   │   ├── Calendar.tsx
 │   │   ├── DatePicker.module.css
 │   │   └── DatePicker.tsx
+│   ├── GlobalLoading
+│   │   ├── GlobalLoading.module.css
+│   │   └── GlobalLoading.tsx
 │   ├── home
 │   │   ├── actions
 │   │   │   ├── ActionCard.module.css
@@ -272,6 +275,7 @@ salary-app
 │   │   │   └── statistics-black.png
 │   │   ├── logo-full-app.png
 │   │   ├── logo-full.png
+│   │   ├── logo-icon-app-2.png
 │   │   ├── logo-icon-app.png
 │   │   ├── logo-icon.png
 │   │   └── logo.svg

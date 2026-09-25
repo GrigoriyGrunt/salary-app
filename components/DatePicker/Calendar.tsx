@@ -198,23 +198,15 @@ const yearListRef = useRef<HTMLDivElement>(null);
     : styles.dropdownItem
 }
           onClick={() => {
-            setTempMonth(index);
-          }}
+  setMonth(index);
+  setTempMonth(index);
+  setShowMonths(false);
+}}
         >
           {item}
         </button>
       ))}
     </div>
-
-    <button
-      className={styles.confirmButton}
-      onClick={() => {
-        setMonth(tempMonth);
-        setShowMonths(false);
-      }}
-    >
-      Выбрать
-    </button>
   </>
 )}
 
@@ -233,23 +225,15 @@ const yearListRef = useRef<HTMLDivElement>(null);
               : styles.dropdownItem
           }
           onClick={() => {
-            setTempYear(item);
-          }}
+  setYear(item);
+  setTempYear(item);
+  setShowYears(false);
+}}
         >
           {item}
         </button>
       ))}
     </div>
-
-    <button
-      className={styles.confirmButton}
-      onClick={() => {
-        setYear(tempYear);
-        setShowYears(false);
-      }}
-    >
-      Выбрать
-    </button>
   </>
 )}
       <div className={styles.weekdays}>

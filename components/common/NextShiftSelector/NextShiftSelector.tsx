@@ -24,6 +24,7 @@ type Props = {
   styles: Record<string, string>;
 minDate?: Date;
 hasDatesError?: boolean;
+showScheduleChangeHint?: boolean;
 };
 
 export default function NextShiftSelector({
@@ -45,23 +46,24 @@ export default function NextShiftSelector({
   styles,
 minDate,
 hasDatesError,
+showScheduleChangeHint,
 }: Props) {
   return (
   <>
-    {!isWatch1515 && (
-      <div
-        style={{
-          padding: "12px 14px",
-          borderRadius: "12px",
-          background: "#f5f5f5",
-          fontSize: "14px",
-          lineHeight: "1.4",
-        }}
-      >
-        Укажите две ближайшие основные смены нового графика,
-        начиная с даты изменения.
-      </div>
-    )}
+    {showScheduleChangeHint && !isWatch1515 && (
+  <div
+    style={{
+      padding: "12px 14px",
+      borderRadius: "12px",
+      background: "#f5f5f5",
+      fontSize: "14px",
+      lineHeight: "1.4",
+    }}
+  >
+    Укажите две ближайшие основные смены нового графика,
+    начиная с даты изменения.
+  </div>
+)}
   <div className={styles.card}>
     <DatePicker
       label={

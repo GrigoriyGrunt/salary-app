@@ -15,7 +15,30 @@ function formatDate(date?: string) {
 
   return new Date(date).toLocaleDateString("ru-RU");
 }
+function getExperienceLabel(years: number) {
+  const lastTwo = years % 100;
+  const lastOne = years % 10;
 
+  if (
+    lastTwo >= 11 &&
+    lastTwo <= 14
+  ) {
+    return "лет";
+  }
+
+  if (lastOne === 1) {
+    return "год";
+  }
+
+  if (
+    lastOne >= 2 &&
+    lastOne <= 4
+  ) {
+    return "года";
+  }
+
+  return "лет";
+}
 export default function ProfilePage() {
   const [isResetOpen, setIsResetOpen] =
   useState(false);
@@ -280,7 +303,8 @@ async function handleResetProfile() {
 </p>
 
 <p className={styles.experience}>
-  Стаж: {experience} {experience === 1 ? "год" : "лет"}
+  Стаж: {experience}{" "}
+  {getExperienceLabel(experience)}
 </p>
 <p className={styles.experience}>
   Текущий график: {currentSchedule}
@@ -325,23 +349,24 @@ async function handleResetProfile() {
           </div>
           <div className={styles.card}>
   <button
-  className={styles.logout}
-  onClick={() => setIsResetOpen(true)}
->
-  Сбросить параметры профиля
-</button>
-</div>
-
-<div className={styles.card}>
-  <button
     className={styles.logout}
     onClick={() => setIsLogoutOpen(true)}
   >
     Выйти из аккаунта
   </button>
 </div>
+<div className={styles.resetProfileSpacer} />
+
+<div className={styles.card}>
+  <button
+    className={styles.logout}
+    onClick={() => setIsResetOpen(true)}
+  >
+    Сбросить параметры профиля
+  </button>
+</div>
         </div>
-      </div>
+            </div>
 
       <BottomNavigation />
       {isUsersManagementOpen && (

@@ -136,47 +136,51 @@ position: relative;
 }
 
 .selectedDay.dayCard {
-  width: 45px !important;
-height: 60px !important;
-border: 2px solid #000000 !important;
-border-radius: 90% !important;
-margin: auto;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-.selectedDay.nightCard {
-  width: 45px !important;
-height: 60px !important;
-border: 2px solid #000000 !important;
-border-radius: 90% !important;
-margin: auto;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-.selectedDay.offCard {
-  border: 2px solid #ff0101 !important;
-  width: 45px !important;
-height: 60px !important;
-border-radius: 90% !important;
-margin: auto;
-display: flex;
-align-items: center;
-justify-content: center;
-}
-
-.selectedDay.workedCard {
-  width: 45px !important;
-  height: 60px !important;
-  border: 2px solid #000000 !important;
+  width: 100% !important;
+  height: 62px !important;
+  border: none !important;
   border-radius: 90% !important;
-  margin: auto;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 2px #000000 !important;
+}
+
+.selectedDay.nightCard {
+  width: 100% !important;
+  height: 62px !important;
+  border: none !important;
+  border-radius: 90% !important;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 2px #000000 !important;
+}
+
+.selectedDay.offCard {
+  width: 100% !important;
+  height: 62px !important;
+  border: none !important;
+  border-radius: 90% !important;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 2px #ff0101 !important;
+}
+
+.selectedDay.workedCard {
+  width: 100% !important;
+  height: 62px !important;
+  border: none !important;
+  border-radius: 90% !important;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 2px #000000 !important;
 }
 
 .statusType {

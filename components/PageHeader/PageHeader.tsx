@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import {
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -44,6 +45,11 @@ export default function PageHeader({
     const router = useRouter();
   const [isNotificationsOpen, setIsNotificationsOpen] =
     useState(false);
+    const notificationWrapperRef =
+  useRef<HTMLDivElement>(null);
+
+const notificationPanelRef =
+  useRef<HTMLDivElement>(null);
     const [now, setNow] = useState(
   () => new Date()
 );
@@ -55,6 +61,34 @@ useEffect(() => {
 
   return () => clearInterval(interval);
 }, []);
+useEffect(() => {
+  if (!isNotificationsOpen) {
+    return;
+  }
+
+  const handleClickOutside = (event: MouseEvent) => {
+    const target = event.target as Node;
+
+    if (
+      notificationWrapperRef.current &&
+      !notificationWrapperRef.current.contains(target)
+    ) {
+      setIsNotificationsOpen(false);
+    }
+  };
+
+  document.addEventListener(
+    "mousedown",
+    handleClickOutside
+  );
+
+  return () => {
+    document.removeEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+  };
+}, [isNotificationsOpen]);
   const currentUser = useUsersStore(
     (state) => state.currentUser
   );
@@ -137,6 +171,8 @@ const syncGoalMonth =
 
   const currentMonthKey =
     getMonthKey(now);
+    const scheduleNotificationId =
+  `schedule-${currentMonthKey}`;
 const motivationNotificationId =
   `motivation-${currentMonthKey}`;
 
@@ -145,6 +181,13 @@ const hasMotivationNotification =
   !dismissedNotifications.includes(
     motivationNotificationId
   );
+  const visibleScheduleNotification =
+  notification &&
+  !dismissedNotifications.includes(
+    scheduleNotificationId
+  )
+    ? notification
+    : null;
   const visibleShiftNotifications =
     shiftNotifications.filter(
       (shiftNotification) => {
@@ -181,9 +224,52 @@ const hasMotivationNotification =
   const notificationsCount =
   visibleShiftNotifications.length +
   visiblePaymentNotifications.length +
-  (notification ? 1 : 0) +
+  (visibleScheduleNotification ? 1 : 0) +
   (hasMotivationNotification ? 1 : 0);
+const clearAllNotifications = async () => {
+  const notificationIds: string[] = [];
 
+  if (hasMotivationNotification) {
+    notificationIds.push(
+      motivationNotificationId
+    );
+  }
+
+  if (visibleScheduleNotification) {
+    notificationIds.push(
+      scheduleNotificationId
+    );
+  }
+
+  visibleShiftNotifications.forEach(
+    (shiftNotification) => {
+      notificationIds.push(
+        `shift-${getMonthKey(
+          shiftNotification.date
+        )}-${shiftNotification.date.getDate()}`
+      );
+    }
+  );
+
+  visiblePaymentNotifications.forEach(
+    (paymentNotification) => {
+      if (
+        paymentNotification.type ===
+        "reminder"
+      ) {
+        notificationIds.push(
+          `${paymentNotification.id}-${currentMonthKey}`
+        );
+      }
+    }
+  );
+
+  await Promise.all(
+    notificationIds.map((id) =>
+      dismissNotification(id)
+    )
+  );
+};
   const notificationDate =
     notification
       ? new Intl.DateTimeFormat(
@@ -212,7 +298,10 @@ const hasMotivationNotification =
           </p>
         </div>
 
-        <div className={styles.notificationWrapper}>
+        <div
+  className={styles.notificationWrapper}
+  ref={notificationWrapperRef}
+>
           <button
             className={styles.notification}
             onClick={() =>
@@ -237,9 +326,37 @@ const hasMotivationNotification =
           </button>
 
           {isNotificationsOpen && (
-            <div
-              className={styles.notificationPanel}
-            >
+  <div
+    className={styles.notificationPanel}
+    ref={notificationPanelRef}
+  >
+    <div className={styles.notificationHeader}>
+      <h3>Уведомления</h3>
+
+      <div className={styles.notificationHeaderActions}>
+        <button
+          type="button"
+          className={styles.clearNotificationsButton}
+          disabled={notificationsCount === 0}
+          onClick={clearAllNotifications}
+        >
+          Очистить всё
+        </button>
+
+        <button
+          type="button"
+          className={styles.notificationPanelClose}
+          onClick={() =>
+            setIsNotificationsOpen(false)
+          }
+          aria-label="Закрыть уведомления"
+        >
+          <X size={22} />
+        </button>
+      </div>
+    </div>
+
+    <div className={styles.notificationList}>
 {hasMotivationNotification && (
   <div
     className={
@@ -274,12 +391,26 @@ const hasMotivationNotification =
     </p>
   </div>
 )}
-              {notification && (
+              {visibleScheduleNotification && (
   <div
     className={
       styles.notificationCard
     }
   >
+    <button
+  type="button"
+  className={
+    styles.notificationClose
+  }
+  onClick={() =>
+    dismissNotification(
+      scheduleNotificationId
+    )
+  }
+  aria-label="Закрыть уведомление"
+>
+  <X size={18} />
+</button>
     <h3>
       ⚠️ Проверьте график
     </h3>
@@ -287,11 +418,11 @@ const hasMotivationNotification =
     <p>
       В этом месяце должно быть{" "}
       <strong>
-        {notification.originalMainShifts}
+        visibleScheduleNotification.originalMainShifts
       </strong>{" "}
       обязательных смен, сейчас —{" "}
       <strong>
-        {notification.requiredShifts}
+        visibleScheduleNotification.requiredShifts
       </strong>.
     </p>
 
@@ -302,11 +433,11 @@ const hasMotivationNotification =
       </strong>{" "}
       и изменить её тип с{" "}
       <strong>
-        «{notification.from}»
+        «visibleScheduleNotification.from»
       </strong>{" "}
       на{" "}
       <strong>
-        «{notification.to}»
+        «visibleScheduleNotification.to»
       </strong>.
     </p>
 
@@ -465,8 +596,9 @@ const hasMotivationNotification =
     Новых уведомлений нет
   </div>
 )}
-            </div>
-          )}
+    </div>
+  </div>
+)}
         </div>
       </header>
     );

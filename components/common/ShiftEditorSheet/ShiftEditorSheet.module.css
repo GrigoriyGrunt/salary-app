@@ -19,7 +19,7 @@
   padding: 12px 20px calc(env(safe-area-inset-bottom) + 20px);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .handle {
@@ -97,11 +97,13 @@
 }
 
 .content {
-  flex: none;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
 
@@ -343,4 +345,8 @@
   background: #D71920;
   border-color: #D71920;
   color: #FFFFFF;
+}
+
+.content > * {
+  flex-shrink: 0;
 }

@@ -7,6 +7,7 @@ import styles from "./MotivationSheet.module.css";
 type Props = {
   open: boolean;
   goal: number;
+  isGuide?: boolean;
   onClose: () => void;
   onGoalChange: (value: number) => void;
   onSave: () => void;
@@ -15,56 +16,71 @@ type Props = {
 export default function MotivationSheet({
   open,
   goal,
+  isGuide = false,
   onClose,
   onGoalChange,
   onSave,
 }: Props) {
-    const [value, setValue] = useState(goal.toString());
+  const [value, setValue] =
+  useState(
+    isGuide ? "" : goal.toString()
+  );
+const numberValue = Number(value);
 
+const isValid =
+  Number.isInteger(numberValue) &&
+  numberValue >= 100;
   return (
     <BottomSheet
-  isOpen={open}
-  onClose={onClose}
-  
->
-  
+      isOpen={open}
+      onClose={onClose}
+    >
       <div className={styles.container}>
-        <h2 className={styles.title}>Мотивация</h2>
+        <h2 className={styles.title}>
+          Мотивация
+        </h2>
 
         <div className={styles.section}>
-          <div className={styles.label}>Цель на месяц</div>
+          <div className={styles.label}>
+            Цель на месяц
+          </div>
 
           <div className={styles.goalRow}>
-  <input
-    type="number"
-    className={styles.input}
-    value={value}
-    onChange={(e) => {
-  setValue(e.target.value);
-}}
-  />
+            <input
+              type="number"
+              className={styles.input}
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+              }}
+            />
 
-  <button
+            <button
   type="button"
   className={styles.save}
+  disabled={!isValid}
   onClick={() => {
-    const number = Number(value);
+    if (!isValid) {
+      return;
+    }
 
-    onGoalChange(Number.isNaN(number) ? 0 : number);
+    onGoalChange(numberValue);
     onSave();
   }}
 >
-    Сохранить
-  </button>
-</div>
+  Сохранить
+</button>
+          </div>
 
-<div className={styles.caption}>
-  коробок за смену
-</div>
+          <div className={styles.caption}>
+            коробок за смену
+          </div>
         </div>
 
         <div className={styles.section}>
-          <div className={styles.label}>Основа</div>
+          <div className={styles.label}>
+            Основа
+          </div>
 
           <div className={styles.row}>
             <span>до 1200</span>
@@ -83,7 +99,9 @@ export default function MotivationSheet({
         </div>
 
         <div className={styles.section}>
-          <div className={styles.label}>Табак</div>
+          <div className={styles.label}>
+            Табак
+          </div>
 
           <div className={styles.row}>
             <span>до 2200</span>

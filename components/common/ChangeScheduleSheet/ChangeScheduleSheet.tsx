@@ -203,6 +203,7 @@ const handleClose = () => {
       isDayNight={
         scheduleType === "dayNight"
       }
+      showScheduleChangeHint={true}
       isWatch1515={
         scheduleType === "shift"
       }

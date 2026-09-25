@@ -6,8 +6,6 @@
 }
 
 .sheet {
-  overflow-y: auto;
--webkit-overflow-scrolling: touch;
   position: fixed;
   left: 0;
   right: 0;
@@ -17,11 +15,12 @@
   flex-direction: column;
   background: #ffffff;
   border-radius: 24px 24px 0 0;
-  padding: 16px 20px calc(env(safe-area-inset-bottom) + 20px);
+  padding: 16px 20px 0;
   z-index: 1000;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.15);
   animation: slideUp .25s ease;
-overscroll-behavior: contain;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 @keyframes slideUp {
@@ -43,6 +42,21 @@ overscroll-behavior: contain;
   border-radius: 999px;
 
   margin: 0 auto 20px;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: 20px;
+}
+
+.footer {
+  flex-shrink: 0;
+  padding: 12px 0 calc(env(safe-area-inset-bottom) + 20px);
+  background: #ffffff;
 }
 
 .date {

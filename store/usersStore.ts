@@ -81,9 +81,17 @@ setCurrentUserFromServer: (user: User) =>
           ),
         })),
 
-      resetUser: (id) =>
-      set((state) => {
-        const users = state.users.map((user) =>
+      resetUser: (id) => {
+  if (
+    typeof window !== "undefined"
+  ) {
+    localStorage.removeItem(
+      `motivation-guide-${id}`
+    );
+  }
+
+  set((state) => {
+    const users = state.users.map((user) =>
           user.id === id
             ? {
                 ...user,
@@ -110,7 +118,8 @@ setCurrentUserFromServer: (user: User) =>
                 ) || null
               : state.currentUser,
         };
-      }),
+      });
+},
       logout: () =>
   set({
     currentUserId: null,

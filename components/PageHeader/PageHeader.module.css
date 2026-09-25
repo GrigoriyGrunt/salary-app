@@ -155,6 +155,11 @@
     calc(100vw - 24px)
   );
 
+  max-height: 80vh;
+
+  display: flex;
+  flex-direction: column;
+
   background: #ffffff;
   border-radius: 18px;
 
@@ -164,6 +169,91 @@
 
   overflow: hidden;
   z-index: 201;
+}
+
+.notificationHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  flex-shrink: 0;
+
+  padding: 14px 14px 14px 18px;
+
+  background: #ffffff;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.notificationHeader h3 {
+  margin: 0;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  color: #111827;
+}
+
+.notificationHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clearNotificationsButton {
+  padding: 6px 8px;
+
+  border: none;
+  background: transparent;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #e30613;
+
+  cursor: pointer;
+}
+
+.clearNotificationsButton:disabled {
+  color: #bdbdbd;
+  cursor: default;
+}
+
+.notificationPanelClose {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #8a8a8a;
+
+  cursor: pointer;
+}
+
+.notificationPanelClose:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.notificationList {
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  -webkit-overflow-scrolling: touch;
 }
 
 .notificationCard {

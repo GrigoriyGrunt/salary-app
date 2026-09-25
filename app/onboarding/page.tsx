@@ -127,9 +127,9 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
                 disabled: true,
               },
               {
-                label: "Сотрудник отдела брака",
-                disabled: true,
-              },
+  label: "Штабелер (водитель погрузчика)",
+  disabled: true,
+},
             ]}
           />
 
@@ -154,8 +154,9 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
                 label: "15/15 вахта",
               },
               {
-                label: "5/2",
-              },
+  label: "5/2",
+  disabled: true,
+},
             ]}
           />
 

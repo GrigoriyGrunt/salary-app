@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import Logo from "@/components/Logo/Logo";
-import Loader from "@/components/Loader/Loader";
+import Image from "next/image";
+import GlobalLoading from "@/components/GlobalLoading/GlobalLoading";
 import { useUsersStore } from "@/store/usersStore";
 
 import styles from "./page.module.css";
@@ -87,7 +87,13 @@ export default function SplashPage() {
       <div />
 
       <div className={styles.center}>
-        <Logo variant="icon" />
+        <Image
+  src="/images/logo-icon-app-2.png"
+  alt="Калькулятор ЗП"
+  width={130}
+  height={130}
+  priority
+/>
 
         <p className={styles.subtitle}>
           Твой личный калькулятор
@@ -97,7 +103,11 @@ export default function SplashPage() {
       </div>
 
       <div className={styles.bottom}>
-        <Loader progress={progress} />
+        <GlobalLoading
+  forceVisible
+  large
+  splash
+/>
 
         <div className={styles.footer}>
           <div className={styles.title}>Калькулятор ЗП</div>

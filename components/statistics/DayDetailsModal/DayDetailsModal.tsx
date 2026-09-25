@@ -373,109 +373,109 @@ const dayEarnings = getDayEarnings(
       />
 
       <div className={styles.sheet}>
-        <div
-          className={styles.handle}
-        />
+  <div className={styles.handle} />
 
-        <h2 className={styles.date}>
-          {selectedDate.toLocaleDateString(
-            "ru-RU",
-            {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }
-          )}
-        </h2>
+  <div className={styles.header}>
+    <h2 className={styles.date}>
+      {selectedDate.toLocaleDateString(
+        "ru-RU",
+        {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }
+      )}
+    </h2>
 
-        <p
-          className={styles.shiftType}
-        >
-          {shiftType}
-        </p>
+    <p className={styles.shiftType}>
+      {shiftType}
+    </p>
 
-        {period && (
-          <p
-            className={styles.period}
-          >
-            {period}
-          </p>
-        )}
+    {period && (
+      <p className={styles.period}>
+        {period}
+      </p>
+    )}
+  </div>
 
-        <div
-          className={styles.divider}
-        />
+  <div className={styles.content}>
+    <div className={styles.divider} />
 
-        {workType && (
-          <InfoRow
-            label="Тип работы"
-            value={workType}
-          />
-        )}
+    {workType && (
+      <InfoRow
+        label="Тип работы"
+        value={workType}
+      />
+    )}
 
-        {salaryHours > 0 && (
-  <InfoRow
-    label="Часы по окладу"
-    value={salaryHours}
-  />
-)}
+    {salaryHours > 0 && (
+      <InfoRow
+        label="Часы по окладу"
+        value={salaryHours}
+      />
+    )}
 
-{baseHours > 0 && (
-  <InfoRow
-    label="Часы основа"
-    value={`${baseHours} ч`}
-  />
-)}
+    {baseHours > 0 && (
+      <InfoRow
+        label="Часы основа"
+        value={`${baseHours} ч`}
+      />
+    )}
 
-{boxes > 0 && (
-  <InfoRow
-    label="Коробки"
-    value={boxes}
-  />
-)}
+    {boxes > 0 && (
+      <InfoRow
+        label="Коробки"
+        value={boxes}
+      />
+    )}
 
-{tobaccoHours > 0 && (
-  <InfoRow
-    label="Часы табак"
-    value={`${tobaccoHours} ч`}
-  />
-)}
+    {tobaccoHours > 0 && (
+      <InfoRow
+        label="Часы табак"
+        value={`${tobaccoHours} ч`}
+      />
+    )}
 
-{blocks > 0 && (
-  <InfoRow
-    label="Блоки"
-    value={blocks}
-  />
-)}
+    {blocks > 0 && (
+      <InfoRow
+        label="Блоки"
+        value={blocks}
+      />
+    )}
 
-{nonProfileHours > 0 && (
-  <InfoRow
-    label="Непрофильные часы"
-    value={`${nonProfileHours} ч`}
-  />
-)}
-        {shift?.mentor && (
-          <InfoRow
-            label="Наставник"
-            value="Да"
-          />
-        )}
-        {dayEarnings > 0 && (
-  <InfoRow
-    label="Заработано"
-    value={`${Math.round(
-      dayEarnings
-    ).toLocaleString("ru-RU")} ₽`}
-  />
-)}
+    {nonProfileHours > 0 && (
+      <InfoRow
+        label="Непрофильные часы"
+        value={`${nonProfileHours} ч`}
+      />
+    )}
 
-        <button
-          className={styles.editButton}
-          onClick={onEdit}
-        >
-          Внести или редактировать данные
-        </button>
-      </div>
+    {shift?.mentor && (
+      <InfoRow
+        label="Наставник"
+        value="Да"
+      />
+    )}
+
+    {dayEarnings > 0 && (
+      <InfoRow
+        label="Заработано"
+        value={`${Math.round(
+          dayEarnings
+        ).toLocaleString("ru-RU")} ₽`}
+      />
+    )}
+  </div>
+
+  <div className={styles.footer}>
+    <button
+      className={styles.editButton}
+      onClick={onEdit}
+    >
+      Внести или редактировать данные
+    </button>
+  </div>
+</div>
     </>,
     document.body
   );

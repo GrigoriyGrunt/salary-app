@@ -1,0 +1,79 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  pointer-events: auto;
+}
+
+.spinner {
+  position: relative;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+
+  background: conic-gradient(
+    from 0deg,
+    rgba(227, 6, 19, 0) 0deg,
+    rgba(227, 6, 19, 0.04) 35deg,
+    rgba(227, 6, 19, 0.10) 65deg,
+    rgba(227, 6, 19, 0.22) 90deg,
+    rgba(227, 6, 19, 0.45) 115deg,
+    #e30613 145deg,
+    #e30613 180deg,
+    rgba(227, 6, 19, 0) 210deg,
+    rgba(227, 6, 19, 0) 360deg
+  );
+
+  -webkit-mask:
+    radial-gradient(
+      circle,
+      transparent 0 47%,
+      #000 49% 100%
+    );
+
+  mask:
+    radial-gradient(
+      circle,
+      transparent 0 47%,
+      #000 49% 100%
+    );
+
+  animation:
+    globalLoaderSpin
+    0.65s
+    linear
+    infinite;
+
+  filter:
+    drop-shadow(
+      0 0 3px
+      rgba(227, 6, 19, 0.18)
+    );
+}
+
+@keyframes globalLoaderSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.large {
+  width: 68px;
+  height: 68px;
+}
+
+.splash {
+  margin-top: 130px;
+}

@@ -256,6 +256,11 @@ updateUser(currentUser.id, {
       isSetupCompleted: true,
     });
 
+    localStorage.setItem(
+      `show-motivation-guide-${currentUser.id}`,
+      "true"
+    );
+
     router.push("/");
   } catch (error) {
     console.error(
@@ -286,6 +291,7 @@ updateUser(currentUser.id, {
 <NextShiftSelector
   isDayNight={isDayNight}
   isWatch1515={isWatch1515}
+  showScheduleChangeHint={false}
   firstDate={firstDate}
   secondDate={secondDate}
   onFirstDateChange={setFirstDate}
