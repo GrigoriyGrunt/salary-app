@@ -88,7 +88,7 @@ export default function SplashPage() {
 
       <div className={styles.center}>
         <Image
-  src="/images/logo-icon-app-2.png"
+  src="/images/logo-icon-app-2.svg"
   alt="Калькулятор ЗП"
   width={130}
   height={130}

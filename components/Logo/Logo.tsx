@@ -12,8 +12,8 @@ export default function Logo({
 }: LogoProps) {
   const src =
   variant === "icon"
-    ? "/images/logo-icon-app.png"
-    : "/images/logo-full-app.png";
+    ? "/images/logo-icon-app.svg"
+    : "/images/logo-full-app.svg";
 
   return (
     <div className={`${styles.logo} ${className}`}>
