@@ -6,7 +6,10 @@ import styles from "./DayDetailsModal.module.css";
 import { useUsersStore } from "@/store/usersStore";
 import { useScheduleStore } from "@/store/scheduleStore";
 import InfoRow from "@/components/common/InfoRow/InfoRow";
-import { getOriginalMainShiftsForMonth } from "@/lib/getOriginalMainShiftsForMonth";
+import {
+  getOriginalMainShiftsForMonth,
+  getOriginalMainShiftsForDate,
+} from "@/lib/getOriginalMainShiftsForMonth";
 import type { User } from "@/types/user";
 type ShiftData = {
   date?: Date;
@@ -170,11 +173,17 @@ const originalMainShifts =
     );
 
   const hourlyRate =
-    originalMainShifts > 0
-      ? 23750 /
-        originalMainShifts /
-        11
-      : 0;
+  getOriginalMainShiftsForDate(
+    user,
+    selectedDate
+  ) > 0
+    ? 23750 /
+      getOriginalMainShiftsForDate(
+        user,
+        selectedDate
+      ) /
+      11
+    : 0;
 
   let salaryFromHours = 0;
 

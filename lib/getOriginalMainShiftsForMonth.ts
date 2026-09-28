@@ -250,18 +250,16 @@ export function getOriginalMainShiftsForMonth(
   }
 
 
-  /*
-    Если месяц совпадает с месяцем
-    трудоустройства, расчёт начинается
-    с даты устройства.
+    /*
+    Норма считается по полному месяцу
+    выбранного графика.
 
-    В остальных случаях — с первого
-    дня выбранного месяца.
+    Дата трудоустройства не сокращает
+    расчёт нормы — она влияет только
+    на фактический построенный график.
   */
   const calculationStart =
-    monthStart < hireDate
-      ? hireDate
-      : monthStart;
+    monthStart;
 
 
   const temporaryShifts: Shift[] = [];
@@ -313,6 +311,117 @@ export function getOriginalMainShiftsForMonth(
 
 
   return shiftsWithChanges.filter(
+    (shift) =>
+      shift.workType === "main"
+  ).length;
+}
+export function getOriginalMainShiftsForDate(
+  user: User | null,
+  shiftDate: Date
+): number {
+  if (!user) {
+    return 0;
+  }
+
+  const date = startOfDay(shiftDate);
+
+  const hireDate = startOfDay(
+    new Date(user.hireDate)
+  );
+
+  if (date < hireDate) {
+    return 0;
+  }
+
+  const scheduleChanges =
+    user.scheduleChanges ?? [];
+
+  const applicableChange =
+    [...scheduleChanges]
+      .sort(
+        (a, b) =>
+          startOfDay(a.changeDate).getTime() -
+          startOfDay(b.changeDate).getTime()
+      )
+      .filter(
+        (change) =>
+          date >= startOfDay(change.changeDate)
+      )
+      .at(-1);
+
+  /*
+    Если смена относится к исходному графику,
+    считаем норму полного месяца исходного графика.
+  */
+  if (!applicableChange) {
+    return getOriginalMainShiftsForMonth(
+      user,
+      date
+    );
+  }
+
+  /*
+    Если смена относится к изменённому графику,
+    считаем норму полного месяца именно этого
+    нового графика.
+
+    Новый цикл определяется firstShiftDate
+    и secondShiftDate.
+
+    changeDate здесь используется только
+    как граница применения нового графика.
+  */
+  const monthStart = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    1
+  );
+
+  const monthEnd = new Date(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    0
+  );
+
+  const temporaryShifts: Shift[] = [];
+
+  const currentDate =
+    new Date(monthStart);
+
+  while (currentDate <= monthEnd) {
+    temporaryShifts.push(
+      createTemporaryShift(
+        new Date(currentDate),
+        getBaseShiftType(
+          user,
+          new Date(currentDate)
+        )
+      )
+    );
+
+    currentDate.setDate(
+      currentDate.getDate() + 1
+    );
+  }
+
+  /*
+    Для расчёта полной нормы нового графика
+    считаем changeDate началом расчётного месяца.
+    Сам цикл при этом по-прежнему определяется
+    двумя выбранными сменами.
+  */
+  const normalizedChange = {
+    ...applicableChange,
+    changeDate: monthStart,
+  };
+
+  const shiftsWithNewSchedule =
+    applyScheduleChanges(
+      temporaryShifts,
+      [normalizedChange]
+    );
+
+  return shiftsWithNewSchedule.filter(
     (shift) =>
       shift.workType === "main"
   ).length;

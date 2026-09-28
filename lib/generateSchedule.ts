@@ -177,7 +177,9 @@ function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 function parseCalendarDate(value: string): Date {
-  const [year, month, day] = value
+  const datePart = value.split("T")[0];
+
+  const [year, month, day] = datePart
     .split("-")
     .map(Number);
 

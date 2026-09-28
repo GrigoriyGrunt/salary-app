@@ -4,7 +4,10 @@ import styles from "./SalaryBreakdown.module.css";
 import { useUsersStore } from "@/store/usersStore";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { getExperienceBonus } from "@/lib/experience";
-import { getOriginalMainShiftsForMonth } from "@/lib/getOriginalMainShiftsForMonth";
+import {
+  getOriginalMainShiftsForMonth,
+  getOriginalMainShiftsForDate,
+} from "@/lib/getOriginalMainShiftsForMonth";
 import { useFinanceStore } from "@/store/financeStore";
 import { useEffect, useState } from "react";
 import BottomSheet from "@/components/BottomSheet/BottomSheet";
@@ -209,16 +212,36 @@ const workedMonthShiftData = shifts.reduce(
     transitionPart: "first" | "second" | null;
   }[]
 );
-const hourlyRate =
-  originalMainShifts > 0
-    ? 23750 / originalMainShifts / 11
-    : 0;
 
 const salaryFromHours =
   workedMonthShiftData.reduce(
     (total, item) => {
       const { shift, salaryHours, transitionPart } =
         item;
+      const shiftDate =
+  new Date(shift.date);
+
+const rateDate =
+  transitionPart === "second"
+    ? new Date(
+        shiftDate.getFullYear(),
+        shiftDate.getMonth(),
+        shiftDate.getDate() + 1
+      )
+    : shiftDate;
+
+const shiftOriginalMainShifts =
+  getOriginalMainShiftsForDate(
+    user,
+    rateDate
+  );
+
+const hourlyRate =
+  shiftOriginalMainShifts > 0
+    ? 23750 /
+      shiftOriginalMainShifts /
+      11
+    : 0;  
 
       if (
         shift.workType !== "main" &&

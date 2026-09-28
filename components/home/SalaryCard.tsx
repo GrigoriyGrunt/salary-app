@@ -6,6 +6,7 @@ import { useScheduleStore } from "@/store/scheduleStore";
 import { useFinanceStore } from "@/store/financeStore";
 import { useUsersStore } from "@/store/usersStore";
 import { getExperienceBonus } from "@/lib/experience";
+import { getOriginalMainShiftsForDate } from "@/lib/getOriginalMainShiftsForMonth";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
 
 export default function SalaryCard() {
@@ -159,49 +160,91 @@ const extraNightShiftSalary =
 
   let extraUsedAsRegular = 0;
 
-  let futureForecast = 0;
+    let futureForecast = 0;
 
   monthShifts.forEach((shift) => {
-  const isWorkingShift =
-    shift.workType === "main" ||
-    shift.workType === "overtime" ||
-    shift.workType === "extra";
+    const isWorkingShift =
+      shift.workType === "main" ||
+      shift.workType === "overtime" ||
+      shift.workType === "extra";
 
-  if (!isWorkingShift || shift.isWorked) {
-    return;
-  }
+    if (!isWorkingShift || shift.isWorked) {
+      return;
+    }
 
-  const isNightShift =
-    shift.type === "night";
+    const shiftDate =
+      new Date(shift.date);
 
-  if (
-    shift.workType === "main" ||
-    shift.workType === "overtime"
-  ) {
-    futureForecast += isNightShift
-      ? regularNightShiftSalary
-      : regularShiftSalary;
+    const shiftOriginalMainShifts =
+      getOriginalMainShiftsForDate(
+        user,
+        shiftDate
+      );
 
-    return;
-  }
+    const shiftHourlyRate =
+      shiftOriginalMainShifts > 0
+        ? 23750 /
+          shiftOriginalMainShifts /
+          11
+        : 0;
 
-  if (shift.workType === "extra") {
+    const shiftRegularSalary =
+      shiftOriginalMainShifts > 0
+        ? (
+            23750 +
+            goal *
+              boxPrice *
+              shiftOriginalMainShifts
+          ) /
+          shiftOriginalMainShifts
+        : 0;
+
+    const shiftRegularNightSalary =
+      shiftRegularSalary +
+      shiftHourlyRate * 7 * 0.2;
+
+    const shiftExtraSalary =
+      shiftHourlyRate * 22 +
+      goal * boxPrice;
+
+    const shiftExtraNightSalary =
+      (
+        shiftHourlyRate * 11 +
+        shiftHourlyRate * 7 * 0.2
+      ) * 2 +
+      goal * boxPrice;
+
+    const isNightShift =
+      shift.type === "night";
+
     if (
-      extraUsedAsRegular <
-      regularShiftsNeeded
+      shift.workType === "main" ||
+      shift.workType === "overtime"
     ) {
       futureForecast += isNightShift
-        ? regularNightShiftSalary
-        : regularShiftSalary;
+        ? shiftRegularNightSalary
+        : shiftRegularSalary;
 
-      extraUsedAsRegular += 1;
-    } else {
-      futureForecast += isNightShift
-        ? extraNightShiftSalary
-        : extraShiftSalary;
+      return;
     }
-  }
-});
+
+    if (shift.workType === "extra") {
+      if (
+        extraUsedAsRegular <
+        regularShiftsNeeded
+      ) {
+        futureForecast += isNightShift
+          ? shiftRegularNightSalary
+          : shiftRegularSalary;
+
+        extraUsedAsRegular += 1;
+      } else {
+        futureForecast += isNightShift
+          ? shiftExtraNightSalary
+          : shiftExtraSalary;
+      }
+    }
+  });
 
   const errorCount =
     monthDeductions.filter(
