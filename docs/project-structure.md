@@ -51,6 +51,7 @@ salary-app
 │   ├── favicon.ico
 │   ├── globals.css
 │   ├── layout.tsx
+│   ├── manifest.webmanifest
 │   ├── page.module.css
 │   └── page.tsx
 ├── components

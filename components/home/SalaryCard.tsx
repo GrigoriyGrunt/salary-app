@@ -6,6 +6,7 @@ import { useScheduleStore } from "@/store/scheduleStore";
 import { useFinanceStore } from "@/store/financeStore";
 import { useUsersStore } from "@/store/usersStore";
 import { getExperienceBonus } from "@/lib/experience";
+import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
 
 export default function SalaryCard() {
   const shifts = useScheduleStore((state) => state.shifts);
@@ -78,8 +79,33 @@ export default function SalaryCard() {
     user?.hireDate || ""
   );
 
+const monthStats =
+  getMonthProductionStats(
+    shifts,
+    currentDate
+  );
+
+const totalBoxes =
+  monthStats.boxes;
+
+const totalBaseHours =
+  monthStats.baseHours;
+
+const averageBoxes =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalBoxes / totalBaseHours) * 11
+      )
+    : 0;  
+
   const boxPrice =
-    goal < 1200
+  averageBoxes > 0
+    ? averageBoxes < 1200
+      ? 2.7
+      : averageBoxes < 1800
+        ? 3.6
+        : 4
+    : goal < 1200
       ? 2.7
       : goal < 1800
         ? 3.6
