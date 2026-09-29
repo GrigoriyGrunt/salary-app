@@ -333,6 +333,54 @@ export function getOriginalMainShiftsForDate(
     return 0;
   }
 
+  // Для вахты 15/15 каждая отдельная вахта
+  // всегда имеет собственную норму 15 смен.
+  //
+  // Если вахта продлена подряд:
+  // 1–15  → первая норма 15
+  // 16–30 → вторая норма 15
+  //
+  // Поэтому нельзя считать весь непрерывный
+  // период 1–30 одной нормой 30.
+  if (user.schedule === "15/15 вахта") {
+    const scheduleChanges =
+      user.scheduleChanges ?? [];
+
+    const applicableChange =
+      [...scheduleChanges]
+        .sort(
+          (a, b) =>
+            startOfDay(a.changeDate).getTime() -
+            startOfDay(b.changeDate).getTime()
+        )
+        .filter(
+          (change) =>
+            date >= startOfDay(change.changeDate)
+        )
+        .at(-1);
+
+    const watchStart = startOfDay(
+      applicableChange?.firstShiftDate
+        ? new Date(applicableChange.firstShiftDate)
+        : new Date(user.firstShiftDate)
+    );
+
+    const watchEnd = startOfDay(
+      applicableChange?.secondShiftDate
+        ? new Date(applicableChange.secondShiftDate)
+        : new Date(user.secondShiftDate)
+    );
+
+    if (
+      date >= watchStart &&
+      date <= watchEnd
+    ) {
+      return 15;
+    }
+
+    return 0;
+  }
+
   const scheduleChanges =
     user.scheduleChanges ?? [];
 
@@ -364,12 +412,6 @@ export function getOriginalMainShiftsForDate(
     Если смена относится к изменённому графику,
     считаем норму полного месяца именно этого
     нового графика.
-
-    Новый цикл определяется firstShiftDate
-    и secondShiftDate.
-
-    changeDate здесь используется только
-    как граница применения нового графика.
   */
   const monthStart = new Date(
     date.getFullYear(),
@@ -404,12 +446,6 @@ export function getOriginalMainShiftsForDate(
     );
   }
 
-  /*
-    Для расчёта полной нормы нового графика
-    считаем changeDate началом расчётного месяца.
-    Сам цикл при этом по-прежнему определяется
-    двумя выбранными сменами.
-  */
   const normalizedChange = {
     ...applicableChange,
     changeDate: monthStart,

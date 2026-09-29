@@ -8,6 +8,7 @@ import type { ScheduleChange } from "@/lib/profile";
 import styles from "./ChangeScheduleSheet.module.css";
 import { generateSchedule } from "@/lib/generateSchedule";
 import { applyScheduleChanges } from "@/lib/applyScheduleChanges";
+import { getOriginalMainShiftsForMonth } from "@/lib/getOriginalMainShiftsForMonth";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { useUsersStore } from "@/store/usersStore";
 type ChangeScheduleSheetProps = {
@@ -25,7 +26,9 @@ export default function ChangeScheduleSheet({
 const setShifts = useScheduleStore(
   (state) => state.setShifts
 );
-
+const setScheduleData = useScheduleStore(
+  (state) => state.setScheduleData
+);
 const syncSchedule = useScheduleStore(
   (state) => state.syncSchedule
 );
@@ -367,7 +370,68 @@ const updatedShifts = recalculatedShifts.map(
   }
 );
 
-setShifts(updatedShifts);
+// Обновляем нормы месяцев после изменения графика.
+// Каждый месяц рассчитывается отдельно по новому циклу.
+const currentMonthStart = new Date(
+  changeStart.getFullYear(),
+  changeStart.getMonth(),
+  1
+);
+
+const updatedOriginalMainShifts = {
+  ...useScheduleStore.getState().originalMainShiftsByMonth,
+};
+
+if (currentUser.schedule !== "15/15 вахта") {
+  const months = new Set<string>();
+
+  for (const shift of updatedShifts) {
+    const date = new Date(shift.date);
+
+    if (date < currentMonthStart) continue;
+
+    const monthStart = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      1
+    );
+
+    const monthKey = `${monthStart.getFullYear()}-${String(
+      monthStart.getMonth() + 1
+    ).padStart(2, "0")}`;
+
+    months.add(monthKey);
+  }
+
+  const userWithNewChanges = {
+    ...currentUser,
+    scheduleChanges,
+  };
+
+  for (const monthKey of months) {
+    const [year, month] = monthKey
+      .split("-")
+      .map(Number);
+
+    const monthDate = new Date(
+      year,
+      month - 1,
+      1
+    );
+
+    updatedOriginalMainShifts[monthKey] =
+      getOriginalMainShiftsForMonth(
+        userWithNewChanges,
+        monthDate
+      );
+  }
+}
+
+setScheduleData(
+  updatedShifts,
+  updatedOriginalMainShifts
+);
+
 void syncSchedule();
 handleClose();
 } catch (error) {

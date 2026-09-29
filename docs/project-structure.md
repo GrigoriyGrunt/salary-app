@@ -39,6 +39,9 @@ salary-app
 │   ├── profile
 │   │   ├── page.module.css
 │   │   └── page.tsx
+│   ├── report
+│   │   ├── page.module.css
+│   │   └── page.tsx
 │   ├── schedule
 │   │   ├── page.module.css
 │   │   └── page.tsx
@@ -244,6 +247,7 @@ salary-app
 │   ├── getShiftNotifications.ts
 │   ├── prisma.ts
 │   ├── profile.ts
+│   ├── report.ts
 │   ├── storage.ts
 │   ├── theme.ts
 │   └── validateShifts.ts
@@ -274,11 +278,9 @@ salary-app
 │   │   │   ├── salary.png
 │   │   │   ├── schedule-black.png
 │   │   │   └── statistics-black.png
-│   │   ├── logo-full-app.png
-│   │   ├── logo-full.png
-│   │   ├── logo-icon-app-2.png
-│   │   ├── logo-icon-app.png
-│   │   ├── logo-icon.png
+│   │   ├── logo-full-app.svg
+│   │   ├── logo-icon-app-2.svg
+│   │   ├── logo-icon-app.svg
 │   │   └── logo.svg
 │   ├── file.svg
 │   ├── globe.svg

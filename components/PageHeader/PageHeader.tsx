@@ -418,12 +418,12 @@ const clearAllNotifications = async () => {
     <p>
       В этом месяце должно быть{" "}
       <strong>
-        visibleScheduleNotification.originalMainShifts
-      </strong>{" "}
+  {visibleScheduleNotification.originalMainShifts}
+</strong>{" "}
       обязательных смен, сейчас —{" "}
       <strong>
-        visibleScheduleNotification.requiredShifts
-      </strong>.
+  {visibleScheduleNotification.requiredShifts}
+</strong>.
     </p>
 
     <p>
@@ -433,12 +433,12 @@ const clearAllNotifications = async () => {
       </strong>{" "}
       и изменить её тип с{" "}
       <strong>
-        «visibleScheduleNotification.from»
-      </strong>{" "}
+  «{visibleScheduleNotification.from}»
+</strong>{" "}
       на{" "}
       <strong>
-        «visibleScheduleNotification.to»
-      </strong>.
+  «{visibleScheduleNotification.to}»
+</strong>.
     </p>
 
     <p

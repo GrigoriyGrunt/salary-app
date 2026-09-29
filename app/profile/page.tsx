@@ -325,6 +325,16 @@ async function handleResetProfile() {
               </div>
             </>
           )}
+          <h3 className={styles.title}>Отчёт</h3>
+
+<div className={styles.card}>
+  <button
+    className={styles.item}
+    onClick={() => router.push("/report")}
+  >
+    Сформировать отчёт
+  </button>
+</div>
           <h3 className={styles.title}>Настройки</h3>
           
           <div className={styles.card}>

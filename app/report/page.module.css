@@ -1,0 +1,358 @@
+.page {
+  height: 100dvh;
+  background: #f5f6f8;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+
+  width: 100%;
+  max-width: 430px;
+
+  margin: 0 auto;
+
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollContent {
+  padding: 12px 20px 24px;
+}
+
+.periodCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+  padding: 8px;
+
+  background: #fff;
+  border-radius: 20px;
+}
+
+.periodArrow {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #f0f0f0;
+  color: #111;
+
+  cursor: pointer;
+}
+
+.periodArrow:active {
+  transform: scale(0.96);
+}
+
+.periodCenter {
+  position: relative;
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 0;
+
+  cursor: pointer;
+}
+
+.periodTitle {
+  color: #111;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  text-align: center;
+}
+
+.monthInput {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  opacity: 0;
+
+  cursor: pointer;
+}
+
+.card {
+  margin-bottom: 14px;
+  padding: 20px;
+
+  background: #fff;
+  border-radius: 20px;
+}
+
+.cardTitle {
+  margin: 0 0 14px;
+
+  color: #111;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 11px 0;
+
+  border-bottom: 1px solid #f0f0f0;
+
+  color: #555;
+
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row strong {
+  flex-shrink: 0;
+
+  color: #111;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  text-align: right;
+}
+
+.mentorDates {
+  margin-top: 14px;
+  padding-top: 14px;
+
+  border-top: 1px solid #f0f0f0;
+}
+
+.subTitle {
+  margin-bottom: 8px;
+
+  color: #111;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 9px 0;
+
+  color: #666;
+
+  font-size: 14px;
+}
+
+.dateRow + .dateRow {
+  border-top: 1px solid #f3f3f3;
+}
+
+.detailList {
+  margin-top: 12px;
+  padding-top: 4px;
+
+  border-top: 1px solid #f0f0f0;
+}
+
+.detailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 9px 0;
+
+  color: #666;
+
+  font-size: 14px;
+}
+
+.detailRow strong {
+  flex-shrink: 0;
+
+  color: #111;
+}
+
+.totalCard {
+  margin-bottom: 24px;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-top: 4px;
+  padding: 16px 0;
+
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+
+  color: #111;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.totalRow strong {
+  color: #d71920;
+}
+
+.balanceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding-top: 14px;
+
+  color: #111;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.balanceRow strong {
+  color: #d71920;
+}
+
+.emptyCard {
+  padding: 28px 20px;
+
+  background: #fff;
+  border-radius: 20px;
+
+  text-align: center;
+}
+
+.emptyCard h2 {
+  margin: 0 0 8px;
+
+  color: #111;
+
+  font-size: 19px;
+}
+
+.emptyCard p {
+  margin: 6px 0;
+
+  color: #6f6f6f;
+
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.empty {
+  padding: 40px 20px;
+
+  color: #6f6f6f;
+
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  .scrollContent {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .card {
+    padding: 17px;
+  }
+
+  .row {
+    font-size: 14px;
+  }
+
+  .row strong {
+    font-size: 14px;
+  }
+}
+
+.totalTitle {
+  text-align: left;
+  color: #d71920;
+  font-weight: 700;
+}
+
+.row .errorCount {
+  color: #d71920;
+  font-weight: 700;
+}
+
+.reportHeader {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.shareButton {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  z-index: 999;
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f2f2f7;
+  color: #ff3b30;
+
+  cursor: pointer;
+
+  transform: translateY(-50%);
+  transition: transform 0.15s ease;
+}
+
+.shareButton:active {
+  transform: translateY(-50%) scale(0.92);
+}
