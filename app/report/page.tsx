@@ -188,62 +188,232 @@ export default function ReportPage() {
     );
   };
   const handleShare = async () => {
-    if (!report) return;
+  if (!report) return;
 
-    const text = [
-      `📊 Отчёт за ${getMonthName(selectedDate)}`,
-      ``,
-      `Смены`,
-      `Всего отработано: ${report.workedShifts}`,
-      `Основных по графику: ${report.originalMainShifts}`,
-      `Подработка: ${report.extraWorked}`,
-      `Отработка: ${report.overtimeWorked}`,
-      ``,
-      `Выработка`,
-      `Коробок собрано: ${formatNumber(report.totalBoxes)}`,
-      `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`,
-      `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`,
-      ``,
-      `Рабочее время`,
-      `Всего часов: ${formatNumber(report.totalActualHours)}`,
-      `По основному графику: ${formatNumber(report.mainHours)} ч. — ${formatMoney(report.mainSalary)}`,
-      `Подработка: ${formatNumber(report.extraHours)} ч. — ${formatMoney(report.extraSalary)}`,
-      `Отработка: ${formatNumber(report.overtimeHours)} ч. — ${formatMoney(report.overtimeSalary)}`,
-      `Ночные: ${formatNumber(report.nightHours)} ч. — ${formatMoney(report.nightSurcharge)}`,
-      ``,
-      `ИТОГО: ${formatMoney(report.totalSalary)}`,
-      `Выплачено: ${formatMoney(report.totalPaid)}`,
-      `Разница: ${formatMoney(report.balance)}`,
-    ].join("\n");
+  const textSections: string[] = [
+    `📊 Отчёт за ${getMonthName(selectedDate)}`,
+  ];
+
+  const shifts = [
+    report.workedShifts !== 0
+      ? `Всего отработано: ${report.workedShifts}`
+      : null,
+    report.originalMainShifts !== 0
+      ? `Основных по графику: ${report.originalMainShifts}`
+      : null,
+    report.extraWorked !== 0
+      ? `Подработка: ${report.extraWorked}`
+      : null,
+    report.overtimeWorked !== 0
+      ? `Отработка: ${report.overtimeWorked}`
+      : null,
+    report.dayOffCount !== 0
+      ? `День отдыха (ДО): ${report.dayOffCount}`
+      : null,
+    report.absences !== 0
+      ? `Прогулы: ${report.absences}`
+      : null,
+    report.sickDays !== 0
+      ? `Больничных: ${report.sickDays}`
+      : null,
+    report.vacations !== 0
+      ? `Отпусков: ${report.vacations}`
+      : null,
+  ].filter(Boolean);
+
+  if (shifts.length > 0) {
+    textSections.push(
+      `\nСмены`,
+      shifts.join("\n")
+    );
+  }
+
+  const production = [
+  report.totalBoxes !== 0
+    ? `Коробок собрано: ${formatNumber(report.totalBoxes)}`
+    : null,
+  report.averageBoxes !== 0
+    ? `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`
+    : null,
+  report.boxRate !== 0
+    ? `Ставка за коробку: ${report.boxRate} ₽`
+    : null,
+  report.salaryFromBoxes !== 0
+    ? `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`
+    : null,
+  report.totalBlocks !== 0
+    ? `Блоков собрано: ${formatNumber(report.totalBlocks)}`
+    : null,
+  report.averageBlocks !== 0
+    ? `Средняя по блокам: ${formatNumber(report.averageBlocks)}`
+    : null,
+  report.blockRate !== 0
+    ? `Ставка за блок: ${report.blockRate} ₽`
+    : null,
+  report.salaryFromBlocks !== 0
+    ? `Заработано за блоки: ${formatMoney(report.salaryFromBlocks)}`
+    : null,
+].filter(Boolean);
+
+if (production.length > 0) {
+  textSections.push(
+    `\nВыработка`,
+    production.join("\n"),
+    `Итого`,
+    `Всего заработано: ${formatMoney(
+      report.salaryFromBoxes +
+        report.salaryFromBlocks
+    )}`
+  );
+}
+
+  const workingTime = [
+  report.mainHours !== 0
+    ? `По основному графику: ${formatNumber(report.mainHours)} ч. — ${formatMoney(report.mainSalary)}`
+    : null,
+  report.extraHours !== 0
+    ? `Выход в подработки: ${formatNumber(report.extraHours)} ч. — ${formatMoney(report.extraSalary)}`
+    : null,
+  report.overtimeHours !== 0
+    ? `Отработка: ${formatNumber(report.overtimeHours)} ч. — ${formatMoney(report.overtimeSalary)}`
+    : null,
+  report.nightHours !== 0
+    ? `Ночные часы: ${formatNumber(report.nightHours)} ч. — ${formatMoney(report.nightSurcharge)}`
+    : null,
+  report.totalNonProfileHours !== 0
+    ? `Непрофильные часы: ${formatNumber(report.totalNonProfileHours)} ч. — ${formatMoney(report.salaryFromNonProfileHours)}`
+    : null,
+].filter(Boolean);
+
+if (workingTime.length > 0) {
+  textSections.push(
+    `\nРабочее время`,
+    workingTime.join("\n"),
+    `Итого`,
+    `Всего отработано часов: ${formatNumber(
+      report.totalActualHours
+    )} ч. — ${formatMoney(
+      report.mainSalary +
+        report.extraSalary +
+        report.overtimeSalary +
+        report.nightSurcharge
+    )}`
+  );
+}
+
+  if (report.mentorShifts.length > 0) {
+    const mentoring = [
+  `Смен наставником: ${report.mentorShifts.length}`,
+  report.salaryFromMentoring !== 0
+    ? `Заработано: ${formatMoney(report.salaryFromMentoring)}`
+    : null,
+  `Даты наставничества:`,
+  ...report.mentorShifts.map(
+    (shift) =>
+      `${getDateLabel(new Date(shift.date))} — ${
+        shift.type === "night"
+          ? "Ночная"
+          : "Дневная"
+      }`
+  ),
+].filter(Boolean);
+
+    textSections.push(
+      `\nНаставничество`,
+      mentoring.join("\n")
+    );
+  }
+
+  const bonuses = [
+    report.salaryFromDiscipline !== 0
+      ? `Дисциплина: ${formatMoney(report.salaryFromDiscipline)}`
+      : null,
+    report.experienceBonus !== 0
+      ? `Стаж: ${formatMoney(report.experienceBonus)}`
+      : null,
+    report.salaryWithoutErrors !== 0
+      ? `Сборка без ошибок: ${formatMoney(report.salaryWithoutErrors)}`
+      : null,
+    report.premiumAmountTotal !== 0
+      ? `Дополнительные премии: ${formatMoney(report.premiumAmountTotal)}`
+      : null,
+  ].filter(Boolean);
+
+  if (bonuses.length > 0) {
+    textSections.push(
+      `\nДоплаты и стаж`,
+      bonuses.join("\n")
+    );
+  }
+
+  const deductions = [
+    report.errorsCount !== 0
+      ? `${formatNumber(report.errorsCount)} ошибки: -${formatMoney(report.errorsDeduction)}`
+      : null,
+    report.damageDeduction !== 0
+      ? `Бой: -${formatMoney(report.damageDeduction)}`
+      : null,
+    report.manualPenaltyDeduction !== 0
+      ? `Штрафы и ревизии: -${formatMoney(report.manualPenaltyDeduction)}`
+      : null,
+    report.absenceDeduction !== 0
+      ? `Прогулы: -${formatMoney(report.absenceDeduction)}`
+      : null,
+  ].filter(Boolean);
+
+  if (deductions.length > 0) {
+    textSections.push(
+      `\nСписания и ошибки`,
+      deductions.join("\n")
+    );
+  }
+
+  const totals = [
+  report.totalSalary !== 0
+    ? `Итого заработано: ${formatMoney(report.totalSalary)}`
+    : null,
+  `Выплачено: ${formatMoney(report.totalPaid)}`,
+  report.balance !== 0
+    ? `Разница: ${formatMoney(report.balance)}`
+    : null,
+].filter(Boolean);
+
+if (totals.length > 0) {
+  textSections.push(
+    totals.join("\n")
+  );
+}
+
+  const text = textSections.join("\n");
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: `Отчёт за ${getMonthName(selectedDate)}`,
+        text,
+      });
+
+      return;
+    }
+
+    await navigator.clipboard.writeText(text);
+    alert("Отчёт скопирован в буфер обмена");
+  } catch (error) {
+    if (
+      error instanceof DOMException &&
+      error.name === "AbortError"
+    ) {
+      return;
+    }
 
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `Отчёт за ${getMonthName(selectedDate)}`,
-          text,
-        });
-
-        return;
-      }
-
       await navigator.clipboard.writeText(text);
       alert("Отчёт скопирован в буфер обмена");
-    } catch (error) {
-      if (
-        error instanceof DOMException &&
-        error.name === "AbortError"
-      ) {
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("Отчёт скопирован в буфер обмена");
-      } catch {
-        alert("Не удалось поделиться отчётом");
-      }
+    } catch {
+      alert("Не удалось поделиться отчётом");
     }
-  };
+  }
+};
 
   if (!report) {
     return (
@@ -973,99 +1143,32 @@ export default function ReportPage() {
                 </section>
               )}
 
-              {(report.totalAccruals !==
-                0 ||
-                report.totalDeductions !==
-                  0 ||
-                report.totalSalary !==
-                  0 ||
-                report.totalPaid !==
-                  0 ||
-                report.balance !==
-                  0) && (
-                <section
-                  className={`${styles.card} ${styles.totalCard}`}
-                >
-                  <h2
-                    className={
-                      styles.cardTitle
-                    }
-                  >
-                    Итог
-                  </h2>
+              {(report.totalSalary !== 0 ||
+  report.totalPaid !== 0 ||
+  report.balance !== 0) && (
+  <section
+    className={`${styles.card} ${styles.totalCard}`}
+  >
+    <div className={styles.rows}>
 
-                  <div
-                    className={
-                      styles.rows
-                    }
-                  >
-                    <ReportRow
-                      label="Всего заработано"
-                      value={formatMoney(
-                        report.totalAccruals
-                      )}
-                      show={
-                        report.totalAccruals !==
-                        0
-                      }
-                    />
+      <div className={styles.totalRow}>
+  <span>Итого заработано</span>
+  <strong>{formatMoney(report.totalSalary)}</strong>
+</div>
 
-                    <ReportRow
-                      label="Всего списано"
-                      value={`-${formatMoney(
-                        report.totalDeductions
-                      )}`}
-                      show={
-                        report.totalDeductions !==
-                        0
-                      }
-                    />
+<div className={`${styles.totalRow} ${styles.paidRow}`}>
+  <span>Выплачено</span>
+  <strong>{formatMoney(report.totalPaid)}</strong>
+</div>
 
-                    <div
-                      className={
-                        styles.totalRow
-                      }
-                    >
-                      <span>
-                        Итого заработано
-                      </span>
+<div className={styles.totalRow}>
+  <span>Разница</span>
+  <strong>{formatMoney(report.balance)}</strong>
+</div>
 
-                      <strong>
-                        {formatMoney(
-                          report.totalSalary
-                        )}
-                      </strong>
-                    </div>
-
-                    <ReportRow
-                      label="Выплачено"
-                      value={formatMoney(
-                        report.totalPaid
-                      )}
-                      show={
-                        report.totalPaid !==
-                        0
-                      }
-                    />
-
-                    <div
-                      className={
-                        styles.balanceRow
-                      }
-                    >
-                      <span>
-                        Разница
-                      </span>
-
-                      <strong>
-                        {formatMoney(
-                          report.balance
-                        )}
-                      </strong>
-                    </div>
-                  </div>
-                </section>
-              )}
+    </div>
+  </section>
+)}
             </>
           )}
         </div>

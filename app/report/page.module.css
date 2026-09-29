@@ -220,16 +220,22 @@
 
   gap: 16px;
 
-  margin-top: 4px;
   padding: 16px 0;
 
-  border-top: 1px solid #e8e8e8;
   border-bottom: 1px solid #e8e8e8;
 
   color: #111;
 
   font-size: 17px;
   font-weight: 700;
+}
+
+.totalRow:first-child {
+  border-top: none;
+}
+
+.totalRow:last-child {
+  border-bottom: none;
 }
 
 .totalRow strong {
@@ -355,4 +361,22 @@
 
 .shareButton:active {
   transform: translateY(-50%) scale(0.92);
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.totalRow span,
+.totalRow strong {
+  color: #111111;
+}
+
+.paidRow span,
+.paidRow strong {
+  color: #ff3b30;
 }
