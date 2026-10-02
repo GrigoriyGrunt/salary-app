@@ -71,6 +71,68 @@ export default function MotivationSection() {
     });
   }, [currentUser?.id]);
 
+    useEffect(() => {
+    if (!showGuide) {
+      return;
+    }
+
+    const preventScroll = (event: Event) => {
+      event.preventDefault();
+    };
+
+    const preventKeyboardScroll = (
+      event: KeyboardEvent
+    ) => {
+      const keys = [
+        "ArrowUp",
+        "ArrowDown",
+        "PageUp",
+        "PageDown",
+        "Home",
+        "End",
+        " ",
+      ];
+
+      if (keys.includes(event.key)) {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener(
+      "wheel",
+      preventScroll,
+      { passive: false }
+    );
+
+    document.addEventListener(
+      "touchmove",
+      preventScroll,
+      { passive: false }
+    );
+
+    document.addEventListener(
+      "keydown",
+      preventKeyboardScroll
+    );
+
+    return () => {
+      document.removeEventListener(
+        "wheel",
+        preventScroll
+      );
+
+      document.removeEventListener(
+        "touchmove",
+        preventScroll
+      );
+
+      document.removeEventListener(
+        "keydown",
+        preventKeyboardScroll
+      );
+    };
+  }, [showGuide]);
+
   const handleOpenMotivation = () => {
     setIsOpen(true);
   };

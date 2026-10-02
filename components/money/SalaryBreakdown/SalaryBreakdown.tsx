@@ -40,9 +40,6 @@ const shifts = useScheduleStore((state) => state.shifts);
   const premiums = useFinanceStore(
     (state) => state.premiums
   );
-  const setStoredTotalSalary = useFinanceStore(
-  (state) => state.setTotalSalary
-);
 
   const addPremium = useFinanceStore(
     (state) => state.addPremium
@@ -514,11 +511,9 @@ const totalSalary =
 
 useEffect(() => {
   onTotalChange(totalSalary);
-  setStoredTotalSalary(totalSalary);
 }, [
   totalSalary,
   onTotalChange,
-  setStoredTotalSalary,
 ]);
     const accruals = [
     {

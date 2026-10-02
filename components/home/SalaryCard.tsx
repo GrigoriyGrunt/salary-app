@@ -8,16 +8,13 @@ import { useUsersStore } from "@/store/usersStore";
 import { getExperienceBonus } from "@/lib/experience";
 import { getOriginalMainShiftsForDate } from "@/lib/getOriginalMainShiftsForMonth";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
+import { calculateMonthlyReport } from "@/lib/report";
 
 export default function SalaryCard() {
   const shifts = useScheduleStore((state) => state.shifts);
 
   const originalMainShiftsByMonth = useScheduleStore(
     (state) => state.originalMainShiftsByMonth
-  );
-
-  const totalSalary = useFinanceStore(
-    (state) => state.totalSalary
   );
 
   const goal = useFinanceStore(
@@ -32,6 +29,10 @@ export default function SalaryCard() {
     (state) => state.premiums
   );
 
+  const payments = useFinanceStore(
+  (state) => state.payments
+);
+
   const user = useUsersStore(
     (state) => state.currentUser
   );
@@ -45,6 +46,21 @@ export default function SalaryCard() {
     `${currentYear}-${String(
       currentMonth + 1
     ).padStart(2, "0")}`;
+   
+  const currentMonthReport = calculateMonthlyReport(
+  {
+    user,
+    shifts,
+    originalMainShiftsByMonth,
+    deductions,
+    premiums,
+    payments,
+  },
+  currentDate
+);
+
+const totalSalary =
+  currentMonthReport.totalSalary;  
 
   const originalMainShifts =
     originalMainShiftsByMonth[
