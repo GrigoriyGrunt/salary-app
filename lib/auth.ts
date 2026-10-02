@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE_NAME = "salary_app_session";
+const SECURE_COOKIE =
+  process.env.NODE_ENV === "production";
 
 const TEMPORARY_SESSION_DURATION =
   5 * 60 * 1000;
@@ -47,7 +49,7 @@ export async function createSession(
     session.id,
     {
       httpOnly: true,
-      secure: true,
+      secure: SECURE_COOKIE,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",
@@ -141,7 +143,7 @@ export async function extendCurrentSession() {
     updatedSession.id,
     {
       httpOnly: true,
-      secure: true,
+      secure: SECURE_COOKIE,
       sameSite: "lax",
       expires: expiresAt,
       path: "/",

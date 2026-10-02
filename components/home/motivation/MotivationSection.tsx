@@ -15,10 +15,15 @@ import MotivationSheet from "./MotivationSheet/MotivationSheet";
 
 export default function MotivationSection() {
   const [isOpen, setIsOpen] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
+    const [showGuide, setShowGuide] = useState(false);
+  const [guideMessageTop, setGuideMessageTop] =
+    useState(0);
 
   const sectionRef =
     useRef<HTMLElement>(null);
+
+  const guideMessageRef =
+    useRef<HTMLDivElement>(null);
 
   const goal = useFinanceStore(
     (state) => state.goal
@@ -42,13 +47,15 @@ export default function MotivationSection() {
     syncGoalMonth();
   }, [syncGoalMonth]);
 
-  useEffect(() => {
+    useEffect(() => {
     if (
       typeof window === "undefined" ||
       !currentUser?.id
     ) {
       return;
     }
+
+    window.history.scrollRestoration = "manual";
 
     const guideKey =
       `show-motivation-guide-${currentUser.id}`;
@@ -62,6 +69,8 @@ export default function MotivationSection() {
     }
 
     setShowGuide(true);
+
+    window.scrollTo(0, 0);
 
     requestAnimationFrame(() => {
       sectionRef.current?.scrollIntoView({
@@ -132,7 +141,39 @@ export default function MotivationSection() {
       );
     };
   }, [showGuide]);
+  useEffect(() => {
+    if (!showGuide) {
+      return;
+    }
 
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const header =
+          sectionRef.current?.querySelector(
+            `.${styles.header}`
+          );
+
+        const message =
+          guideMessageRef.current;
+
+        if (!header || !message) {
+          return;
+        }
+
+        const headerRect =
+          header.getBoundingClientRect();
+
+        const messageRect =
+          message.getBoundingClientRect();
+
+        setGuideMessageTop(
+          headerRect.top -
+            messageRect.height -
+            12
+        );
+      });
+    });
+  }, [showGuide]);
   const handleOpenMotivation = () => {
     setIsOpen(true);
   };
@@ -164,8 +205,12 @@ export default function MotivationSection() {
         <div
           className={styles.guideOverlay}
         >
-          <div
+                    <div
+            ref={guideMessageRef}
             className={styles.guideMessage}
+            style={{
+              top: `${guideMessageTop}px`,
+            }}
           >
             Установите мотивацию на месяц,
             чтобы приложение могло
