@@ -119,8 +119,7 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
                 label: "Комплектовщик основы",
               },
               {
-                label: "Комплектовщик табака",
-                disabled: true,
+              label: "Комплектовщик табака",
               },
               {
                 label: "Кладовщик",
@@ -152,6 +151,7 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
               },
               {
                 label: "15/15 вахта",
+                disabled: position === "Комплектовщик табака",
               },
               {
   label: "5/2",

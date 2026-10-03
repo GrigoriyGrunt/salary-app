@@ -92,7 +92,8 @@ export default function ReportPage() {
   const user = useUsersStore(
     (state) => state.currentUser
   );
-
+  const isTobaccoPicker =
+  user?.position === "Комплектовщик табака";
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
@@ -235,9 +236,9 @@ export default function ReportPage() {
   report.averageBoxes !== 0
     ? `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`
     : null,
-  report.boxRate !== 0
-    ? `Ставка за коробку: ${report.boxRate} ₽`
-    : null,
+  !isTobaccoPicker && report.boxRate !== 0
+  ? `Ставка за коробку: ${report.boxRate} ₽`
+  : null,
   report.salaryFromBoxes !== 0
     ? `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`
     : null,
@@ -718,14 +719,16 @@ if (totals.length > 0) {
                     }
                   />
 
-                  <ReportRow
-                    label="Ставка за коробку"
-                    value={`${report.boxRate} ₽`}
-                    show={
-                      report.boxRate !==
-                      0
-                    }
-                  />
+                  {!isTobaccoPicker && (
+  <ReportRow
+    label="Ставка за коробку"
+    value={`${report.boxRate} ₽`}
+    show={
+      report.boxRate !==
+      0
+    }
+  />
+)}
 
                   <ReportRow
                     label="Заработано за коробки"

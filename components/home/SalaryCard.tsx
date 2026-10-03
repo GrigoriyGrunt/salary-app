@@ -127,7 +127,40 @@ const averageBoxes =
       : goal < 1800
         ? 3.6
         : 4;
+    const totalBlocks =
+    monthStats.blocks;
 
+  const totalTobaccoHours =
+    monthStats.tobaccoHours;
+
+  const averageBlocks =
+    totalTobaccoHours > 0
+      ? Math.round(
+          (totalBlocks / totalTobaccoHours) * 11
+        )
+      : 0;
+
+  const blockPrice =
+    averageBlocks > 0
+      ? averageBlocks < 2200
+        ? 0.6
+        : averageBlocks < 3200
+          ? 0.7
+          : averageBlocks < 4000
+            ? 0.8
+            : 1
+      : goal < 2200
+        ? 0.6
+        : goal < 3200
+          ? 0.7
+          : goal < 4000
+            ? 0.8
+            : 1;
+
+  const motivationPrice =
+    user?.position === "Комплектовщик табака"
+      ? blockPrice
+      : boxPrice;
   const hourlyRate =
     originalMainShifts > 0
       ? 23750 /
@@ -151,14 +184,14 @@ const regularNightShiftSalary =
 
 const extraShiftSalary =
   hourlyRate * 22 +
-  goal * boxPrice;
+  goal * motivationPrice;
 
 const extraNightShiftSalary =
   (
     hourlyRate * 11 +
     hourlyRate * 7 * 0.2
   ) * 2 +
-  goal * boxPrice;
+  goal * motivationPrice;
 
   const mainAndOvertimeCount =
     monthShifts.filter(
@@ -209,7 +242,7 @@ const extraNightShiftSalary =
         ? (
             23750 +
             goal *
-              boxPrice *
+              motivationPrice *
               shiftOriginalMainShifts
           ) /
           shiftOriginalMainShifts
@@ -221,14 +254,14 @@ const extraNightShiftSalary =
 
     const shiftExtraSalary =
       shiftHourlyRate * 22 +
-      goal * boxPrice;
+      goal * motivationPrice;
 
     const shiftExtraNightSalary =
       (
         shiftHourlyRate * 11 +
         shiftHourlyRate * 7 * 0.2
       ) * 2 +
-      goal * boxPrice;
+      goal * motivationPrice;
 
     const isNightShift =
       shift.type === "night";

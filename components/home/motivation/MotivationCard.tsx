@@ -2,8 +2,15 @@ import styles from "./MotivationCard.module.css";
 import { useFinanceStore } from "@/store/financeStore";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
+import { useUsersStore } from "@/store/usersStore";
 export default function MotivationCard() {
   const goal = useFinanceStore((state) => state.goal);
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
 
   const shifts = useScheduleStore(
     (state) => state.shifts
@@ -43,15 +50,37 @@ const averageBoxes =
         (totalBoxes / totalBaseHours) * 11
       )
     : 0;
+const totalBlocks =
+  monthStats.blocks;
 
+const totalTobaccoHours =
+  monthStats.tobaccoHours;
+
+const averageBlocks =
+  totalTobaccoHours > 0
+    ? Math.round(
+        (totalBlocks / totalTobaccoHours) * 11
+      )
+    : 0;
 const boxPrice =
   averageBoxes < 1200
     ? 2.7
     : averageBoxes < 1800
       ? 3.6
       : 4;
+
+const blockPrice =
+  averageBlocks < 2200
+    ? 0.6
+    : averageBlocks < 3200
+      ? 0.7
+      : averageBlocks < 4000
+        ? 0.8
+        : 1;
 const hasProductionData =
-  averageBoxes > 0;
+  isTobaccoPicker
+    ? averageBlocks > 0
+    : averageBoxes > 0;
 const nonProfileHours = monthShifts.reduce(
   (total, shift) =>
     total + (shift.nonProfileHours || 0),
@@ -91,16 +120,45 @@ const requiredBoxes =
         (remainingBoxes / futureBaseHours) * 11
       )
     : 0;
+const goalPerHourTobacco =
+  goal / 11;
 
+const totalMonthTobaccoHours =
+  totalTobaccoHours + futureBaseHours;
+
+const targetTotalBlocks =
+  totalMonthTobaccoHours *
+  goalPerHourTobacco;
+
+const remainingBlocks =
+  Math.max(
+    0,
+    targetTotalBlocks - totalBlocks
+  );
+
+const requiredBlocks =
+  futureBaseHours > 0
+    ? Math.ceil(
+        (remainingBlocks / futureBaseHours) * 11
+      )
+    : 0;
   return (
     <div className={styles.card}>
 
 <div className={styles.stats}>
   <div className={styles.statCard}>
-    <span className={styles.label}>Стоимость коробки</span>
-    <strong className={styles.value}>
+    <span className={styles.label}>
+  {isTobaccoPicker
+    ? "Стоимость блока"
+    : "Стоимость коробки"}
+</span>
+
+<strong className={styles.value}>
   {hasProductionData
-    ? `${boxPrice
+    ? `${(isTobaccoPicker
+        ? blockPrice
+        : boxPrice
+      )
         .toFixed(2)
         .replace(".", ",")} ₽`
     : "—"}
@@ -128,8 +186,14 @@ const requiredBoxes =
 <div className={styles.notice}>
   До конца месяца собирайте по{" "}
   <strong>
-    {requiredBoxes.toLocaleString("ru-RU")} коробок
-  </strong>{" "}
+  {(isTobaccoPicker
+    ? requiredBlocks
+    : requiredBoxes
+  ).toLocaleString("ru-RU")}{" "}
+  {isTobaccoPicker
+    ? "блоков"
+    : "коробок"}
+</strong>
   за смену.
 </div>
 

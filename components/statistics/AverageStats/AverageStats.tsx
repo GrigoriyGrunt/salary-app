@@ -1,5 +1,6 @@
 import styles from "./AverageStats.module.css";
 import { useScheduleStore } from "@/store/scheduleStore";
+import { useUsersStore } from "@/store/usersStore";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
 
 type AverageStatsProps = {
@@ -10,7 +11,12 @@ export default function AverageStats({
   selectedDate,
 }: AverageStatsProps) {
   const shifts = useScheduleStore((state) => state.shifts);
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
 
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
   const monthStats =
   getMonthProductionStats(
     shifts,
@@ -43,20 +49,26 @@ const totalTobaccoHours =
     <section className={styles.wrapper}>
       <h2 className={styles.title}>Средние показатели</h2>
 
-      <div className={styles.grid}>
-        <div className={styles.card}>
-          <div className={styles.label}>
-            Средняя по коробам
-          </div>
+      <div
+  className={`${styles.grid} ${
+    isTobaccoPicker ? styles.tobaccoGrid : ""
+  }`}
+>
+        {!isTobaccoPicker && (
+  <div className={styles.card}>
+    <div className={styles.label}>
+      Средняя по коробам
+    </div>
 
-          <div className={styles.value}>
-            {averageBoxes.toLocaleString("ru-RU")}
-          </div>
+    <div className={styles.value}>
+      {averageBoxes.toLocaleString("ru-RU")}
+    </div>
 
-          <div className={styles.unit}>
-            кор. / смена
-          </div>
-        </div>
+    <div className={styles.unit}>
+      кор. / смена
+    </div>
+  </div>
+)}
 
         <div className={styles.card}>
           <div className={styles.label}>

@@ -1,5 +1,6 @@
 import styles from "./WorkHours.module.css";
 import { useScheduleStore } from "@/store/scheduleStore";
+import { useUsersStore } from "@/store/usersStore";
 
 type WorkHoursProps = {
   selectedDate: Date;
@@ -11,7 +12,12 @@ export default function WorkHours({
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
 
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
   const getMonthHours = (
   field:
     | "baseHours"
@@ -130,16 +136,22 @@ const tobaccoHours = getMonthHours(
     <section className={styles.card}>
       <h2 className={styles.title}>Отработанные часы</h2>
 
-      <div className={styles.grid}>
+      <div
+  className={`${styles.grid} ${
+    isTobaccoPicker ? styles.tobaccoGrid : ""
+  }`}
+>
         <div className={styles.item}>
           <div className={styles.label}>По окладу</div>
           <div className={styles.value}>{salaryHours} ч</div>
         </div>
 
-        <div className={styles.item}>
-          <div className={styles.label}>На основе</div>
-          <div className={styles.value}>{baseHours} ч</div>
-        </div>
+        {!isTobaccoPicker && (
+  <div className={styles.item}>
+    <div className={styles.label}>На основе</div>
+    <div className={styles.value}>{baseHours} ч</div>
+  </div>
+)}
 
         <div className={styles.item}>
           <div className={styles.label}>Непрофильные</div>

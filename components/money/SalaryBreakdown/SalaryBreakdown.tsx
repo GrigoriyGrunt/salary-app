@@ -35,6 +35,8 @@ export default function SalaryBreakdown({
     const [deductionsModalOpen, setDeductionsModalOpen] =
     useState(false);
   const user = useUsersStore((state) => state.currentUser);
+  const isTobaccoPicker =
+  user?.position === "Комплектовщик табака";
 
 const shifts = useScheduleStore((state) => state.shifts);
   const premiums = useFinanceStore(
@@ -522,24 +524,32 @@ useEffect(() => {
     "ru-RU"
   )} ₽`,
 },
-    {
-  title: "Коробки",
-  amount: `${Math.round(salaryFromBoxes).toLocaleString(
-    "ru-RU"
-  )} ₽`,
-},
+    ...(isTobaccoPicker
+  ? []
+  : [
+      {
+        title: "Коробки",
+        amount: `${Math.round(
+          salaryFromBoxes
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]),
     {
   title: "Блоки",
   amount: `${Math.round(salaryFromBlocks).toLocaleString(
     "ru-RU"
   )} ₽`,
 },
-    {
-  title: "Наставничество (обучение)",
-  amount: `${Math.round(
-    salaryFromMentoring
-  ).toLocaleString("ru-RU")} ₽`,
-},
+    ...(isTobaccoPicker
+  ? []
+  : [
+      {
+        title: "Наставничество (обучение)",
+        amount: `${Math.round(
+          salaryFromMentoring
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]),
     {
   title: "Непрофильные часы",
   amount: `${Math.round(

@@ -69,3 +69,7 @@
 
   color: #6b7280;
 }
+
+.tobaccoGrid {
+  grid-template-columns: 1fr;
+}

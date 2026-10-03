@@ -8,6 +8,7 @@ import {
 } from "@/components/common/ShiftEditorProvider/ShiftEditorProvider";
 import styles from "./ShiftEditorSheet.module.css";
 import { useScheduleStore } from "@/store/scheduleStore";
+import { useUsersStore } from "@/store/usersStore";
 
 function formatCalendarDate(date: Date) {
   const year = date.getFullYear();
@@ -60,6 +61,12 @@ const shifts = useScheduleStore(
 const currentUserId = useScheduleStore(
   (state) => state.currentUserId
 );
+const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
   const [dayType, setDayType] = useState("");
 const [shiftTime, setShiftTime] = useState("");
 const [workZone, setWorkZone] = useState<
@@ -1190,28 +1197,32 @@ clearWorkData();
 }}
 >
   —
-</button>
-      <button
-        type="button"
-        onClick={() => {
-  setWorkZone("base");
-  clearWorkData();
-  setIsWorkZoneOpen(false);
-}}
-      >
-        Основа
-      </button>
+  </button>
+{!isTobaccoPicker && (
+  <>
+    <button
+      type="button"
+      onClick={() => {
+        setWorkZone("base");
+        clearWorkData();
+        setIsWorkZoneOpen(false);
+      }}
+    >
+      Основа
+    </button>
 
-      <button
-        type="button"
-        onClick={() => {
-  setWorkZone("base_tobacco");
-  clearWorkData();
-  setIsWorkZoneOpen(false);
-}}
-      >
-        Основа + Табак
-      </button>
+    <button
+      type="button"
+      onClick={() => {
+        setWorkZone("base_tobacco");
+        clearWorkData();
+        setIsWorkZoneOpen(false);
+      }}
+    >
+      Основа + Табак
+    </button>
+  </>
+)}
 
       <button
         type="button"

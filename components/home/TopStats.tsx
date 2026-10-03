@@ -4,10 +4,17 @@ import styles from "./TopStats.module.css";
 import Image from "next/image";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
+import { useUsersStore } from "@/store/usersStore";
 export default function TopStats() {
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
 
   const today = new Date();
   const currentMonthName = [
@@ -68,6 +75,18 @@ const averageBoxes =
         (totalBoxes / totalBaseHours) * 11
       )
     : 0;
+const totalBlocks =
+  monthStats.blocks;
+
+const totalTobaccoHours =
+  monthStats.tobaccoHours;
+
+const averageBlocks =
+  totalTobaccoHours > 0
+    ? Math.round(
+        (totalBlocks / totalTobaccoHours) * 11
+      )
+    : 0;    
   return (
     <section className={styles.wrapper}>
       <Link href="/schedule" className={styles.card}>
@@ -134,12 +153,17 @@ const averageBoxes =
   </div>
 
   <div className={styles.title}>
-    Коробок собрано
-  </div>
+  {isTobaccoPicker
+    ? "Блоков собрано"
+    : "Коробок собрано"}
+</div>
 </div>
 
 <div className={styles.valueCenter}>
-  {totalBoxes.toLocaleString("ru-RU")}
+  {(isTobaccoPicker
+  ? totalBlocks
+  : totalBoxes
+).toLocaleString("ru-RU")}
 </div>
 
 <div className={styles.small}>
@@ -164,11 +188,16 @@ const averageBoxes =
 </div>
 
 <div className={styles.valueCenter}>
-  {averageBoxes.toLocaleString("ru-RU")}
+  {(isTobaccoPicker
+  ? averageBlocks
+  : averageBoxes
+).toLocaleString("ru-RU")}
 </div>
 
 <div className={styles.small}>
-  коробок в смену
+  {isTobaccoPicker
+    ? "блоков в смену"
+    : "коробок в смену"}
 </div>
       </Link>
     </section>

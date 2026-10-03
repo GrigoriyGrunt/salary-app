@@ -3,6 +3,7 @@
 import { useState } from "react";
 import BottomSheet from "@/components/BottomSheet/BottomSheet";
 import styles from "./MotivationSheet.module.css";
+import { useUsersStore } from "@/store/usersStore";
 
 type Props = {
   open: boolean;
@@ -26,7 +27,12 @@ export default function MotivationSheet({
     isGuide ? "" : goal.toString()
   );
 const numberValue = Number(value);
+const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
 
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
 const isValid =
   Number.isInteger(numberValue) &&
   numberValue >= 100;
@@ -73,30 +79,34 @@ const isValid =
           </div>
 
           <div className={styles.caption}>
-            коробок за смену
-          </div>
+  {isTobaccoPicker
+    ? "блоков за смену"
+    : "коробок за смену"}
+</div>
         </div>
 
-        <div className={styles.section}>
-          <div className={styles.label}>
-            Основа
-          </div>
+        {!isTobaccoPicker && (
+  <div className={styles.section}>
+    <div className={styles.label}>
+      Основа
+    </div>
 
-          <div className={styles.row}>
-            <span>до 1200</span>
-            <span>2,70 ₽/кор</span>
-          </div>
+    <div className={styles.row}>
+      <span>до 1200</span>
+      <span>2,70 ₽/кор</span>
+    </div>
 
-          <div className={styles.row}>
-            <span>1200–1799</span>
-            <span>3,60 ₽/кор</span>
-          </div>
+    <div className={styles.row}>
+      <span>1200–1799</span>
+      <span>3,60 ₽/кор</span>
+    </div>
 
-          <div className={styles.row}>
-            <span>1800+</span>
-            <span>4,00 ₽/кор</span>
-          </div>
-        </div>
+    <div className={styles.row}>
+      <span>1800+</span>
+      <span>4,00 ₽/кор</span>
+    </div>
+  </div>
+)}
 
         <div className={styles.section}>
           <div className={styles.label}>

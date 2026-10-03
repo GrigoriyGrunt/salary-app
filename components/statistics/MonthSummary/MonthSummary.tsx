@@ -1,6 +1,7 @@
 import styles from "./MonthSummary.module.css";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { useState } from "react";
+import { useUsersStore } from "@/store/usersStore";
 import ProductionDetailsModal from "@/components/statistics/ProductionDetailsModal/ProductionDetailsModal";
 type MonthSummaryProps = {
   selectedDate: Date;
@@ -12,6 +13,12 @@ export default function MonthSummary({
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const isTobaccoPicker =
+  currentUser?.position === "Комплектовщик табака";
   const [modalType, setModalType] = useState<
   "boxes" | "blocks" | null
 >(null);
@@ -155,26 +162,32 @@ const blockItems = monthShifts
     <section className={styles.wrapper}>
       <h2 className={styles.title}>Итоги за месяц</h2>
 
-      <div className={styles.grid}>
-        <button
-  type="button"
-  className={styles.card}
-  onClick={() => setModalType("boxes")}
+      <div
+  className={`${styles.grid} ${
+    isTobaccoPicker ? styles.tobaccoGrid : ""
+  }`}
 >
-          <div className={styles.info}>
-            <span className={styles.label}>
-              Коробок собрано
-            </span>
+        {!isTobaccoPicker && (
+  <button
+    type="button"
+    className={styles.card}
+    onClick={() => setModalType("boxes")}
+  >
+    <div className={styles.info}>
+      <span className={styles.label}>
+        Коробок собрано
+      </span>
 
-            <div className={styles.value}>
-              {totalBoxes.toLocaleString("ru-RU")}
-            </div>
+      <div className={styles.value}>
+        {totalBoxes.toLocaleString("ru-RU")}
+      </div>
 
-            <span className={styles.unit}>
-              шт.
-            </span>
-          </div>
-        </button>
+      <span className={styles.unit}>
+        шт.
+      </span>
+    </div>
+  </button>
+)}
 
         <button
           type="button"

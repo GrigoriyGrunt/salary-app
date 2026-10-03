@@ -4,6 +4,7 @@ import PageHeader from "@/components/PageHeader/PageHeader";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
 import PeriodPicker from "@/components/statistics/PeriodPicker/PeriodPicker";
 import { useState } from "react";
+import { useUsersStore } from "@/store/usersStore";
 import MonthSummary from "@/components/statistics/MonthSummary/MonthSummary";
 import AverageStats from "@/components/statistics/AverageStats/AverageStats";
 import DailyStatistics from "@/components/statistics/DailyStatistics/DailyStatistics";
@@ -12,7 +13,14 @@ import MentorStats from "@/components/statistics/MentorStats/MentorStats";
 import styles from "./page.module.css";
 
 export default function StatisticsPage() {
-    const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const currentUser = useUsersStore(
+    (state) => state.currentUser
+  );
+
+  const isTobaccoPicker =
+    currentUser?.position === "Комплектовщик табака";
   return (
     <main className={styles.page}>
       <PageHeader title="Статистика" />
@@ -34,7 +42,9 @@ export default function StatisticsPage() {
 
 <WorkHours selectedDate={selectedDate} />
 
-<MentorStats selectedDate={selectedDate} />
+{!isTobaccoPicker && (
+  <MentorStats selectedDate={selectedDate} />
+)}
         </div>
       </div>
 
