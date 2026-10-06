@@ -17,6 +17,10 @@ export default function AverageStats({
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+
+const isStacker =
+  currentUser?.position ===
+  "Штабелер (водитель погрузчика)";
   const monthStats =
   getMonthProductionStats(
     shifts,
@@ -29,6 +33,9 @@ const totalBoxes =
 const totalBlocks =
   monthStats.blocks;
 
+const totalPallets =
+  monthStats.pallets;
+
 const totalBaseHours =
   monthStats.baseHours;
 
@@ -39,50 +46,77 @@ const totalTobaccoHours =
     totalBaseHours > 0
       ? Math.round((totalBoxes / totalBaseHours) * 11)
       : 0;
-
-  const averageBlocks =
-    totalTobaccoHours > 0
-      ? Math.round((totalBlocks / totalTobaccoHours) * 11)
-      : 0;
+const averageBlocks =
+  totalTobaccoHours > 0
+    ? Math.round(
+        (totalBlocks / totalTobaccoHours) * 11
+      )
+    : 0;
+  const averagePallets =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalPallets / totalBaseHours) * 11
+      )
+    : 0;
 
   return (
     <section className={styles.wrapper}>
       <h2 className={styles.title}>Средние показатели</h2>
 
-      <div
-  className={`${styles.grid} ${
-    isTobaccoPicker ? styles.tobaccoGrid : ""
-  }`}
->
-        {!isTobaccoPicker && (
-  <div className={styles.card}>
-    <div className={styles.label}>
-      Средняя по коробам
-    </div>
+                  <div
+        className={`${styles.grid} ${
+          isTobaccoPicker || isStacker
+            ? styles.tobaccoGrid
+            : ""
+        }`}
+      >
+        {isStacker ? (
+          <div className={styles.card}>
+            <div className={styles.label}>
+              Средняя по паллетам
+            </div>
 
-    <div className={styles.value}>
-      {averageBoxes.toLocaleString("ru-RU")}
-    </div>
+            <div className={styles.value}>
+              {averagePallets.toLocaleString("ru-RU")}
+            </div>
 
-    <div className={styles.unit}>
-      кор. / смена
-    </div>
-  </div>
-)}
-
-        <div className={styles.card}>
-          <div className={styles.label}>
-            Средняя по блокам
+            <div className={styles.unit}>
+              пал. / смена
+            </div>
           </div>
+        ) : (
+          <>
+            {!isTobaccoPicker && (
+              <div className={styles.card}>
+                <div className={styles.label}>
+                  Средняя по коробам
+                </div>
 
-          <div className={styles.value}>
-            {averageBlocks.toLocaleString("ru-RU")}
-          </div>
+                <div className={styles.value}>
+                  {averageBoxes.toLocaleString("ru-RU")}
+                </div>
 
-          <div className={styles.unit}>
-            блок. / смена
-          </div>
-        </div>
+                <div className={styles.unit}>
+                  кор. / смена
+                </div>
+              </div>
+            )}
+
+            <div className={styles.card}>
+              <div className={styles.label}>
+                Средняя по блокам
+              </div>
+
+              <div className={styles.value}>
+                {averageBlocks.toLocaleString("ru-RU")}
+              </div>
+
+              <div className={styles.unit}>
+                блок. / смена
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

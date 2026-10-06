@@ -36,6 +36,7 @@ type WorkedShiftData = {
   tobaccoHours: number;
   boxes: number;
   blocks: number;
+  pallets: number;
   nonProfileHours: number;
   transitionPart: "first" | "second" | null;
 };
@@ -140,13 +141,15 @@ export function calculateMonthlyReport(
               tobaccoHours:
                 shift.tobaccoHours ?? 0,
               boxes:
-                shift.boxes ?? 0,
-              blocks:
-                shift.blocks ?? 0,
-              nonProfileHours:
-                shift.nonProfileHours ?? 0,
-              transitionPart:
-                null,
+  shift.boxes ?? 0,
+blocks:
+  shift.blocks ?? 0,
+pallets:
+  shift.pallets ?? 0,
+nonProfileHours:
+  shift.nonProfileHours ?? 0,
+transitionPart:
+  null,
             });
           }
 
@@ -168,22 +171,27 @@ export function calculateMonthlyReport(
                 .firstMonth
                 .tobaccoHours ?? 0,
             boxes:
-              shift
-                .transitionDistribution
-                .firstMonth
-                .boxes ?? 0,
-            blocks:
-              shift
-                .transitionDistribution
-                .firstMonth
-                .blocks ?? 0,
-            nonProfileHours:
-              shift
-                .transitionDistribution
-                .firstMonth
-                .nonProfileHours ?? 0,
-            transitionPart:
-              "first",
+  shift
+    .transitionDistribution
+    .firstMonth
+    .boxes ?? 0,
+blocks:
+  shift
+    .transitionDistribution
+    .firstMonth
+    .blocks ?? 0,
+pallets:
+  shift
+    .transitionDistribution
+    .firstMonth
+    .pallets ?? 0,
+nonProfileHours:
+  shift
+    .transitionDistribution
+    .firstMonth
+    .nonProfileHours ?? 0,
+transitionPart:
+  "first",
           });
         }
 
@@ -202,22 +210,27 @@ export function calculateMonthlyReport(
                 .secondMonth
                 .tobaccoHours ?? 0,
             boxes:
-              shift
-                .transitionDistribution
-                .secondMonth
-                .boxes ?? 0,
-            blocks:
-              shift
-                .transitionDistribution
-                .secondMonth
-                .blocks ?? 0,
-            nonProfileHours:
-              shift
-                .transitionDistribution
-                .secondMonth
-                .nonProfileHours ?? 0,
-            transitionPart:
-              "second",
+  shift
+    .transitionDistribution
+    .secondMonth
+    .boxes ?? 0,
+blocks:
+  shift
+    .transitionDistribution
+    .secondMonth
+    .blocks ?? 0,
+pallets:
+  shift
+    .transitionDistribution
+    .secondMonth
+    .pallets ?? 0,
+nonProfileHours:
+  shift
+    .transitionDistribution
+    .secondMonth
+    .nonProfileHours ?? 0,
+transitionPart:
+  "second",
           });
         }
 
@@ -298,6 +311,29 @@ export function calculateMonthlyReport(
 
   const salaryFromBlocks =
     totalBlocks * blockRate;
+  const totalPallets =
+  workedMonthShiftData.reduce(
+    (total, item) =>
+      total + item.pallets,
+    0
+  );
+
+const averagePallets =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalPallets / totalBaseHours) * 11
+      )
+    : 0;
+
+const palletRate =
+  averagePallets >= 300
+    ? 17
+    : averagePallets >= 250
+      ? 14
+      : 12;
+
+const salaryFromPallets =
+  totalPallets * palletRate;  
 
   const salaryFromHours =
     workedMonthShiftData.reduce(
@@ -746,14 +782,24 @@ const dayOffCount =
         0
       );
 
-  const errorsDeduction =
-    totalErrors * 600;
+  const isStacker =
+  user?.position === "Штабелер (водитель погрузчика)";
 
-  const salaryWithoutErrors =
-    workedMonthShifts.length > 0 &&
-    totalErrors <= 2
-      ? 5000
-      : 0;
+const errorsDeduction =
+  totalErrors *
+  (isStacker ? 500 : 600);
+
+const salaryWithoutErrors =
+  workedMonthShifts.length > 0 &&
+  (
+    isStacker
+      ? totalErrors === 0
+      : totalErrors <= 2
+  )
+    ? isStacker
+      ? 2000
+      : 5000
+    : 0;
 
   const damageDeduction =
     currentMonthDeductions
@@ -814,18 +860,21 @@ const dayOffCount =
     );
 
   const totalAccruals =
-    Math.round(
-      salaryFromHours
-    ) +
-    Math.round(
-      salaryFromBoxes
-    ) +
-    Math.round(
-      salaryFromBlocks
-    ) +
-    Math.round(
-      salaryFromMentoring
-    ) +
+  Math.round(
+    salaryFromHours
+  ) +
+  Math.round(
+    salaryFromBoxes
+  ) +
+  Math.round(
+    salaryFromBlocks
+  ) +
+  Math.round(
+    salaryFromPallets
+  ) +
+  Math.round(
+    salaryFromMentoring
+  ) +
     Math.round(
       salaryFromNonProfileHours
     ) +
@@ -950,11 +999,16 @@ nightSurcharge:
     salaryFromBoxes,
 
     totalBlocks,
-    averageBlocks,
-    blockRate,
-    salaryFromBlocks,
+averageBlocks,
+blockRate,
+salaryFromBlocks,
 
-    totalNonProfileHours,
+totalPallets,
+averagePallets,
+palletRate,
+salaryFromPallets,
+
+totalNonProfileHours,
     salaryFromNonProfileHours,
 
     salaryFromHours,

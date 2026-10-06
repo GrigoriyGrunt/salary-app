@@ -18,6 +18,10 @@ export default function WorkHours({
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+
+const isStacker =
+  currentUser?.position ===
+  "Штабелер (водитель погрузчика)";
   const getMonthHours = (
   field:
     | "baseHours"
@@ -124,6 +128,10 @@ const baseHours = getMonthHours(
   "baseHours"
 );
 
+const palletHours = isStacker
+  ? getMonthHours("baseHours")
+  : 0;
+
 const nonProfileHours = getMonthHours(
   "nonProfileHours"
 );
@@ -138,32 +146,57 @@ const tobaccoHours = getMonthHours(
 
       <div
   className={`${styles.grid} ${
-    isTobaccoPicker ? styles.tobaccoGrid : ""
-  }`}
+  isTobaccoPicker || isStacker
+    ? styles.tobaccoGrid
+    : ""
+}`}
 >
         <div className={styles.item}>
           <div className={styles.label}>По окладу</div>
           <div className={styles.value}>{salaryHours} ч</div>
         </div>
 
-        {!isTobaccoPicker && (
+        {isStacker ? (
   <div className={styles.item}>
-    <div className={styles.label}>На основе</div>
-    <div className={styles.value}>{baseHours} ч</div>
+    <div className={styles.label}>
+      С паллетами
+    </div>
+    <div className={styles.value}>
+      {palletHours} ч
+    </div>
   </div>
+) : (
+  !isTobaccoPicker && (
+    <div className={styles.item}>
+      <div className={styles.label}>
+        На основе
+      </div>
+      <div className={styles.value}>
+        {baseHours} ч
+      </div>
+    </div>
+  )
 )}
 
-        <div className={styles.item}>
-          <div className={styles.label}>Непрофильные</div>
-          <div className={styles.value}>
-            {nonProfileHours} ч
-          </div>
-        </div>
+<div className={styles.item}>
+  <div className={styles.label}>
+    Непрофильные
+  </div>
+  <div className={styles.value}>
+    {nonProfileHours} ч
+  </div>
+</div>
 
-        <div className={styles.item}>
-          <div className={styles.label}>На табаке</div>
-          <div className={styles.value}>{tobaccoHours} ч</div>
-        </div>
+{!isStacker && (
+  <div className={styles.item}>
+    <div className={styles.label}>
+      На табаке
+    </div>
+    <div className={styles.value}>
+      {tobaccoHours} ч
+    </div>
+  </div>
+)}
       </div>
     </section>
   );

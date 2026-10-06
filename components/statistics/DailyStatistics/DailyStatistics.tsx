@@ -49,9 +49,14 @@ export default function DailyStatistics({
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
-  const currentUser = useUsersStore(
-  (state) => state.currentUser
-);
+    const currentUser = useUsersStore(
+    (state) => state.currentUser
+  );
+
+  const isStacker =
+    currentUser?.position ===
+    "Штабелер (водитель погрузчика)";
+
   const originalMainShiftsByMonth =
   useScheduleStore(
     (state) =>
@@ -116,9 +121,14 @@ const days = Array.from(
         ? shift.boxes
         : null;
 
-    const blocks =
+        const blocks =
       shift && shift.blocks > 0
         ? shift.blocks
+        : null;
+
+    const pallets =
+      shift && shift.pallets > 0
+        ? shift.pallets
         : null;
 
     const workZone = shift?.workZone;
@@ -148,8 +158,9 @@ const days = Array.from(
 
       shift,
 
-      boxes,
+            boxes,
       blocks,
+      pallets,
       dayEarnings,
       workZone,
       isMentor,
@@ -233,35 +244,46 @@ const days = Array.from(
 
             <span className={styles.boxes}>
   {mode === "statistics" ? (
-  !item.hasWorkingShift ? (
-    "—"
-  ) : !item.shift?.isWorked ? (
-    "н/д"
-  ) : item.isMentor ? (
-    "Наст."
-  ) : item.workZone === "warehouse" ? (
-    "РПС"
-  ) : item.workZone === "tobacco" ? (
-    item.blocks !== null ? (
+    !item.hasWorkingShift ? (
+      "—"
+    ) : !item.shift?.isWorked ? (
+      "н/д"
+    ) : item.isMentor ? (
+      "Наст."
+    ) : isStacker ? (
+      item.pallets !== null ? (
+        <>
+          {item.pallets}
+          <span className={styles.unit}>
+            {" "}пал
+          </span>
+        </>
+      ) : (
+        "—"
+      )
+    ) : item.workZone === "warehouse" ? (
+      "РПС"
+    ) : item.workZone === "tobacco" ? (
+      item.blocks !== null ? (
+        <>
+          {item.blocks}
+          <span className={styles.unit}>
+            {" "}блок
+          </span>
+        </>
+      ) : (
+        "—"
+      )
+    ) : item.boxes !== null ? (
       <>
-        {item.blocks}
+        {item.boxes}
         <span className={styles.unit}>
-          {" "}блок
+          {" "}кор
         </span>
       </>
     ) : (
       "—"
     )
-  ) : item.boxes !== null ? (
-    <>
-      {item.boxes}
-      <span className={styles.unit}>
-        {" "}кор
-      </span>
-    </>
-  ) : (
-    "—"
-  )
   ) : item.dayEarnings !== null ? (
   `${Math.round(
     item.dayEarnings

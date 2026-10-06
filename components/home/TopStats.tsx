@@ -16,6 +16,10 @@ export default function TopStats() {
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
 
+const isStacker =
+  currentUser?.position ===
+  "Штабелер (водитель погрузчика)";
+
   const today = new Date();
   const currentMonthName = [
     "январе",
@@ -86,7 +90,16 @@ const averageBlocks =
     ? Math.round(
         (totalBlocks / totalTobaccoHours) * 11
       )
-    : 0;    
+    : 0;
+const totalPallets =
+  monthStats.pallets;
+
+const averagePallets =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalPallets / totalBaseHours) * 11
+      )
+    : 0;        
   return (
     <section className={styles.wrapper}>
       <Link href="/schedule" className={styles.card}>
@@ -153,16 +166,20 @@ const averageBlocks =
   </div>
 
   <div className={styles.title}>
-  {isTobaccoPicker
-    ? "Блоков собрано"
-    : "Коробок собрано"}
+  {isStacker
+    ? "Паллет обработано"
+    : isTobaccoPicker
+      ? "Блоков собрано"
+      : "Коробок собрано"}
 </div>
 </div>
 
 <div className={styles.valueCenter}>
-  {(isTobaccoPicker
-  ? totalBlocks
-  : totalBoxes
+  {(isStacker
+  ? totalPallets
+  : isTobaccoPicker
+    ? totalBlocks
+    : totalBoxes
 ).toLocaleString("ru-RU")}
 </div>
 
@@ -188,14 +205,18 @@ const averageBlocks =
 </div>
 
 <div className={styles.valueCenter}>
-  {(isTobaccoPicker
-  ? averageBlocks
-  : averageBoxes
+  {(isStacker
+  ? averagePallets
+  : isTobaccoPicker
+    ? averageBlocks
+    : averageBoxes
 ).toLocaleString("ru-RU")}
 </div>
 
 <div className={styles.small}>
-  {isTobaccoPicker
+  {isStacker
+  ? "паллет в смену"
+  : isTobaccoPicker
     ? "блоков в смену"
     : "коробок в смену"}
 </div>

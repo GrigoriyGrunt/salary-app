@@ -110,6 +110,7 @@ export async function PATCH(
       tobaccoHours,
       boxes,
       blocks,
+      pallets,
       nonProfileHours,
       mentor,
       transitionDistribution,
@@ -149,6 +150,7 @@ export async function PATCH(
 
         boxes,
         blocks,
+        pallets,
         nonProfileHours,
 
         mentor,
@@ -174,6 +176,7 @@ export async function PATCH(
 
         boxes,
         blocks,
+        pallets,
         nonProfileHours,
 
         mentor,
@@ -269,6 +272,9 @@ export async function POST(
               blocks:
                 shift.blocks ?? 0,
 
+              pallets:
+                shift.pallets ?? 0,  
+
               nonProfileHours:
                 shift.nonProfileHours ?? 0,
 
@@ -305,6 +311,9 @@ export async function POST(
 
               blocks:
                 shift.blocks ?? 0,
+
+              pallets:
+                shift.pallets ?? 0,  
 
               nonProfileHours:
                 shift.nonProfileHours ?? 0,

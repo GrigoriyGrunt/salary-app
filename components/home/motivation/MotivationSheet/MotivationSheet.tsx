@@ -33,6 +33,8 @@ const currentUser = useUsersStore(
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+const isStacker =
+  currentUser?.position === "Штабелер (водитель погрузчика)";  
 const isValid =
   Number.isInteger(numberValue) &&
   numberValue >= 100;
@@ -79,13 +81,15 @@ const isValid =
           </div>
 
           <div className={styles.caption}>
-  {isTobaccoPicker
-    ? "блоков за смену"
-    : "коробок за смену"}
+  {isStacker
+    ? "паллетов за смену"
+    : isTobaccoPicker
+      ? "блоков за смену"
+      : "коробок за смену"}
 </div>
         </div>
 
-        {!isTobaccoPicker && (
+        {!isTobaccoPicker && !isStacker && (
   <div className={styles.section}>
     <div className={styles.label}>
       Основа
@@ -107,7 +111,7 @@ const isValid =
     </div>
   </div>
 )}
-
+{!isStacker && (
         <div className={styles.section}>
           <div className={styles.label}>
             Табак
@@ -133,6 +137,29 @@ const isValid =
             <span>1,00 ₽/блок</span>
           </div>
         </div>
+        )}
+{isStacker && (
+  <div className={styles.section}>
+    <div className={styles.label}>
+      Штабелер
+    </div>
+
+    <div className={styles.row}>
+      <span>до 249</span>
+      <span>12,00 ₽/паллет</span>
+    </div>
+
+    <div className={styles.row}>
+      <span>250–299</span>
+      <span>14,00 ₽/паллет</span>
+    </div>
+
+    <div className={styles.row}>
+      <span>300+</span>
+      <span>17,00 ₽/паллет</span>
+    </div>
+  </div>
+)}        
       </div>
     </BottomSheet>
   );

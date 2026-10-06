@@ -59,8 +59,8 @@ export default function SalaryCard() {
   currentDate
 );
 
-const totalSalary =
-  currentMonthReport.totalSalary;  
+const isStacker =
+  user?.position === "Штабелер (водитель погрузчика)"; 
 
   const originalMainShifts =
     originalMainShiftsByMonth[
@@ -107,6 +107,26 @@ const totalBoxes =
 
 const totalBaseHours =
   monthStats.baseHours;
+
+const totalPallets =
+  monthStats.pallets;
+
+const averagePallets =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalPallets / totalBaseHours) * 11
+      )
+    : 0;
+
+const palletPrice =
+  averagePallets >= 300
+    ? 17
+    : averagePallets >= 250
+      ? 14
+      : 12;
+
+const palletSalary =
+  totalPallets * palletPrice;
 
 const averageBoxes =
   totalBaseHours > 0
@@ -158,10 +178,34 @@ const averageBoxes =
             : 1;
 
   const motivationPrice =
-    user?.position === "Комплектовщик табака"
-      ? blockPrice
-      : boxPrice;
-  const hourlyRate =
+  user?.position === "Комплектовщик табака"
+    ? blockPrice
+    : boxPrice;
+
+const palletForecastPrice =
+  averagePallets > 0
+    ? averagePallets < 250
+      ? 12
+      : averagePallets < 300
+        ? 14
+        : 17
+    : goal < 250
+      ? 12
+      : goal < 300
+        ? 14
+        : 17;
+
+const forecastBoxPrice =
+  isStacker
+    ? palletForecastPrice
+    : boxPrice;
+
+const forecastMotivationPrice =
+  isStacker
+    ? palletForecastPrice
+    : motivationPrice;
+
+const hourlyRate =
     originalMainShifts > 0
       ? 23750 /
         originalMainShifts /
@@ -173,7 +217,7 @@ const averageBoxes =
     ? (
         23750 +
         goal *
-          boxPrice *
+          forecastMotivationPrice *
           originalMainShifts
       ) / originalMainShifts
     : 0;
@@ -184,14 +228,14 @@ const regularNightShiftSalary =
 
 const extraShiftSalary =
   hourlyRate * 22 +
-  goal * motivationPrice;
+  goal * forecastMotivationPrice;
 
 const extraNightShiftSalary =
   (
     hourlyRate * 11 +
     hourlyRate * 7 * 0.2
   ) * 2 +
-  goal * motivationPrice;
+  goal * forecastMotivationPrice;
 
   const mainAndOvertimeCount =
     monthShifts.filter(
@@ -238,15 +282,15 @@ const extraNightShiftSalary =
         : 0;
 
     const shiftRegularSalary =
-      shiftOriginalMainShifts > 0
-        ? (
-            23750 +
-            goal *
-              motivationPrice *
-              shiftOriginalMainShifts
-          ) /
+  shiftOriginalMainShifts > 0
+    ? (
+        23750 +
+        goal *
+          forecastMotivationPrice *
           shiftOriginalMainShifts
-        : 0;
+      ) /
+      shiftOriginalMainShifts
+    : 0;
 
     const shiftRegularNightSalary =
       shiftRegularSalary +
@@ -254,14 +298,14 @@ const extraNightShiftSalary =
 
     const shiftExtraSalary =
       shiftHourlyRate * 22 +
-      goal * motivationPrice;
+      goal * forecastMotivationPrice;
 
     const shiftExtraNightSalary =
       (
         shiftHourlyRate * 11 +
         shiftHourlyRate * 7 * 0.2
       ) * 2 +
-      goal * motivationPrice;
+      goal * forecastMotivationPrice;
 
     const isNightShift =
       shift.type === "night";
@@ -330,6 +374,17 @@ const absenceDeduction =
     errorCount < 3
       ? 5000
       : 0;
+  const stackerWithoutErrorsBonus =
+    isStacker &&
+    monthShifts.some(
+      (shift) => shift.isWorked
+    ) &&
+    errorCount < 3
+      ? 2000
+      : 0;
+
+const totalSalary =
+  currentMonthReport.totalSalary;  
 
   const premiumTotal =
     monthPremiums.reduce(

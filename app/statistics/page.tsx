@@ -20,7 +20,11 @@ export default function StatisticsPage() {
   );
 
   const isTobaccoPicker =
-    currentUser?.position === "Комплектовщик табака";
+  currentUser?.position === "Комплектовщик табака";
+
+const isStacker =
+  currentUser?.position ===
+  "Штабелер (водитель погрузчика)";
   return (
     <main className={styles.page}>
       <PageHeader title="Статистика" />
@@ -42,7 +46,7 @@ export default function StatisticsPage() {
 
 <WorkHours selectedDate={selectedDate} />
 
-{!isTobaccoPicker && (
+{!isTobaccoPicker && !isStacker && (
   <MentorStats selectedDate={selectedDate} />
 )}
         </div>

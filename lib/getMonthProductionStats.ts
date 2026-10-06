@@ -1,6 +1,7 @@
 type TransitionPart = {
   boxes?: number;
   blocks?: number;
+  pallets?: number;
   baseHours?: number;
   tobaccoHours?: number;
 };
@@ -16,6 +17,7 @@ type ProductionShift = {
 
   boxes?: number;
   blocks?: number;
+  pallets?: number;
   baseHours?: number;
   tobaccoHours?: number;
 
@@ -25,6 +27,7 @@ type ProductionShift = {
 type MonthProductionStats = {
   boxes: number;
   blocks: number;
+  pallets: number;
   baseHours: number;
   tobaccoHours: number;
 };
@@ -65,17 +68,21 @@ export function getMonthProductionStats(
             shift.transitionDistribution.firstMonth;
 
           return {
-            boxes:
-              total.boxes +
-              (firstMonth.boxes || 0),
+  boxes:
+    total.boxes +
+    (firstMonth.boxes || 0),
 
-            blocks:
-              total.blocks +
-              (firstMonth.blocks || 0),
+  blocks:
+    total.blocks +
+    (firstMonth.blocks || 0),
 
-            baseHours:
-              total.baseHours +
-              (firstMonth.baseHours || 0),
+  pallets:
+    total.pallets +
+    (firstMonth.pallets || 0),
+
+  baseHours:
+    total.baseHours +
+    (firstMonth.baseHours || 0),
 
             tobaccoHours:
               total.tobaccoHours +
@@ -88,17 +95,21 @@ export function getMonthProductionStats(
             shift.transitionDistribution.secondMonth;
 
           return {
-            boxes:
-              total.boxes +
-              (secondMonth.boxes || 0),
+  boxes:
+    total.boxes +
+    (secondMonth.boxes || 0),
 
-            blocks:
-              total.blocks +
-              (secondMonth.blocks || 0),
+  blocks:
+    total.blocks +
+    (secondMonth.blocks || 0),
 
-            baseHours:
-              total.baseHours +
-              (secondMonth.baseHours || 0),
+  pallets:
+    total.pallets +
+    (secondMonth.pallets || 0),
+
+  baseHours:
+    total.baseHours +
+    (secondMonth.baseHours || 0),
 
             tobaccoHours:
               total.tobaccoHours +
@@ -114,17 +125,21 @@ export function getMonthProductionStats(
       }
 
       return {
-        boxes:
-          total.boxes +
-          (shift.boxes || 0),
+  boxes:
+    total.boxes +
+    (shift.boxes || 0),
 
-        blocks:
-          total.blocks +
-          (shift.blocks || 0),
+  blocks:
+    total.blocks +
+    (shift.blocks || 0),
 
-        baseHours:
-          total.baseHours +
-          (shift.baseHours || 0),
+  pallets:
+    total.pallets +
+    (shift.pallets || 0),
+
+  baseHours:
+    total.baseHours +
+    (shift.baseHours || 0),
 
         tobaccoHours:
           total.tobaccoHours +
@@ -132,10 +147,11 @@ export function getMonthProductionStats(
       };
     },
     {
-      boxes: 0,
-      blocks: 0,
-      baseHours: 0,
-      tobaccoHours: 0,
-    }
+  boxes: 0,
+  blocks: 0,
+  pallets: 0,
+  baseHours: 0,
+  tobaccoHours: 0,
+}
   );
 }

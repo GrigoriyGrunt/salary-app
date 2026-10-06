@@ -249,6 +249,7 @@ setScheduleData: (
 
                 boxes: 0,
                 blocks: 0,
+                pallets: 0,
                 nonProfileHours: 0,
 
                 mentor: false,

@@ -38,6 +38,9 @@ export default function SalaryBreakdown({
   const isTobaccoPicker =
   user?.position === "Комплектовщик табака";
 
+const isStacker =
+  user?.position === "Штабелер (водитель погрузчика)";
+
 const shifts = useScheduleStore((state) => state.shifts);
   const premiums = useFinanceStore(
     (state) => state.premiums
@@ -143,6 +146,8 @@ const workedMonthShiftData = shifts.reduce(
             shift.boxes ?? 0,
           blocks:
             shift.blocks ?? 0,
+          pallets:
+            shift.pallets ?? 0,  
           nonProfileHours:
             shift.nonProfileHours ?? 0,
           transitionPart: null,
@@ -166,12 +171,15 @@ const workedMonthShiftData = shifts.reduce(
           shift.transitionDistribution
             .firstMonth.boxes ?? 0,
         blocks:
-          shift.transitionDistribution
-            .firstMonth.blocks ?? 0,
-        nonProfileHours:
-          shift.transitionDistribution
-            .firstMonth.nonProfileHours ?? 0,
-        transitionPart: "first",
+  shift.transitionDistribution
+    .firstMonth.blocks ?? 0,
+pallets:
+  shift.transitionDistribution
+    .firstMonth.pallets ?? 0,
+nonProfileHours:
+  shift.transitionDistribution
+    .firstMonth.nonProfileHours ?? 0,
+transitionPart: "first",
       });
     }
 
@@ -189,12 +197,15 @@ const workedMonthShiftData = shifts.reduce(
           shift.transitionDistribution
             .secondMonth.boxes ?? 0,
         blocks:
-          shift.transitionDistribution
-            .secondMonth.blocks ?? 0,
-        nonProfileHours:
-          shift.transitionDistribution
-            .secondMonth.nonProfileHours ?? 0,
-        transitionPart: "second",
+  shift.transitionDistribution
+    .secondMonth.blocks ?? 0,
+pallets:
+  shift.transitionDistribution
+    .secondMonth.pallets ?? 0,
+nonProfileHours:
+  shift.transitionDistribution
+    .secondMonth.nonProfileHours ?? 0,
+transitionPart: "second",
       });
     }
 
@@ -206,9 +217,10 @@ const workedMonthShiftData = shifts.reduce(
     baseHours: number;
     tobaccoHours: number;
     boxes: number;
-    blocks: number;
-    nonProfileHours: number;
-    transitionPart: "first" | "second" | null;
+blocks: number;
+pallets: number;
+nonProfileHours: number;
+transitionPart: "first" | "second" | null;
   }[]
 );
 
@@ -332,7 +344,10 @@ const boxRate =
       ? 3.6
       : 2.7;
 
-const salaryFromBoxes = totalBoxes * boxRate;
+const salaryFromBoxes =
+  isStacker
+    ? 0
+    : totalBoxes * boxRate;
 
 const totalBlocks =
   workedMonthShiftData.reduce(
@@ -362,7 +377,35 @@ const blockRate =
         ? 0.7
         : 0.6;
 
-const salaryFromBlocks = totalBlocks * blockRate;
+const salaryFromBlocks =
+  isStacker
+    ? 0
+    : totalBlocks * blockRate;
+const totalPallets =
+  workedMonthShiftData.reduce(
+    (total, item) =>
+      total + item.pallets,
+    0
+  );
+
+const averagePallets =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalPallets / totalBaseHours) * 11
+      )
+    : 0;
+
+const palletRate =
+  averagePallets >= 300
+    ? 17
+    : averagePallets >= 250
+      ? 14
+      : 12;
+
+const salaryFromPallets =
+  isStacker
+    ? totalPallets * palletRate
+    : 0;
 const mentorSalaryPerShift =
   averageBoxes === 0
     ? 1200 * 3.6
@@ -453,11 +496,20 @@ const salaryFromDiscipline =
     0
   );
 
-const errorsDeduction = totalErrors * 600;
+const errorsDeduction =
+  totalErrors *
+  (isStacker ? 500 : 600);
+
 const salaryWithoutErrors =
-  workedMonthShifts.length > 0 && totalErrors <= 2
-    ? 5000
-    : 0;
+  isStacker
+    ? workedMonthShifts.length > 0 &&
+      totalErrors === 0
+      ? 2000
+      : 0
+    : workedMonthShifts.length > 0 &&
+      totalErrors <= 2
+      ? 5000
+      : 0;
 
 const damageDeduction = monthDeductions
   .filter((deduction) => deduction.type === "Бой")
@@ -496,6 +548,7 @@ const totalAccruals =
   Math.round(salaryFromHours) +
   Math.round(salaryFromBoxes) +
   Math.round(salaryFromBlocks) +
+  Math.round(salaryFromPallets) +
   Math.round(salaryFromMentoring) +
   Math.round(salaryFromNonProfileHours) +
   salaryFromDiscipline +
@@ -524,7 +577,7 @@ useEffect(() => {
     "ru-RU"
   )} ₽`,
 },
-    ...(isTobaccoPicker
+    ...(isTobaccoPicker || isStacker
   ? []
   : [
       {
@@ -534,13 +587,30 @@ useEffect(() => {
         ).toLocaleString("ru-RU")} ₽`,
       },
     ]),
-    {
-  title: "Блоки",
-  amount: `${Math.round(salaryFromBlocks).toLocaleString(
-    "ru-RU"
-  )} ₽`,
-},
-    ...(isTobaccoPicker
+
+...(isStacker
+  ? []
+  : [
+      {
+        title: "Блоки",
+        amount: `${Math.round(
+          salaryFromBlocks
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]),
+
+...(isStacker
+  ? [
+      {
+        title: "Паллеты",
+        amount: `${Math.round(
+          salaryFromPallets
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]
+  : []),
+
+...(isTobaccoPicker || isStacker
   ? []
   : [
       {

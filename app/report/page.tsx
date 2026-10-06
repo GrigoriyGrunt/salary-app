@@ -94,7 +94,11 @@ export default function ReportPage() {
   );
   const isTobaccoPicker =
   user?.position === "Комплектовщик табака";
-  const shifts = useScheduleStore(
+
+const isStacker =
+  user?.position === "Штабелер (водитель погрузчика)";
+
+const shifts = useScheduleStore(
     (state) => state.shifts
   );
 
@@ -229,32 +233,47 @@ export default function ReportPage() {
     );
   }
 
-  const production = [
-  report.totalBoxes !== 0
-    ? `Коробок собрано: ${formatNumber(report.totalBoxes)}`
-    : null,
-  report.averageBoxes !== 0
-    ? `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`
-    : null,
-  !isTobaccoPicker && report.boxRate !== 0
-  ? `Ставка за коробку: ${report.boxRate} ₽`
-  : null,
-  report.salaryFromBoxes !== 0
-    ? `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`
-    : null,
-  report.totalBlocks !== 0
-    ? `Блоков собрано: ${formatNumber(report.totalBlocks)}`
-    : null,
-  report.averageBlocks !== 0
-    ? `Средняя по блокам: ${formatNumber(report.averageBlocks)}`
-    : null,
-  report.blockRate !== 0
-    ? `Ставка за блок: ${report.blockRate} ₽`
-    : null,
-  report.salaryFromBlocks !== 0
-    ? `Заработано за блоки: ${formatMoney(report.salaryFromBlocks)}`
-    : null,
-].filter(Boolean);
+  const production = isStacker
+  ? [
+      report.totalPallets !== 0
+        ? `Паллетов обработано: ${formatNumber(report.totalPallets)}`
+        : null,
+      report.averagePallets !== 0
+        ? `Средняя по паллетам: ${formatNumber(report.averagePallets)}`
+        : null,
+      report.totalPallets !== 0
+        ? `Ставка за паллет: ${report.palletRate} ₽`
+        : null,
+      report.salaryFromPallets !== 0
+        ? `Заработано за паллеты: ${formatMoney(report.salaryFromPallets)}`
+        : null,
+    ].filter(Boolean)
+  : [
+      report.totalBoxes !== 0
+        ? `Коробок собрано: ${formatNumber(report.totalBoxes)}`
+        : null,
+      report.averageBoxes !== 0
+        ? `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`
+        : null,
+      !isTobaccoPicker && report.boxRate !== 0
+        ? `Ставка за коробку: ${report.boxRate} ₽`
+        : null,
+      report.salaryFromBoxes !== 0
+        ? `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`
+        : null,
+      report.totalBlocks !== 0
+        ? `Блоков собрано: ${formatNumber(report.totalBlocks)}`
+        : null,
+      report.averageBlocks !== 0
+        ? `Средняя по блокам: ${formatNumber(report.averageBlocks)}`
+        : null,
+      report.blockRate !== 0
+        ? `Ставка за блок: ${report.blockRate} ₽`
+        : null,
+      report.salaryFromBlocks !== 0
+        ? `Заработано за блоки: ${formatMoney(report.salaryFromBlocks)}`
+        : null,
+    ].filter(Boolean);
 
 if (production.length > 0) {
   textSections.push(
@@ -262,8 +281,10 @@ if (production.length > 0) {
     production.join("\n"),
     `Итого`,
     `Всего заработано: ${formatMoney(
-      report.salaryFromBoxes +
-        report.salaryFromBlocks
+      isStacker
+        ? report.salaryFromPallets
+        : report.salaryFromBoxes +
+          report.salaryFromBlocks
     )}`
   );
 }
@@ -697,91 +718,129 @@ if (totals.length > 0) {
                     styles.rows
                   }
                 >
-                  <ReportRow
-                    label="Коробок собрано"
-                    value={formatNumber(
-                      report.totalBoxes
-                    )}
-                    show={
-                      report.totalBoxes !==
-                      0
-                    }
-                  />
+                  {!isStacker && (
+  <>
+    <ReportRow
+      label="Коробок собрано"
+      value={formatNumber(
+        report.totalBoxes
+      )}
+      show={
+        report.totalBoxes !== 0
+      }
+    />
 
-                  <ReportRow
-                    label="Средняя по коробкам"
-                    value={formatNumber(
-                      report.averageBoxes
-                    )}
-                    show={
-                      report.averageBoxes !==
-                      0
-                    }
-                  />
+    <ReportRow
+      label="Средняя по коробкам"
+      value={formatNumber(
+        report.averageBoxes
+      )}
+      show={
+        report.averageBoxes !== 0
+      }
+    />
 
-                  {!isTobaccoPicker && (
-  <ReportRow
-    label="Ставка за коробку"
-    value={`${report.boxRate} ₽`}
-    show={
-      report.boxRate !==
-      0
-    }
-  />
+    {!isTobaccoPicker && (
+      <ReportRow
+        label="Ставка за коробку"
+        value={`${report.boxRate} ₽`}
+        show={
+          report.boxRate !== 0
+        }
+      />
+    )}
+
+    <ReportRow
+      label="Заработано за коробки"
+      value={formatMoney(
+        report.salaryFromBoxes
+      )}
+      show={
+        report.salaryFromBoxes !== 0
+      }
+    />
+
+    <ReportRow
+      label="Блоков собрано"
+      value={formatNumber(
+        report.totalBlocks
+      )}
+      show={
+        report.totalBlocks !== 0
+      }
+    />
+
+    <ReportRow
+      label="Средняя по блокам"
+      value={formatNumber(
+        report.averageBlocks
+      )}
+      show={
+        report.averageBlocks !== 0
+      }
+    />
+
+    <ReportRow
+      label="Ставка за блок"
+      value={`${report.blockRate} ₽`}
+      show={
+        report.blockRate !== 0
+      }
+    />
+
+    <ReportRow
+      label="Заработано за блоки"
+      value={formatMoney(
+        report.salaryFromBlocks
+      )}
+      show={
+        report.salaryFromBlocks !== 0
+      }
+    />
+  </>
 )}
 
-                  <ReportRow
-                    label="Заработано за коробки"
-                    value={formatMoney(
-                      report.salaryFromBoxes
-                    )}
-                    show={
-                      report.salaryFromBoxes !==
-                      0
-                    }
-                  />
+{isStacker && (
+  <>
+    <ReportRow
+      label="Паллетов обработано"
+      value={formatNumber(
+        report.totalPallets
+      )}
+      show={
+        report.totalPallets !== 0
+      }
+    />
 
-                  <ReportRow
-                    label="Блоков собрано"
-                    value={formatNumber(
-                      report.totalBlocks
-                    )}
-                    show={
-                      report.totalBlocks !==
-                      0
-                    }
-                  />
+    <ReportRow
+      label="Средняя по паллетам"
+      value={formatNumber(
+        report.averagePallets
+      )}
+      show={
+        report.averagePallets !== 0
+      }
+    />
 
-                  <ReportRow
-                    label="Средняя по блокам"
-                    value={formatNumber(
-                      report.averageBlocks
-                    )}
-                    show={
-                      report.averageBlocks !==
-                      0
-                    }
-                  />
+    <ReportRow
+      label="Ставка за паллет"
+      value={`${report.palletRate} ₽`}
+      show={
+        report.totalPallets !== 0
+      }
+    />
 
-                  <ReportRow
-                    label="Ставка за блок"
-                    value={`${report.blockRate} ₽`}
-                    show={
-                      report.blockRate !==
-                      0
-                    }
-                  />
-
-                  <ReportRow
-                    label="Заработано за блоки"
-                    value={formatMoney(
-                      report.salaryFromBlocks
-                    )}
-                    show={
-                      report.salaryFromBlocks !==
-                      0
-                    }
-                  />
+    <ReportRow
+      label="Заработано за паллеты"
+      value={formatMoney(
+        report.salaryFromPallets
+      )}
+      show={
+        report.salaryFromPallets !== 0
+      }
+    />
+  </>
+)}
                   <div className={styles.totalDivider} />
 
 <div className={styles.totalTitle}>
@@ -791,14 +850,16 @@ if (totals.length > 0) {
 <ReportRow
   label="Всего заработано"
   value={formatMoney(
-    report.salaryFromBoxes +
-      report.salaryFromBlocks
-  )}
-  show={
-    report.salaryFromBoxes +
-      report.salaryFromBlocks !==
-    0
-  }
+  report.salaryFromBoxes +
+    report.salaryFromBlocks +
+    report.salaryFromPallets
+)}
+show={
+  report.salaryFromBoxes +
+    report.salaryFromBlocks +
+    report.salaryFromPallets !==
+  0
+}
 />
                 </div>
               </section>

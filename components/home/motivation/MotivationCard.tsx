@@ -11,6 +11,8 @@ export default function MotivationCard() {
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+const isStacker =
+  currentUser?.position === "Штабелер (водитель погрузчика)";  
 
   const shifts = useScheduleStore(
     (state) => state.shifts
@@ -62,6 +64,15 @@ const averageBlocks =
         (totalBlocks / totalTobaccoHours) * 11
       )
     : 0;
+const totalPallets =
+  monthStats.pallets;
+
+const averagePallets =
+  totalBaseHours > 0
+    ? Math.round(
+        (totalPallets / totalBaseHours) * 11
+      )
+    : 0;    
 const boxPrice =
   averageBoxes < 1200
     ? 2.7
@@ -77,10 +88,20 @@ const blockPrice =
       : averageBlocks < 4000
         ? 0.8
         : 1;
+
+const palletPrice =
+  averagePallets < 250
+    ? 12
+    : averagePallets < 300
+      ? 14
+      : 17;
+
 const hasProductionData =
-  isTobaccoPicker
-    ? averageBlocks > 0
-    : averageBoxes > 0;
+  isStacker
+    ? averagePallets > 0
+    : isTobaccoPicker
+      ? averageBlocks > 0
+      : averageBoxes > 0;
 const nonProfileHours = monthShifts.reduce(
   (total, shift) =>
     total + (shift.nonProfileHours || 0),
@@ -142,23 +163,46 @@ const requiredBlocks =
         (remainingBlocks / futureBaseHours) * 11
       )
     : 0;
+const totalMonthPalletHours =
+  totalBaseHours + futureBaseHours;
+
+const targetTotalPallets =
+  totalMonthPalletHours *
+  (goal / 11);
+
+const remainingPallets =
+  Math.max(
+    0,
+    targetTotalPallets - totalPallets
+  );
+
+const requiredPallets =
+  futureBaseHours > 0
+    ? Math.ceil(
+        (remainingPallets / futureBaseHours) * 11
+      )
+    : 0;    
   return (
     <div className={styles.card}>
 
 <div className={styles.stats}>
   <div className={styles.statCard}>
     <span className={styles.label}>
-  {isTobaccoPicker
-    ? "Стоимость блока"
-    : "Стоимость коробки"}
+  {isStacker
+    ? "Стоимость паллета"
+    : isTobaccoPicker
+      ? "Стоимость блока"
+      : "Стоимость коробки"}
 </span>
 
 <strong className={styles.value}>
   {hasProductionData
-    ? `${(isTobaccoPicker
-        ? blockPrice
-        : boxPrice
-      )
+    ? `${(isStacker
+        ? palletPrice
+        : isTobaccoPicker
+          ? blockPrice
+          : boxPrice
+    )
         .toFixed(2)
         .replace(".", ",")} ₽`
     : "—"}
@@ -184,17 +228,24 @@ const requiredBlocks =
 </div>
 
 <div className={styles.notice}>
-  До конца месяца собирайте по{" "}
+  До конца месяца{" "}
+  {isStacker
+    ? "обрабатывайте по"
+    : "собирайте по"}{" "}
   <strong>
-  {(isTobaccoPicker
-    ? requiredBlocks
-    : requiredBoxes
-  ).toLocaleString("ru-RU")}{" "}
-  {isTobaccoPicker
-    ? "блоков"
-    : "коробок"}
-</strong>
-  за смену.
+    {(isStacker
+      ? requiredPallets
+      : isTobaccoPicker
+        ? requiredBlocks
+        : requiredBoxes
+    ).toLocaleString("ru-RU")}{" "}
+    {isStacker
+      ? "паллетов"
+      : isTobaccoPicker
+        ? "блоков"
+        : "коробок"}
+  </strong>
+  {" "}за смену.
 </div>
 
 <p className={styles.info}>

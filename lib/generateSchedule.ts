@@ -24,6 +24,7 @@ export type TransitionShiftPart = {
 
   boxes: number;
   blocks: number;
+  pallets: number;
 
   nonProfileHours: number;
 
@@ -65,6 +66,7 @@ tobaccoHours: number;
 
 boxes: number;
 blocks: number;
+pallets: number;
 nonProfileHours: number;
 
 mentor: boolean;
@@ -150,6 +152,7 @@ tobaccoHours: 0,
 
 boxes: 0,
 blocks: 0,
+pallets: 0,
 nonProfileHours: 0,
 
 mentor: false,

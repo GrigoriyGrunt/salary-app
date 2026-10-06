@@ -19,8 +19,12 @@ export default function MonthSummary({
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+
+const isStacker =
+  currentUser?.position ===
+  "Штабелер (водитель погрузчика)";
   const [modalType, setModalType] = useState<
-  "boxes" | "blocks" | null
+  "boxes" | "blocks" | "pallets" | null
 >(null);
 
   const monthShifts = shifts.filter((shift) => {
@@ -144,6 +148,69 @@ const totalBlocks = shifts.reduce(
   },
   0
 );
+const totalPallets = shifts.reduce(
+  (total, shift) => {
+    if (!shift.isWorked) {
+      return total;
+    }
+
+    const shiftDate = new Date(shift.date);
+
+    const isCurrentMonth =
+      shiftDate.getMonth() ===
+        selectedDate.getMonth() &&
+      shiftDate.getFullYear() ===
+        selectedDate.getFullYear();
+
+    if (shift.transitionDistribution) {
+      const nextDay = new Date(shiftDate);
+
+      nextDay.setDate(
+        nextDay.getDate() + 1
+      );
+
+      const isSecondMonth =
+        nextDay.getMonth() ===
+          selectedDate.getMonth() &&
+        nextDay.getFullYear() ===
+          selectedDate.getFullYear();
+
+      if (isCurrentMonth) {
+        return (
+          total +
+          (shift.transitionDistribution
+            .firstMonth.pallets || 0)
+        );
+      }
+
+      if (isSecondMonth) {
+        return (
+          total +
+          (shift.transitionDistribution
+            .secondMonth.pallets || 0)
+        );
+      }
+
+      return total;
+    }
+
+    return isCurrentMonth
+      ? total + (shift.pallets || 0)
+      : total;
+  },
+  0
+);
+
+const palletItems = monthShifts
+  .filter(
+    (shift) => (shift.pallets || 0) > 0
+  )
+  .map((shift) => ({
+    date: new Date(
+      shift.date
+    ).toLocaleDateString("ru-RU"),
+    value: shift.pallets || 0,
+  }));
   const boxItems = monthShifts
   .filter((shift) => shift.boxes > 0)
   .map((shift) => ({
@@ -162,68 +229,114 @@ const blockItems = monthShifts
     <section className={styles.wrapper}>
       <h2 className={styles.title}>Итоги за месяц</h2>
 
-      <div
-  className={`${styles.grid} ${
-    isTobaccoPicker ? styles.tobaccoGrid : ""
-  }`}
->
-        {!isTobaccoPicker && (
-  <button
-    type="button"
-    className={styles.card}
-    onClick={() => setModalType("boxes")}
-  >
-    <div className={styles.info}>
-      <span className={styles.label}>
-        Коробок собрано
-      </span>
-
-      <div className={styles.value}>
-        {totalBoxes.toLocaleString("ru-RU")}
-      </div>
-
-      <span className={styles.unit}>
-        шт.
-      </span>
-    </div>
-  </button>
-)}
-
-        <button
-          type="button"
-          className={styles.card}
-          onClick={() => setModalType("blocks")}
+            <div
+        className={`${styles.grid} ${
+          isTobaccoPicker || isStacker
+            ? styles.tobaccoGrid
+            : ""
+        }`}
+      >
+        {!isTobaccoPicker && !isStacker && (
+          <button
+            type="button"
+            className={styles.card}
+            onClick={() =>
+              setModalType("boxes")
+            }
           >
-          <div className={styles.info}>
-            <span className={styles.label}>
-              Блоков (табак)
-            </span>
+            <div className={styles.info}>
+              <span className={styles.label}>
+                Коробок собрано
+              </span>
 
-            <div className={styles.value}>
-              {totalBlocks.toLocaleString("ru-RU")}
+              <div className={styles.value}>
+                {totalBoxes.toLocaleString(
+                  "ru-RU"
+                )}
+              </div>
+
+              <span className={styles.unit}>
+                шт.
+              </span>
+            </div>
+          </button>
+        )}
+
+        {isStacker ? (
+          <button
+            type="button"
+            className={styles.card}
+            onClick={() =>
+              setModalType("pallets")
+            }
+          >
+            <div className={styles.info}>
+              <span className={styles.label}>
+                Паллеты
+              </span>
+
+              <div className={styles.value}>
+                {totalPallets.toLocaleString(
+                  "ru-RU"
+                )}
+              </div>
+
+              <span className={styles.unit}>
+                шт.
+              </span>
+            </div>
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={styles.card}
+            onClick={() =>
+              setModalType("blocks")
+            }
+          >
+            <div className={styles.info}>
+              <span className={styles.label}>
+                Блоков (табак)
+              </span>
+
+              <div className={styles.value}>
+                {totalBlocks.toLocaleString(
+                  "ru-RU"
+                )}
+              </div>
+
+              <span className={styles.unit}>
+                шт.
+              </span>
+            </div>
+          </button>
+        )}
             </div>
 
-            <span className={styles.unit}>
-              шт.
-            </span>
-          </div>
-        </button>
-      </div>
       {modalType === "boxes" && (
-  <ProductionDetailsModal
-    title="Собрано коробок"
-    items={boxItems}
-    total={totalBoxes}
-    unit="шт."
-    onClose={() => setModalType(null)}
-  />
-)}
+        <ProductionDetailsModal
+          title="Собрано коробок"
+          items={boxItems}
+          total={totalBoxes}
+          unit="шт."
+          onClose={() => setModalType(null)}
+        />
+      )}
 
 {modalType === "blocks" && (
   <ProductionDetailsModal
     title="Собрано блоков"
     items={blockItems}
     total={totalBlocks}
+    unit="шт."
+    onClose={() => setModalType(null)}
+  />
+)}
+{modalType === "pallets" && (
+  <ProductionDetailsModal
+    title="Паллеты"
+    items={palletItems}
+    total={totalPallets}
     unit="шт."
     onClose={() => setModalType(null)}
   />

@@ -232,6 +232,9 @@ salary-app
 │   │       ├── commonInputTypes.ts
 │   │       ├── enums.ts
 │   │       └── models.ts
+│   ├── positions
+│   │   ├── config.ts
+│   │   └── index.ts
 │   ├── applyScheduleChanges.ts
 │   ├── auth.ts
 │   ├── buildSegment.ts
@@ -256,6 +259,8 @@ salary-app
 │   │   ├── 20260904234729_init
 │   │   │   └── migration.sql
 │   │   ├── 20260908024123_add_sessions
+│   │   │   └── migration.sql
+│   │   ├── 20261006011343_add_pallets_to_shift
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma

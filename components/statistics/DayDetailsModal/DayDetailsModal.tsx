@@ -26,6 +26,7 @@ type ShiftData = {
 
   boxes?: number;
   blocks?: number;
+  pallets?: number;
 
   nonProfileHours?: number;
 
@@ -122,11 +123,14 @@ export function getDayEarnings(
   const salaryHours =
     shift?.salaryHours ?? 0;
 
-  const boxes =
+    const boxes =
     shift?.boxes ?? 0;
 
   const blocks =
     shift?.blocks ?? 0;
+
+  const pallets =
+    shift?.pallets ?? 0;
 
   const nonProfileHours =
     shift?.nonProfileHours ?? 0;
@@ -299,8 +303,41 @@ const originalMainShifts =
           ? 0.7
           : 0.6;
 
-  const blocksEarnings =
+    const blocksEarnings =
     blocks * blockRate;
+
+  const totalPallets =
+    workedMonthShifts.reduce(
+      (total, monthShift) =>
+        total +
+        (monthShift.pallets || 0),
+      0
+    );
+
+  const averagePallets =
+    totalBaseHours > 0
+      ? Math.round(
+          (totalPallets /
+            totalBaseHours) *
+            11
+        )
+      : 0;
+
+  const palletRate =
+    user?.position ===
+    "Штабелер (водитель погрузчика)"
+      ? averagePallets >= 300
+        ? 17
+        : averagePallets >= 250
+          ? 14
+          : 12
+      : 0;
+
+  const palletsEarnings =
+    user?.position ===
+    "Штабелер (водитель погрузчика)"
+      ? pallets * palletRate
+      : 0;
 
   const nonProfileEarnings =
     nonProfileHours * 136;
@@ -316,10 +353,11 @@ const originalMainShifts =
             : 1800 * 4
       : 0;
 
-  return (
+    return (
     salaryFromHours +
     boxesEarnings +
     blocksEarnings +
+    palletsEarnings +
     nonProfileEarnings +
     mentorEarnings
   );
@@ -364,9 +402,10 @@ const originalMainShiftsByMonth = useScheduleStore(
 const baseHours = shift?.baseHours ?? 0;
 const boxes = shift?.boxes ?? 0;
 const tobaccoHours = shift?.tobaccoHours ?? 0;
-const blocks = shift?.blocks ?? 0;
-const nonProfileHours = shift?.nonProfileHours ?? 0;
-const dayEarnings = getDayEarnings(
+  const blocks = shift?.blocks ?? 0;
+  const pallets = shift?.pallets ?? 0;
+  const nonProfileHours = shift?.nonProfileHours ?? 0;
+  const dayEarnings = getDayEarnings(
   shift,
   selectedDate,
   shifts,
@@ -445,10 +484,17 @@ const dayEarnings = getDayEarnings(
       />
     )}
 
-    {blocks > 0 && (
+        {blocks > 0 && (
       <InfoRow
         label="Блоки"
         value={blocks}
+      />
+    )}
+
+    {pallets > 0 && (
+      <InfoRow
+        label="Паллеты"
+        value={pallets}
       />
     )}
 

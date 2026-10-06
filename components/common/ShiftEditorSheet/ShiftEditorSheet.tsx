@@ -67,6 +67,9 @@ const currentUser = useUsersStore(
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+
+const isStacker =
+  currentUser?.position === "Штабелер (водитель погрузчика)";
   const [dayType, setDayType] = useState("");
 const [shiftTime, setShiftTime] = useState("");
 const [workZone, setWorkZone] = useState<
@@ -79,6 +82,7 @@ const [isMentor, setIsMentor] = useState(false);
 const [salaryHours, setSalaryHours] = useState("");
 const [baseHours, setBaseHours] = useState("");
 const [boxes, setBoxes] = useState("");
+const [pallets, setPallets] = useState("");
 const [tobaccoHours, setTobaccoHours] = useState("");
 const [blocks, setBlocks] = useState("");
 const [nonProfileHours, setNonProfileHours] = useState("");
@@ -138,6 +142,12 @@ const [firstBoxes, setFirstBoxes] =
 const [secondBoxes, setSecondBoxes] =
   useState("");
 
+const [firstPallets, setFirstPallets] =
+  useState("");
+
+const [secondPallets, setSecondPallets] =
+  useState("");
+
 const [firstBlocks, setFirstBlocks] =
   useState("");
 
@@ -170,6 +180,11 @@ const isTransitionDistributionValid =
       Number(secondBoxes || 0) ===
       Number(boxes || 0) &&
 
+    (!isStacker ||
+      Number(firstPallets || 0) +
+        Number(secondPallets || 0) ===
+        Number(pallets || 0)) &&
+
     Number(firstBlocks || 0) +
       Number(secondBlocks || 0) ===
       Number(blocks || 0) &&
@@ -198,11 +213,15 @@ const canSave =
 ) ||
 
     (
-      workZone === "base" &&
-      salaryHours !== "" &&
-      baseHours !== "" &&
-      boxes !== ""
-    ) ||
+  workZone === "base" &&
+  salaryHours !== "" &&
+  baseHours !== "" &&
+  (
+    isStacker
+      ? pallets !== ""
+      : boxes !== ""
+  )
+) ||
 
     (
       workZone === "base_tobacco" &&
@@ -274,6 +293,9 @@ const distributeAutomatically = useCallback(() => {
   const firstBoxesValue =
     getFirstValue(boxes);
 
+  const firstPalletsValue =
+    getFirstValue(pallets);
+
   const firstBlocksValue =
     getFirstValue(blocks);
 
@@ -319,6 +341,19 @@ const distributeAutomatically = useCallback(() => {
       getSecondValue(
         boxes,
         firstBoxesValue
+     )
+    )
+  );
+
+  setFirstPallets(
+    String(firstPalletsValue)
+  );
+  
+  setSecondPallets(
+    String(
+      getSecondValue(
+        pallets,
+        firstPalletsValue
       )
     )
   );
@@ -366,6 +401,7 @@ const distributeAutomatically = useCallback(() => {
   baseHours,
   tobaccoHours,
   boxes,
+  pallets,
   blocks,
   nonProfileHours,
   isMentor,
@@ -394,6 +430,9 @@ function clearTransitionDistribution() {
   setFirstBoxes("");
   setSecondBoxes("");
 
+  setFirstPallets("");
+  setSecondPallets("");
+
   setFirstBlocks("");
   setSecondBlocks("");
 
@@ -408,6 +447,7 @@ function clearWorkData() {
   setBaseHours("");
   setTobaccoHours("");
   setBoxes("");
+  setPallets("");
   setBlocks("");
   setNonProfileHours("");
 
@@ -439,6 +479,7 @@ function clearWorkData() {
   setBaseHours("");
   setTobaccoHours("");
   setBoxes("");
+  setPallets("");
   setBlocks("");
   setNonProfileHours("");
 
@@ -482,8 +523,11 @@ if (currentShift.status === "vacation") {
   setBaseHours(
     currentShift.baseHours ? String(currentShift.baseHours) : ""
   );
-  setBoxes(
+    setBoxes(
     currentShift.boxes ? String(currentShift.boxes) : ""
+  );
+  setPallets(
+    currentShift.pallets ? String(currentShift.pallets) : ""
   );
   setTobaccoHours(
     currentShift.tobaccoHours ? String(currentShift.tobaccoHours) : ""
@@ -545,14 +589,30 @@ if (currentShift.status === "vacation") {
     );
 
     setSecondBoxes(
-      distribution.secondMonth.boxes
-        ? String(
-            distribution.secondMonth.boxes
-          )
-        : ""
-    );
+  distribution.secondMonth.boxes
+    ? String(
+        distribution.secondMonth.boxes
+      )
+    : ""
+);
 
-    setFirstBlocks(
+setFirstPallets(
+  distribution.firstMonth.pallets
+    ? String(
+        distribution.firstMonth.pallets
+      )
+    : ""
+);
+
+setSecondPallets(
+  distribution.secondMonth.pallets
+    ? String(
+        distribution.secondMonth.pallets
+      )
+    : ""
+);
+
+setFirstBlocks(
       distribution.firstMonth.blocks
         ? String(
             distribution.firstMonth.blocks
@@ -610,6 +670,9 @@ if (currentShift.status === "vacation") {
 
     setFirstBoxes("");
     setSecondBoxes("");
+
+    setFirstPallets("");
+    setSecondPallets("");
 
     setFirstBlocks("");
     setSecondBlocks("");
@@ -710,6 +773,9 @@ async function saveShift() {
       blocks:
         Number(blocks) || 0,
 
+      pallets:
+        Number(pallets) || 0,  
+
       nonProfileHours:
         Number(nonProfileHours) || 0,
 
@@ -731,6 +797,9 @@ async function saveShift() {
                 boxes:
                   Number(firstBoxes) || 0,
 
+                pallets:
+                  Number(firstPallets) || 0,  
+
                 blocks:
                   Number(firstBlocks) || 0,
 
@@ -750,6 +819,9 @@ async function saveShift() {
 
                 boxes:
                   Number(secondBoxes) || 0,
+
+                pallets:
+                  Number(secondPallets) || 0,  
 
                 blocks:
                   Number(secondBlocks) || 0,
@@ -783,6 +855,7 @@ async function saveShift() {
 
       boxes: 0,
       blocks: 0,
+      pallets: 0,
       nonProfileHours: 0,
 
       mentor: false,
@@ -816,6 +889,7 @@ async function saveShift() {
 
       boxes: 0,
       blocks: 0,
+      pallets: 0,
       nonProfileHours: 0,
 
       mentor: false,
@@ -838,6 +912,7 @@ async function saveShift() {
 
       boxes: 0,
       blocks: 0,
+      pallets: 0,
       nonProfileHours: 0,
 
       mentor: false,
@@ -943,6 +1018,12 @@ function handleMentorChange(checked: boolean) {
       setBoxes(
         currentShift.boxes
           ? String(currentShift.boxes)
+          : ""
+      );
+
+      setPallets(
+        currentShift.pallets
+          ? String(currentShift.pallets)
           : ""
       );
 
@@ -1176,7 +1257,8 @@ clearWorkData();
   >
     <span className={styles.selectValue}>
       {workZone === "none" && "—"}
-{workZone === "base" && "Основа"}
+{workZone === "base" &&
+  (isStacker ? "Работа с паллетами" : "Основа")}
 {workZone === "base_tobacco" && "Основа + Табак"}
 {workZone === "tobacco" && "Табак"}
 {workZone === "warehouse" && "Работа по складу"}
@@ -1198,7 +1280,22 @@ clearWorkData();
 >
   —
   </button>
-{!isTobaccoPicker && (
+{isStacker ? (
+  <>
+    <button
+      type="button"
+      onClick={() => {
+        setWorkZone("base");
+        clearWorkData();
+        setIsWorkZoneOpen(false);
+      }}
+    >
+      Работа с паллетами
+    </button>
+  </>
+) : (
+  <>
+    {!isTobaccoPicker && (
   <>
     <button
       type="button"
@@ -1224,27 +1321,29 @@ clearWorkData();
   </>
 )}
 
-      <button
-        type="button"
-        onClick={() => {
-  setWorkZone("tobacco");
-  clearWorkData();
-  setIsWorkZoneOpen(false);
-}}
-      >
-        Табак
-      </button>
+<button
+  type="button"
+  onClick={() => {
+    setWorkZone("tobacco");
+    clearWorkData();
+    setIsWorkZoneOpen(false);
+  }}
+>
+  Табак
+</button>
+  </>
+)}
 
-      <button
-        type="button"
-        onClick={() => {
-  setWorkZone("warehouse");
-  clearWorkData();
-  setIsWorkZoneOpen(false);
-}}
-      >
-        Работа по складу
-      </button>
+<button
+  type="button"
+  onClick={() => {
+    setWorkZone("warehouse");
+    clearWorkData();
+    setIsWorkZoneOpen(false);
+  }}
+>
+  Работа по складу
+</button>
     </div>
   )}
 </div>
@@ -1265,39 +1364,57 @@ clearWorkData();
     <input
       type="number"
       className={styles.input}
-      placeholder="Основа часы"
+      placeholder={
+        isStacker
+          ? "Часы работы с паллетами"
+          : "Основа часы"
+      }
       value={baseHours}
       onChange={(e) => setBaseHours(e.target.value)}
       disabled={isMentor}
     />
 
+    {isStacker ? (
+      <input
+        type="number"
+        className={styles.input}
+        placeholder="Паллеты"
+        value={pallets}
+        onChange={(e) => setPallets(e.target.value)}
+      />
+    ) : (
+      <input
+        type="number"
+        className={styles.input}
+        placeholder="Коробки"
+        value={boxes}
+        onChange={(e) => setBoxes(e.target.value)}
+        disabled={isMentor}
+      />
+    )}
+
     <input
       type="number"
       className={styles.input}
-      placeholder="Коробки"
-      value={boxes}
-      onChange={(e) => setBoxes(e.target.value)}
+      placeholder="Непрофильные часы"
+      value={nonProfileHours}
+      onChange={(e) => setNonProfileHours(e.target.value)}
       disabled={isMentor}
     />
 
-    <input
-  type="number"
-  className={styles.input}
-  placeholder="Непрофильные часы"
-  value={nonProfileHours}
-  onChange={(e) => setNonProfileHours(e.target.value)}
-  disabled={isMentor}
-/>
+    {!isStacker && (
+      <label className={styles.radioItem}>
+        <span>Наставник</span>
 
-<label className={styles.radioItem}>
-  <span>Наставник</span>
-
-  <input
-    type="checkbox"
-    checked={isMentor}
-    onChange={(e) => handleMentorChange(e.target.checked)}
-  />
-</label>
+        <input
+          type="checkbox"
+          checked={isMentor}
+          onChange={(e) =>
+            handleMentorChange(e.target.checked)
+          }
+        />
+      </label>
+    )}
   </>
 )}
 
@@ -1467,32 +1584,51 @@ clearWorkData();
       </label>
 
       {workZone === "base" && (
-        <>
-          <input
-            type="number"
-            className={styles.input}
-            placeholder="Основа часы"
-value={firstBaseHours}
-disabled={transitionMode === "auto"}
-onChange={(e) =>
-              setFirstBaseHours(
-                e.target.value
-              )
-            }
-          />
+  <>
+    <input
+      type="number"
+      className={styles.input}
+      placeholder={
+        isStacker
+          ? "Часы работы с паллетами"
+          : "Основа часы"
+      }
+      value={firstBaseHours}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setFirstBaseHours(
+          e.target.value
+        )
+      }
+    />
 
-          <input
-            type="number"
-            className={styles.input}
-            placeholder="Коробки"
-value={firstBoxes}
-disabled={transitionMode === "auto"}
-            onChange={(e) =>
-              setFirstBoxes(
-                e.target.value
-              )
-            }
-          />
+    {isStacker ? (
+      <input
+        type="number"
+        className={styles.input}
+        placeholder="Паллеты"
+        value={firstPallets}
+        disabled={transitionMode === "auto"}
+        onChange={(e) =>
+          setFirstPallets(
+            e.target.value
+          )
+        }
+      />
+    ) : (
+      <input
+        type="number"
+        className={styles.input}
+        placeholder="Коробки"
+        value={firstBoxes}
+        disabled={transitionMode === "auto"}
+        onChange={(e) =>
+          setFirstBoxes(
+            e.target.value
+          )
+        }
+      />
+    )}
 
           <input
             type="number"
@@ -1670,32 +1806,51 @@ onChange={(e) =>
       </label>
 
       {workZone === "base" && (
-        <>
-          <input
-            type="number"
-            className={styles.input}
-            placeholder="Основа часы"
-            value={secondBaseHours}
-disabled={transitionMode === "auto"}
-            onChange={(e) =>
-              setSecondBaseHours(
-                e.target.value
-              )
-            }
-          />
+  <>
+    <input
+      type="number"
+      className={styles.input}
+      placeholder={
+        isStacker
+          ? "Часы работы с паллетами"
+          : "Основа часы"
+      }
+      value={secondBaseHours}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setSecondBaseHours(
+          e.target.value
+        )
+      }
+    />
 
-          <input
-            type="number"
-            className={styles.input}
-            placeholder="Коробки"
-            value={secondBoxes}
-disabled={transitionMode === "auto"}
-            onChange={(e) =>
-              setSecondBoxes(
-                e.target.value
-              )
-            }
-          />
+    {isStacker ? (
+      <input
+        type="number"
+        className={styles.input}
+        placeholder="Паллеты"
+        value={secondPallets}
+        disabled={transitionMode === "auto"}
+        onChange={(e) =>
+          setSecondPallets(
+            e.target.value
+          )
+        }
+      />
+    ) : (
+      <input
+        type="number"
+        className={styles.input}
+        placeholder="Коробки"
+        value={secondBoxes}
+        disabled={transitionMode === "auto"}
+        onChange={(e) =>
+          setSecondBoxes(
+            e.target.value
+          )
+        }
+      />
+    )}
 
           <input
             type="number"
