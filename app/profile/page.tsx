@@ -9,7 +9,10 @@ import { useScheduleStore } from "@/store/scheduleStore";
 import { useFinanceStore } from "@/store/financeStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useRouter } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 import { getExperienceYears } from "@/lib/experience";
+const MAX_GROUP_URL =
+  "https://max.ru/join/_HcttEOn00fKP0sV7j2O4IZL_HWlykAD1ZlOomwryOA";
 function formatDate(date?: string) {
   if (!date) return "-";
 
@@ -51,6 +54,8 @@ const [isForgotCodeOpen, setIsForgotCodeOpen] =
   const [isSupportOpen, setIsSupportOpen] =
   useState(false);
   const [isAboutOpen, setIsAboutOpen] =
+  useState(false);
+  const [isQrOpen, setIsQrOpen] =
   useState(false);
   const [isLogoutOpen, setIsLogoutOpen] =
   useState(false);
@@ -355,6 +360,25 @@ async function handleResetProfile() {
   onClick={() => setIsAboutOpen(true)}
 >
   О приложении
+</button>
+<button
+  className={styles.item}
+  onClick={() => {
+    window.location.href = MAX_GROUP_URL;
+  }}
+>
+    Группа в MAX
+  <img
+    src="/images/icons/maxicon.svg"
+    alt="MAX"
+    className={styles.maxIcon}
+/>
+</button>
+<button
+  className={styles.item}
+  onClick={() => setIsQrOpen(true)}
+>
+  QR-код для входа
 </button>
           </div>
           <div className={styles.card}>
@@ -854,17 +878,19 @@ async function handleResetProfile() {
             </p>
 
             <p>
-              Следите за своим заработком, смотрите прогноз
-              будущей зарплаты, количество собранных коробок и
-              блоков, рабочие часы и подробную статистику.
-            </p>
+  Следите за своим заработком, смотрите прогноз
+  будущей зарплаты, количество собранных коробок,
+  блоков и паллет, рабочие часы и подробную статистику.
+</p>
 
-            <p>
-              Приложение также помогает контролировать график и
-              смены, отслеживать авансы и выплаты заработной платы,
-              а также учитывать отпуск, больничный и другие важные
-              события.
-            </p>
+<p>
+  Приложением могут пользоваться комплектовщики основы,
+  комплектовщики табака, штабелеры и кладовщики.
+  Приложение также помогает контролировать график и
+  смены, отслеживать авансы и выплаты заработной платы,
+  а также учитывать отпуск, больничный и другие важные
+  события.
+</p>
 
             <div className={styles.modalActions}>
               <button
@@ -877,6 +903,40 @@ async function handleResetProfile() {
           </div>
         </div>
       )} 
+      {isQrOpen && (
+  <div className={styles.overlay}>
+    <div className={styles.resetModal}>
+      <h2>QR-код для входа</h2>
+
+      <p>
+        Наведите камеру телефона на QR-код,
+        чтобы открыть КалькуляторЗП.
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          margin: "20px 0",
+        }}
+      >
+        <QRCodeSVG
+  value="https://my.kalkulatorzp.ru"
+  size={240}
+/>
+      </div>
+
+      <div className={styles.modalActions}>
+        <button
+          className={styles.confirmButton}
+          onClick={() => setIsQrOpen(false)}
+        >
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       {isLogoutOpen && (
         <div className={styles.overlay}>
           <div className={styles.resetModal}>

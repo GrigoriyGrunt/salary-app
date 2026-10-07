@@ -19,6 +19,61 @@ const [code, setCode] = useState("");
 const [isCodeVisible, setIsCodeVisible] = useState(false);
    const [rememberLogin, setRememberLogin] =
   useState(false);
+  const [isCreateProfileOpen, setIsCreateProfileOpen] =
+  useState(false);
+
+const [newProfileLastName, setNewProfileLastName] =
+  useState("");
+
+const [newProfileFirstName, setNewProfileFirstName] =
+  useState("");
+
+const [newProfileMiddleName, setNewProfileMiddleName] =
+  useState("");
+const [newProfileLogin, setNewProfileLogin] =
+  useState("");
+const [newProfileCode, setNewProfileCode] =
+  useState("");
+  function generateProfileLogin(
+  lastName: string,
+  firstName: string,
+  middleName: string
+) {
+  if (
+    !lastName.trim() ||
+    !firstName.trim() ||
+    !middleName.trim()
+  ) {
+    return "";
+  }
+
+  const transliteration: Record<string, string> = {
+    а: "a", б: "b", в: "v", г: "g", д: "d",
+    е: "e", ё: "e", ж: "zh", з: "z", и: "i",
+    й: "y", к: "k", л: "l", м: "m", н: "n",
+    о: "o", п: "p", р: "r", с: "s", т: "t",
+    у: "u", ф: "f", х: "kh", ц: "ts", ч: "ch",
+    ш: "sh", щ: "shch", ъ: "", ы: "y", ь: "",
+    э: "e", ю: "yu", я: "ya",
+  };
+
+  function transliterate(value: string) {
+    return value
+      .toLowerCase()
+      .split("")
+      .map((char) => transliteration[char] ?? char)
+      .join("");
+  }
+
+  const lastNameLatin = transliterate(lastName.trim());
+
+  return (
+    lastNameLatin.charAt(0).toUpperCase() +
+    lastNameLatin.slice(1) +
+    transliterate(firstName.trim()).charAt(0).toUpperCase() +
+    transliterate(middleName.trim()).charAt(0).toUpperCase()
+  );
+}
    const setCurrentUserFromServer = useUsersStore(
   (state) => state.setCurrentUserFromServer
 );
@@ -251,7 +306,193 @@ setNotificationCurrentUser(user.id);
             Войти
           </Button>
         </div>
+        <button
+          type="button"
+          className={styles.createProfileButton}
+          onClick={() => setIsCreateProfileOpen(true)}
+        >
+          Создать профиль
+        </button>
+      {isCreateProfileOpen && (
+        <div className={styles.createProfileOverlay}>
+          <div className={styles.createProfileModal}>
+            <h2>Создание профиля</h2>
 
+<input
+  className={styles.createProfileInput}
+  type="text"
+  placeholder="Фамилия"
+  value={newProfileLastName}
+  onChange={(event) => {
+  const value = event.target.value;
+  setNewProfileLastName(value);
+
+  setNewProfileLogin(
+    generateProfileLogin(
+      value,
+      newProfileFirstName,
+      newProfileMiddleName
+    )
+  );
+}}
+/>
+
+<input
+  className={styles.createProfileInput}
+  type="text"
+  placeholder="Имя"
+  value={newProfileFirstName}
+  onChange={(event) => {
+  const value = event.target.value;
+  setNewProfileFirstName(value);
+
+  setNewProfileLogin(
+    generateProfileLogin(
+      newProfileLastName,
+      value,
+      newProfileMiddleName
+    )
+  );
+}}
+/>
+
+<input
+  className={styles.createProfileInput}
+  type="text"
+  placeholder="Отчество"
+  value={newProfileMiddleName}
+  onChange={(event) => {
+  const value = event.target.value;
+  setNewProfileMiddleName(value);
+
+  setNewProfileLogin(
+    generateProfileLogin(
+      newProfileLastName,
+      newProfileFirstName,
+      value
+    )
+  );
+}}
+/>
+
+<input
+  className={styles.createProfileInput}
+  type="text"
+  placeholder="Логин будет создан автоматически"
+  value={newProfileLogin}
+onChange={(event) =>
+  setNewProfileLogin(
+    event.target.value.replace(/[^a-zA-Z0-9]/g, "")
+  )
+}
+/>
+
+<input
+  className={styles.createProfileInput}
+  type="text"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  maxLength={20}
+  placeholder="Код, например 123456"
+  value={newProfileCode}
+  onChange={(event) => {
+    const value = event.target.value.replace(/\D/g, "");
+    setNewProfileCode(value);
+  }}
+/>
+
+<div className={styles.createProfileActions}>
+  <button
+    className={styles.createProfileCancel}
+    onClick={() => {
+      setIsCreateProfileOpen(false);
+      setNewProfileLastName("");
+      setNewProfileFirstName("");
+      setNewProfileMiddleName("");
+      setNewProfileCode("");
+    }}
+  >
+    Отмена
+  </button>
+
+  <button
+    className={styles.createProfileConfirm}
+    onClick={async () => {
+  if (
+    !newProfileLastName.trim() ||
+    !newProfileFirstName.trim() ||
+    !newProfileMiddleName.trim()
+  ) {
+    alert("Заполните фамилию, имя и отчество");
+    return;
+  }
+
+  if (!newProfileLogin.trim()) {
+    alert("Введите логин");
+    return;
+  }
+
+  if (!/^[a-zA-Z0-9]+$/.test(newProfileLogin.trim())) {
+    alert(
+      "Логин должен содержать только английские буквы и цифры"
+    );
+    return;
+  }
+
+  if (newProfileCode.length < 4) {
+    alert("Код должен содержать минимум 4 цифры");
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lastName: newProfileLastName.trim(),
+        firstName: newProfileFirstName.trim(),
+        middleName: newProfileMiddleName.trim(),
+        login: newProfileLogin.trim(),
+        accessCode: newProfileCode,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error || "Не удалось создать профиль");
+      return;
+    }
+
+    alert("Профиль успешно создан");
+
+    setIsCreateProfileOpen(false);
+
+    setNewProfileLastName("");
+    setNewProfileFirstName("");
+    setNewProfileMiddleName("");
+    setNewProfileLogin("");
+    setNewProfileCode("");
+  } catch (error) {
+    console.error(
+      "Ошибка создания профиля:",
+      error
+    );
+
+    alert(
+      "Не удалось создать профиль. Попробуйте ещё раз."
+    );
+  }
+}}
+  >
+    Создать профиль
+  </button>
+</div>
+          </div>
+        </div>
+      )}        
       </div>
     </main>
   );
