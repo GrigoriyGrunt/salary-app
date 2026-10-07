@@ -9,7 +9,9 @@ salary-app
 │   │   │   │   └── route.ts
 │   │   │   ├── login
 │   │   │   │   └── route.ts
-│   │   │   └── logout
+│   │   │   ├── logout
+│   │   │   │   └── route.ts
+│   │   │   └── register
 │   │   │       └── route.ts
 │   │   ├── finance
 │   │   │   └── route.ts
@@ -262,6 +264,8 @@ salary-app
 │   │   │   └── migration.sql
 │   │   ├── 20261006011343_add_pallets_to_shift
 │   │   │   └── migration.sql
+│   │   ├── 20261007042740_add_return_hours
+│   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma
 ├── public
@@ -276,6 +280,7 @@ salary-app
 │   │   │   ├── graynight.png
 │   │   │   ├── history-black.png
 │   │   │   ├── home-black.png
+│   │   │   ├── maxicon.svg
 │   │   │   ├── money-black.png
 │   │   │   ├── night.png
 │   │   │   ├── notifications.png

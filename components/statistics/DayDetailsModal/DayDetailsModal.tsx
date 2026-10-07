@@ -26,7 +26,8 @@ type ShiftData = {
 
   boxes?: number;
   blocks?: number;
-  pallets?: number;
+    pallets?: number;
+  returnHours?: number;
 
   nonProfileHours?: number;
 
@@ -103,8 +104,11 @@ function getWorkType(shift?: ShiftData) {
     case "tobacco":
       return "Табак";
 
-    case "warehouse":
+        case "warehouse":
       return "Работа по складу";
+
+    case "receiving":
+      return "Работа на приемке/отгрузке";
 
     default:
       return null;
@@ -129,8 +133,11 @@ export function getDayEarnings(
   const blocks =
     shift?.blocks ?? 0;
 
-  const pallets =
+    const pallets =
     shift?.pallets ?? 0;
+
+  const returnHours =
+    shift?.returnHours ?? 0;
 
   const nonProfileHours =
     shift?.nonProfileHours ?? 0;
@@ -176,12 +183,15 @@ const originalMainShifts =
         monthShift.isWorked
     );
 
+    const isStorekeeper =
+    user?.position === "Кладовщик";
+
   const hourlyRate =
   getOriginalMainShiftsForDate(
     user,
     selectedDate
   ) > 0
-    ? 23750 /
+    ? (isStorekeeper ? 27000 : 23750) /
       getOriginalMainShiftsForDate(
         user,
         selectedDate
@@ -333,10 +343,41 @@ const originalMainShifts =
           : 12
       : 0;
 
-  const palletsEarnings =
+    const palletsEarnings =
     user?.position ===
     "Штабелер (водитель погрузчика)"
       ? pallets * palletRate
+      : 0;
+
+  const storekeeperPalletsEarnings =
+    isStorekeeper
+      ? pallets * 15
+      : 0;
+
+  const storekeeperBoxesEarnings =
+    isStorekeeper
+      ? boxes * 3
+      : 0;
+
+  const loaderHourlyRate =
+    getOriginalMainShiftsForDate(
+      user,
+      selectedDate
+    ) > 0
+      ? 58000 /
+        getOriginalMainShiftsForDate(
+          user,
+          selectedDate
+        ) /
+        11
+      : 0;
+
+  const returnHourRate =
+    227 + loaderHourlyRate;
+
+  const returnHoursEarnings =
+    isStorekeeper
+      ? returnHours * returnHourRate
       : 0;
 
   const nonProfileEarnings =
@@ -353,11 +394,16 @@ const originalMainShifts =
             : 1800 * 4
       : 0;
 
-    return (
+        return (
     salaryFromHours +
-    boxesEarnings +
+    (isStorekeeper
+      ? storekeeperBoxesEarnings
+      : boxesEarnings) +
     blocksEarnings +
-    palletsEarnings +
+    (isStorekeeper
+      ? storekeeperPalletsEarnings
+      : palletsEarnings) +
+    returnHoursEarnings +
     nonProfileEarnings +
     mentorEarnings
   );
@@ -403,7 +449,8 @@ const baseHours = shift?.baseHours ?? 0;
 const boxes = shift?.boxes ?? 0;
 const tobaccoHours = shift?.tobaccoHours ?? 0;
   const blocks = shift?.blocks ?? 0;
-  const pallets = shift?.pallets ?? 0;
+    const pallets = shift?.pallets ?? 0;
+  const returnHours = shift?.returnHours ?? 0;
   const nonProfileHours = shift?.nonProfileHours ?? 0;
   const dayEarnings = getDayEarnings(
   shift,
@@ -470,9 +517,13 @@ const tobaccoHours = shift?.tobaccoHours ?? 0;
       />
     )}
 
-    {boxes > 0 && (
+        {boxes > 0 && (
       <InfoRow
-        label="Коробки"
+        label={
+          currentUser?.position === "Кладовщик"
+            ? "Покоробочная приемка"
+            : "Коробки"
+        }
         value={boxes}
       />
     )}
@@ -491,12 +542,30 @@ const tobaccoHours = shift?.tobaccoHours ?? 0;
       />
     )}
 
-    {pallets > 0 && (
+        {pallets > 0 && (
       <InfoRow
-        label="Паллеты"
+        label={
+          currentUser?.position === "Кладовщик"
+            ? "Паллеты приемка/отгрузка"
+            : "Паллеты"
+        }
         value={pallets}
       />
     )}
+
+        {currentUser?.position === "Кладовщик" &&
+      returnHours > 0 && (
+        <InfoRow
+          label="Приём возвратов"
+          value={`${Math.floor(returnHours)} ч ${
+            Math.round(
+              (returnHours -
+                Math.floor(returnHours)) *
+                60
+            )
+          } мин`}
+        />
+      )}
 
     {nonProfileHours > 0 && (
       <InfoRow

@@ -104,6 +104,7 @@ model Shift {
   boxes                  Float    @default(0)
   blocks                 Float    @default(0)
   pallets                Int?     @default(0)
+  returnHours            Float    @default(0)
   nonProfileHours        Float    @default(0)
 
   mentor                 Boolean  @default(false)

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Shift" ADD COLUMN     "returnHours" DOUBLE PRECISION NOT NULL DEFAULT 0;

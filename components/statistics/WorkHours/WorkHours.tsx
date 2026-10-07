@@ -22,11 +22,14 @@ const isTobaccoPicker =
 const isStacker =
   currentUser?.position ===
   "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";  
   const getMonthHours = (
   field:
     | "baseHours"
     | "nonProfileHours"
     | "tobaccoHours"
+    | "returnHours"
 ) => {
   return shifts.reduce((total, shift) => {
     if (!shift.isWorked) {
@@ -140,13 +143,19 @@ const tobaccoHours = getMonthHours(
   "tobaccoHours"
 );
 
+const returnHours = isStorekeeper
+  ? getMonthHours("returnHours")
+  : 0;
+
   return (
     <section className={styles.card}>
       <h2 className={styles.title}>Отработанные часы</h2>
 
       <div
   className={`${styles.grid} ${
-  isTobaccoPicker || isStacker
+  isTobaccoPicker ||
+  isStacker ||
+  isStorekeeper
     ? styles.tobaccoGrid
     : ""
 }`}
@@ -166,7 +175,8 @@ const tobaccoHours = getMonthHours(
     </div>
   </div>
 ) : (
-  !isTobaccoPicker && (
+  !isTobaccoPicker &&
+  !isStorekeeper && (
     <div className={styles.item}>
       <div className={styles.label}>
         На основе
@@ -187,7 +197,23 @@ const tobaccoHours = getMonthHours(
   </div>
 </div>
 
-{!isStacker && (
+{isStorekeeper && returnHours > 0 && (
+  <div className={styles.item}>
+    <div className={styles.label}>
+      Приём возвратов
+    </div>
+    <div className={styles.value}>
+      {Math.floor(returnHours)} ч{" "}
+      {Math.round(
+        (returnHours -
+          Math.floor(returnHours)) *
+          60
+      )} мин
+    </div>
+  </div>
+)}
+
+{!isStacker && !isStorekeeper && (
   <div className={styles.item}>
     <div className={styles.label}>
       На табаке

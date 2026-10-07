@@ -225,9 +225,13 @@ setScheduleData: (
                       date.getFullYear()
                   ) {
                     return {
-                      ...shift,
-                      ...data,
-                    };
+  ...shift,
+  ...data,
+  returnHours:
+    data.returnHours ??
+    shift.returnHours ??
+    0,
+};
                   }
 
                   return shift;
@@ -248,15 +252,16 @@ setScheduleData: (
                 tobaccoHours: 0,
 
                 boxes: 0,
-                blocks: 0,
-                pallets: 0,
-                nonProfileHours: 0,
+blocks: 0,
+pallets: 0,
+nonProfileHours: 0,
+returnHours: 0,
 
-                mentor: false,
+mentor: false,
 
-                isWorked: false,
+isWorked: false,
 
-                ...data,
+...data,
               };
 
               shifts = [

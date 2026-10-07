@@ -56,6 +56,8 @@ export default function DailyStatistics({
   const isStacker =
     currentUser?.position ===
     "Штабелер (водитель погрузчика)";
+  const isStorekeeper =
+  currentUser?.position === "Кладовщик";  
 
   const originalMainShiftsByMonth =
   useScheduleStore(
@@ -250,18 +252,18 @@ const days = Array.from(
       "н/д"
     ) : item.isMentor ? (
       "Наст."
-    ) : isStacker ? (
-      item.pallets !== null ? (
-        <>
-          {item.pallets}
-          <span className={styles.unit}>
-            {" "}пал
-          </span>
-        </>
-      ) : (
-        "—"
-      )
-    ) : item.workZone === "warehouse" ? (
+    ) : isStacker || isStorekeeper ? (
+  item.pallets !== null ? (
+    <>
+      {item.pallets}
+      <span className={styles.unit}>
+        {" "}паллет
+      </span>
+    </>
+  ) : (
+    "—"
+  )
+) : item.workZone === "warehouse" ? (
       "РПС"
     ) : item.workZone === "tobacco" ? (
       item.blocks !== null ? (

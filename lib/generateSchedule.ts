@@ -27,6 +27,7 @@ export type TransitionShiftPart = {
   pallets: number;
 
   nonProfileHours: number;
+  returnHours: number;
 
   mentorHours: number;
 };
@@ -58,6 +59,7 @@ workZone:
   | "base"
   | "base_tobacco"
   | "tobacco"
+  | "receiving"
   | "warehouse";
 
 salaryHours: number;
@@ -68,6 +70,7 @@ boxes: number;
 blocks: number;
 pallets: number;
 nonProfileHours: number;
+returnHours: number;
 
 mentor: boolean;
 
@@ -154,6 +157,7 @@ boxes: 0,
 blocks: 0,
 pallets: 0,
 nonProfileHours: 0,
+returnHours: 0,
 
 mentor: false,
 isWorked: false,

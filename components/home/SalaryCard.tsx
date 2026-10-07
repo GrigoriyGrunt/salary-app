@@ -60,7 +60,10 @@ export default function SalaryCard() {
 );
 
 const isStacker =
-  user?.position === "Штабелер (водитель погрузчика)"; 
+  user?.position === "Штабелер (водитель погрузчика)";
+
+const isStorekeeper =
+  user?.position === "Кладовщик";
 
   const originalMainShifts =
     originalMainShiftsByMonth[
@@ -385,7 +388,89 @@ const absenceDeduction =
 
 const totalSalary =
   currentMonthReport.totalSalary;  
+const storekeeperFutureShifts =
+  monthShifts.filter(
+    (shift) =>
+      !shift.isWorked &&
+      (
+        shift.workType === "main" ||
+        shift.workType === "overtime" ||
+        shift.workType === "extra"
+      ) &&
+      (
+        shift.type === "day" ||
+        shift.type === "night"
+      )
+  ).length;
 
+const storekeeperTotalMainShifts =
+  monthShifts.filter(
+    (shift) =>
+      shift.workType === "main" &&
+      (
+        shift.type === "day" ||
+        shift.type === "night"
+      )
+  ).length;
+
+const storekeeperHourlyRate =
+  storekeeperTotalMainShifts > 0
+    ? 27000 /
+      storekeeperTotalMainShifts /
+      11
+    : 0;
+
+const storekeeperWorkedPallets =
+  totalPallets;
+
+const storekeeperWorkedMotivation =
+  storekeeperWorkedPallets * 15;
+
+const storekeeperWorkedMainShifts =
+  monthShifts.filter(
+    (shift) =>
+      shift.workType === "main" &&
+      shift.isWorked
+  ).length;
+
+const storekeeperFutureMainShifts =
+  monthShifts.filter(
+    (shift) =>
+      !shift.isWorked &&
+      shift.workType === "main" &&
+      (
+        shift.type === "day" ||
+        shift.type === "night"
+      )
+  ).length;
+
+const storekeeperFutureSalary =
+  storekeeperFutureMainShifts *
+  11 *
+  storekeeperHourlyRate;
+
+const storekeeperWorkedSalary =
+  storekeeperWorkedMainShifts *
+  11 *
+  storekeeperHourlyRate;
+
+const storekeeperRemainingMotivation =
+  Math.max(
+    0,
+    goal -
+      storekeeperWorkedSalary -
+      storekeeperWorkedMotivation -
+      storekeeperFutureSalary
+  );
+
+const storekeeperRequiredPallets =
+  storekeeperFutureShifts > 0
+    ? Math.ceil(
+        storekeeperRemainingMotivation /
+          15 /
+          storekeeperFutureShifts
+      )
+    : 0;
   const premiumTotal =
     monthPremiums.reduce(
       (total, premium) =>
@@ -407,9 +492,15 @@ const totalSalary =
     premiumTotal;
 
   const forecast =
-  totalSalary +
-  futureForecast -
-  absenceDeduction;
+  isStorekeeper
+    ? totalSalary +
+      storekeeperFutureSalary +
+      storekeeperRequiredPallets *
+  15 *
+  storekeeperFutureShifts
+    : totalSalary +
+      futureForecast -
+      absenceDeduction;
 
   return (
     <section className={styles.card}>

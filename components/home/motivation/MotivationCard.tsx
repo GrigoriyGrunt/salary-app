@@ -11,8 +11,12 @@ export default function MotivationCard() {
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+
 const isStacker =
-  currentUser?.position === "Штабелер (водитель погрузчика)";  
+  currentUser?.position === "Штабелер (водитель погрузчика)";
+
+const isStorekeeper =
+  currentUser?.position === "Кладовщик"; 
 
   const shifts = useScheduleStore(
     (state) => state.shifts
@@ -181,14 +185,108 @@ const requiredPallets =
     ? Math.ceil(
         (remainingPallets / futureBaseHours) * 11
       )
-    : 0;    
+    : 0;
+
+const storekeeperWorkedShifts =
+  monthShifts.filter(
+    (shift) =>
+      shift.isWorked &&
+      (
+        shift.workType === "main" ||
+        shift.workType === "overtime" ||
+        shift.workType === "extra"
+      ) &&
+      (
+        shift.type === "day" ||
+        shift.type === "night"
+      )
+  ).length;
+
+const storekeeperFutureShifts =
+  monthShifts.filter(
+    (shift) =>
+      !shift.isWorked &&
+      (
+        shift.workType === "main" ||
+        shift.workType === "overtime" ||
+        shift.workType === "extra"
+      ) &&
+      (
+        shift.type === "day" ||
+        shift.type === "night"
+      )
+  ).length;
+
+const storekeeperWorkedMainShifts =
+  monthShifts.filter(
+    (shift) =>
+      shift.workType === "main" &&
+      shift.isWorked
+  ).length;
+
+const storekeeperFutureMainShifts =
+  monthShifts.filter(
+    (shift) =>
+      !shift.isWorked &&
+      shift.workType === "main" &&
+      (
+        shift.type === "day" ||
+        shift.type === "night"
+      )
+  ).length;
+
+const storekeeperHourlyRate =
+  storekeeperWorkedMainShifts +
+    storekeeperFutureMainShifts >
+  0
+    ? 27000 /
+      (
+        storekeeperWorkedMainShifts +
+        storekeeperFutureMainShifts
+      ) /
+      11
+    : 0;
+
+const storekeeperEarnedSalary =
+  storekeeperWorkedMainShifts *
+  11 *
+  storekeeperHourlyRate;
+
+const storekeeperFutureSalary =
+  storekeeperFutureMainShifts *
+  11 *
+  storekeeperHourlyRate;
+
+const storekeeperWorkedPallets =
+  totalPallets;
+
+const storekeeperEarnedMotivation =
+  storekeeperWorkedPallets * 15;
+
+const storekeeperRemainingMotivation =
+  Math.max(
+    0,
+    goal -
+      storekeeperEarnedSalary -
+      storekeeperFutureSalary -
+      storekeeperEarnedMotivation
+  );
+
+const storekeeperRequiredPallets =
+  storekeeperFutureShifts > 0
+    ? Math.ceil(
+        storekeeperRemainingMotivation /
+          15 /
+          storekeeperFutureShifts
+      )
+    : 0;
   return (
     <div className={styles.card}>
 
 <div className={styles.stats}>
   <div className={styles.statCard}>
     <span className={styles.label}>
-  {isStacker
+  {isStacker || isStorekeeper
     ? "Стоимость паллета"
     : isTobaccoPicker
       ? "Стоимость блока"
@@ -196,16 +294,18 @@ const requiredPallets =
 </span>
 
 <strong className={styles.value}>
-  {hasProductionData
-    ? `${(isStacker
-        ? palletPrice
-        : isTobaccoPicker
-          ? blockPrice
-          : boxPrice
-    )
-        .toFixed(2)
-        .replace(".", ",")} ₽`
-    : "—"}
+  {isStorekeeper
+    ? "15,00 ₽"
+    : hasProductionData
+      ? `${(isStacker
+          ? palletPrice
+          : isTobaccoPicker
+            ? blockPrice
+            : boxPrice
+        )
+          .toFixed(2)
+          .replace(".", ",")} ₽`
+      : "—"}
 </strong>
   </div>
 
@@ -229,28 +329,36 @@ const requiredPallets =
 
 <div className={styles.notice}>
   До конца месяца{" "}
-  {isStacker
+  {isStorekeeper
+  ? "принимайте и отгружайте по"
+  : isStacker
     ? "обрабатывайте по"
-    : "собирайте по"}{" "}
+    : "собирайте по"}
   <strong>
-    {(isStacker
-      ? requiredPallets
-      : isTobaccoPicker
-        ? requiredBlocks
-        : requiredBoxes
-    ).toLocaleString("ru-RU")}{" "}
-    {isStacker
-      ? "паллетов"
-      : isTobaccoPicker
-        ? "блоков"
-        : "коробок"}
+{(isStorekeeper
+  ? storekeeperRequiredPallets
+  : isStacker
+    ? requiredPallets
+    : isTobaccoPicker
+      ? requiredBlocks
+      : requiredBoxes
+).toLocaleString("ru-RU")}{" "}
+{isStorekeeper
+  ? "паллет"
+  : isStacker
+    ? "паллетов"
+    : isTobaccoPicker
+      ? "блоков"
+      : "коробок"}
   </strong>
   {" "}за смену.
 </div>
 
-<p className={styles.info}>
-  Непрофильные часы не влияют на среднюю уделку.
-</p>
+{!isStorekeeper && (
+  <p className={styles.info}>
+    Непрофильные часы не влияют на среднюю уделку.
+  </p>
+)}
     </div>
   );
 }

@@ -19,6 +19,8 @@ const isTobaccoPicker =
 const isStacker =
   currentUser?.position ===
   "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";  
 
   const today = new Date();
   const currentMonthName = [
@@ -166,21 +168,25 @@ const averagePallets =
   </div>
 
   <div className={styles.title}>
-  {isStacker
-    ? "Паллет обработано"
-    : isTobaccoPicker
-      ? "Блоков собрано"
-      : "Коробок собрано"}
+  {isStorekeeper
+    ? "Покоробочная приемка"
+    : isStacker
+      ? "Паллет обработано"
+      : isTobaccoPicker
+        ? "Блоков собрано"
+        : "Коробок собрано"}
 </div>
 </div>
 
 <div className={styles.valueCenter}>
-  {(isStacker
-  ? totalPallets
-  : isTobaccoPicker
-    ? totalBlocks
-    : totalBoxes
-).toLocaleString("ru-RU")}
+  {(isStorekeeper
+    ? totalBoxes
+    : isStacker
+      ? totalPallets
+      : isTobaccoPicker
+        ? totalBlocks
+        : totalBoxes
+  ).toLocaleString("ru-RU")}
 </div>
 
 <div className={styles.small}>
@@ -200,25 +206,31 @@ const averagePallets =
   </div>
 
   <div className={styles.title}>
-    Средняя уделка
-  </div>
+  {isStorekeeper
+    ? "Палеты приемки/отгрузки"
+    : "Средняя уделка"}
+</div>
 </div>
 
 <div className={styles.valueCenter}>
-  {(isStacker
-  ? averagePallets
-  : isTobaccoPicker
-    ? averageBlocks
-    : averageBoxes
-).toLocaleString("ru-RU")}
+  {(isStorekeeper
+    ? totalPallets
+    : isStacker
+      ? averagePallets
+      : isTobaccoPicker
+        ? averageBlocks
+        : averageBoxes
+  ).toLocaleString("ru-RU")}
 </div>
 
 <div className={styles.small}>
-  {isStacker
-  ? "паллет в смену"
-  : isTobaccoPicker
-    ? "блоков в смену"
-    : "коробок в смену"}
+  {isStorekeeper
+    ? "в текущем месяце"
+    : isStacker
+      ? "паллет в смену"
+      : isTobaccoPicker
+        ? "блоков в смену"
+        : "коробок в смену"}
 </div>
       </Link>
     </section>

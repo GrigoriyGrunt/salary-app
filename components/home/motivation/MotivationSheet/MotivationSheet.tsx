@@ -33,8 +33,13 @@ const currentUser = useUsersStore(
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
+
 const isStacker =
-  currentUser?.position === "Штабелер (водитель погрузчика)";  
+  currentUser?.position === "Штабелер (водитель погрузчика)";
+
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";
+
 const isValid =
   Number.isInteger(numberValue) &&
   numberValue >= 100;
@@ -50,8 +55,10 @@ const isValid =
 
         <div className={styles.section}>
           <div className={styles.label}>
-            Цель на месяц
-          </div>
+  {isStorekeeper
+    ? "Цель заработка в месяц"
+    : "Цель на месяц"}
+</div>
 
           <div className={styles.goalRow}>
             <input
@@ -80,16 +87,18 @@ const isValid =
 </button>
           </div>
 
-          <div className={styles.caption}>
-  {isStacker
-    ? "паллетов за смену"
-    : isTobaccoPicker
-      ? "блоков за смену"
-      : "коробок за смену"}
+<div className={styles.caption}>
+  {isStorekeeper
+    ? "₽ в месяц"
+    : isStacker
+      ? "паллетов за смену"
+      : isTobaccoPicker
+        ? "блоков за смену"
+        : "коробок за смену"}
 </div>
         </div>
 
-        {!isTobaccoPicker && !isStacker && (
+{!isTobaccoPicker && !isStacker && !isStorekeeper && (
   <div className={styles.section}>
     <div className={styles.label}>
       Основа
@@ -111,10 +120,10 @@ const isValid =
     </div>
   </div>
 )}
-{!isStacker && (
-        <div className={styles.section}>
-          <div className={styles.label}>
-            Табак
+{!isStacker && !isStorekeeper && (
+  <div className={styles.section}>
+    <div className={styles.label}>
+      Табак
           </div>
 
           <div className={styles.row}>
@@ -138,6 +147,23 @@ const isValid =
           </div>
         </div>
         )}
+{isStorekeeper && (
+  <div className={styles.section}>
+    <div className={styles.label}>
+      Кладовщик
+    </div>
+
+    <div className={styles.row}>
+      <span>Приёмка и отгрузка</span>
+      <span>15,00 ₽/паллет</span>
+    </div>
+
+    <div className={styles.row}>
+      <span>Покоробочная приёмка</span>
+      <span>3,00 ₽/короб</span>
+    </div>
+  </div>
+)}        
 {isStacker && (
   <div className={styles.section}>
     <div className={styles.label}>

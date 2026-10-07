@@ -23,6 +23,8 @@ const isTobaccoPicker =
 const isStacker =
   currentUser?.position ===
   "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";  
   const [modalType, setModalType] = useState<
   "boxes" | "blocks" | "pallets" | null
 >(null);
@@ -231,10 +233,10 @@ const blockItems = monthShifts
 
             <div
         className={`${styles.grid} ${
-          isTobaccoPicker || isStacker
-            ? styles.tobaccoGrid
-            : ""
-        }`}
+  isTobaccoPicker || isStacker || isStorekeeper
+    ? styles.tobaccoGrid
+    : ""
+}`}
       >
         {!isTobaccoPicker && !isStacker && (
           <button
@@ -246,8 +248,10 @@ const blockItems = monthShifts
           >
             <div className={styles.info}>
               <span className={styles.label}>
-                Коробок собрано
-              </span>
+  {isStorekeeper
+    ? "Покоробочно принято"
+    : "Коробок собрано"}
+</span>
 
               <div className={styles.value}>
                 {totalBoxes.toLocaleString(
@@ -262,31 +266,33 @@ const blockItems = monthShifts
           </button>
         )}
 
-        {isStacker ? (
-          <button
-            type="button"
-            className={styles.card}
-            onClick={() =>
-              setModalType("pallets")
-            }
-          >
-            <div className={styles.info}>
-              <span className={styles.label}>
-                Паллеты
-              </span>
+        {isStacker || isStorekeeper ? (
+  <button
+    type="button"
+    className={styles.card}
+    onClick={() =>
+      setModalType("pallets")
+    }
+  >
+    <div className={styles.info}>
+      <span className={styles.label}>
+        {isStorekeeper
+          ? "Паллеты приемки/отгрузки"
+          : "Паллеты"}
+      </span>
 
-              <div className={styles.value}>
-                {totalPallets.toLocaleString(
-                  "ru-RU"
-                )}
-              </div>
+      <div className={styles.value}>
+        {totalPallets.toLocaleString(
+          "ru-RU"
+        )}
+      </div>
 
-              <span className={styles.unit}>
-                шт.
-              </span>
-            </div>
-          </button>
-        ) : (
+      <span className={styles.unit}>
+        шт.
+      </span>
+    </div>
+  </button>
+) : (
           <button
             type="button"
             className={styles.card}
@@ -314,8 +320,12 @@ const blockItems = monthShifts
             </div>
 
       {modalType === "boxes" && (
-        <ProductionDetailsModal
-          title="Собрано коробок"
+  <ProductionDetailsModal
+    title={
+      isStorekeeper
+        ? "Покоробочно принято"
+        : "Собрано коробок"
+    }
           items={boxItems}
           total={totalBoxes}
           unit="шт."
@@ -334,7 +344,11 @@ const blockItems = monthShifts
 )}
 {modalType === "pallets" && (
   <ProductionDetailsModal
-    title="Паллеты"
+    title={
+      isStorekeeper
+        ? "Паллеты приемки/отгрузки"
+        : "Паллеты"
+    }
     items={palletItems}
     total={totalPallets}
     unit="шт."

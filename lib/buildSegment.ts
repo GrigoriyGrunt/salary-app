@@ -39,7 +39,11 @@ function createShift(
 
     blocks: 0,
 
+    pallets: 0,
+
     nonProfileHours: 0,
+
+    returnHours: 0,
 
     mentor: false,
     isWorked: false,

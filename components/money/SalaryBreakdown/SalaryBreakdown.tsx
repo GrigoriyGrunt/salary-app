@@ -40,6 +40,8 @@ export default function SalaryBreakdown({
 
 const isStacker =
   user?.position === "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  user?.position === "Кладовщик";  
 
 const shifts = useScheduleStore((state) => state.shifts);
   const premiums = useFinanceStore(
@@ -147,10 +149,12 @@ const workedMonthShiftData = shifts.reduce(
           blocks:
             shift.blocks ?? 0,
           pallets:
-            shift.pallets ?? 0,  
-          nonProfileHours:
-            shift.nonProfileHours ?? 0,
-          transitionPart: null,
+  shift.pallets ?? 0,
+returnHours:
+  shift.returnHours ?? 0,
+nonProfileHours:
+  shift.nonProfileHours ?? 0,
+transitionPart: null,
         });
       }
 
@@ -176,6 +180,9 @@ const workedMonthShiftData = shifts.reduce(
 pallets:
   shift.transitionDistribution
     .firstMonth.pallets ?? 0,
+returnHours:
+  shift.transitionDistribution
+    .firstMonth.returnHours ?? 0,    
 nonProfileHours:
   shift.transitionDistribution
     .firstMonth.nonProfileHours ?? 0,
@@ -202,6 +209,9 @@ transitionPart: "first",
 pallets:
   shift.transitionDistribution
     .secondMonth.pallets ?? 0,
+returnHours:
+  shift.transitionDistribution
+    .secondMonth.returnHours ?? 0,    
 nonProfileHours:
   shift.transitionDistribution
     .secondMonth.nonProfileHours ?? 0,
@@ -219,6 +229,7 @@ transitionPart: "second",
     boxes: number;
 blocks: number;
 pallets: number;
+returnHours: number;
 nonProfileHours: number;
 transitionPart: "first" | "second" | null;
   }[]
@@ -249,10 +260,10 @@ const shiftOriginalMainShifts =
 
 const hourlyRate =
   shiftOriginalMainShifts > 0
-    ? 23750 /
+    ? (isStorekeeper ? 27000 : 23750) /
       shiftOriginalMainShifts /
       11
-    : 0;  
+    : 0; 
 
       if (
         shift.workType !== "main" &&
@@ -406,6 +417,37 @@ const salaryFromPallets =
   isStacker
     ? totalPallets * palletRate
     : 0;
+const totalReturnHours =
+  workedMonthShiftData.reduce(
+    (total, item) =>
+      total + item.returnHours,
+    0
+  );
+
+const salaryFromStorekeeperPallets =
+  isStorekeeper
+    ? totalPallets * 15
+    : 0;
+
+const salaryFromStorekeeperBoxes =
+  isStorekeeper
+    ? totalBoxes * 3
+    : 0;
+
+const loaderHourlyRate =
+  originalMainShifts > 0
+    ? 58000 /
+      originalMainShifts /
+      11
+    : 0;
+
+const returnHourRate =
+  227 + loaderHourlyRate;
+
+const salaryFromReturnHours =
+  isStorekeeper
+    ? totalReturnHours * returnHourRate
+    : 0;    
 const mentorSalaryPerShift =
   averageBoxes === 0
     ? 1200 * 3.6
@@ -498,18 +540,24 @@ const salaryFromDiscipline =
 
 const errorsDeduction =
   totalErrors *
-  (isStacker ? 500 : 600);
+  (isStorekeeper
+    ? 1500
+    : isStacker
+      ? 500
+      : 600);
 
 const salaryWithoutErrors =
-  isStacker
-    ? workedMonthShifts.length > 0 &&
-      totalErrors === 0
-      ? 2000
-      : 0
-    : workedMonthShifts.length > 0 &&
-      totalErrors <= 2
-      ? 5000
-      : 0;
+  isStorekeeper
+    ? 0
+    : isStacker
+      ? workedMonthShifts.length > 0 &&
+        totalErrors === 0
+        ? 2000
+        : 0
+      : workedMonthShifts.length > 0 &&
+        totalErrors <= 2
+        ? 5000
+        : 0;
 
 const damageDeduction = monthDeductions
   .filter((deduction) => deduction.type === "Бой")
@@ -546,9 +594,18 @@ const totalPenaltyDeduction =
 );
 const totalAccruals =
   Math.round(salaryFromHours) +
-  Math.round(salaryFromBoxes) +
+  Math.round(
+    isStorekeeper
+      ? salaryFromStorekeeperBoxes
+      : salaryFromBoxes
+  ) +
   Math.round(salaryFromBlocks) +
-  Math.round(salaryFromPallets) +
+  Math.round(
+    isStorekeeper
+      ? salaryFromStorekeeperPallets
+      : salaryFromPallets
+  ) +
+  Math.round(salaryFromReturnHours) +
   Math.round(salaryFromMentoring) +
   Math.round(salaryFromNonProfileHours) +
   salaryFromDiscipline +
@@ -577,7 +634,7 @@ useEffect(() => {
     "ru-RU"
   )} ₽`,
 },
-    ...(isTobaccoPicker || isStacker
+    ...(isTobaccoPicker || isStacker || isStorekeeper
   ? []
   : [
       {
@@ -588,7 +645,18 @@ useEffect(() => {
       },
     ]),
 
-...(isStacker
+...(isStorekeeper
+  ? [
+      {
+        title: "Покоробочная приемка",
+        amount: `${Math.round(
+          salaryFromStorekeeperBoxes
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]
+  : []),
+
+...(isStacker || isStorekeeper
   ? []
   : [
       {
@@ -610,7 +678,29 @@ useEffect(() => {
     ]
   : []),
 
-...(isTobaccoPicker || isStacker
+...(isStorekeeper
+  ? [
+      {
+        title: "Паллеты",
+        amount: `${Math.round(
+          salaryFromStorekeeperPallets
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]
+  : []),
+
+...(isStorekeeper && totalReturnHours > 0
+  ? [
+      {
+        title: "Приём возвратов",
+        amount: `${Math.round(
+          salaryFromReturnHours
+        ).toLocaleString("ru-RU")} ₽`,
+      },
+    ]
+  : []),  
+
+...(isTobaccoPicker || isStacker || isStorekeeper
   ? []
   : [
       {
@@ -642,12 +732,16 @@ useEffect(() => {
         ]
       : []),
 
-    {
-  title: "Без ошибок",
-  amount: `${salaryWithoutErrors.toLocaleString(
-    "ru-RU"
-  )} ₽`,
-},
+    ...(isStorekeeper
+  ? []
+  : [
+      {
+        title: "Без ошибок",
+        amount: `${salaryWithoutErrors.toLocaleString(
+          "ru-RU"
+        )} ₽`,
+      },
+    ]),
     {
   title: "Доп. премирование",
   amount: `${premiumAmountTotal.toLocaleString(

@@ -70,10 +70,12 @@ const isTobaccoPicker =
 
 const isStacker =
   currentUser?.position === "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";  
   const [dayType, setDayType] = useState("");
 const [shiftTime, setShiftTime] = useState("");
 const [workZone, setWorkZone] = useState<
-  "" | "none" | "base" | "base_tobacco" | "tobacco" | "warehouse"
+  "" | "none" | "base" | "base_tobacco" | "tobacco" | "warehouse" | "receiving"
 >("");
 const [isWorkZoneOpen, setIsWorkZoneOpen] = useState(false);
 const [isDayTypeOpen, setIsDayTypeOpen] = useState(false);
@@ -86,6 +88,10 @@ const [pallets, setPallets] = useState("");
 const [tobaccoHours, setTobaccoHours] = useState("");
 const [blocks, setBlocks] = useState("");
 const [nonProfileHours, setNonProfileHours] = useState("");
+const [returnHours, setReturnHours] = useState("");
+const [returnMinutes, setReturnMinutes] = useState("");
+const [returnHoursFocused, setReturnHoursFocused] = useState(false);
+const [returnMinutesFocused, setReturnMinutesFocused] = useState(false);
 const isTransitionShift =
   ["main", "overtime", "extra"].includes(dayType) &&
   workZone !== "" &&
@@ -159,7 +165,8 @@ const [firstNonProfileHours, setFirstNonProfileHours] =
 
 const [secondNonProfileHours, setSecondNonProfileHours] =
   useState("");
-  const [firstMentorHours, setFirstMentorHours] =
+
+const [firstMentorHours, setFirstMentorHours] =
   useState("");
 
 const [secondMentorHours, setSecondMentorHours] =
@@ -190,11 +197,11 @@ const isTransitionDistributionValid =
       Number(blocks || 0) &&
 
     Number(firstNonProfileHours || 0) +
-      Number(secondNonProfileHours || 0) ===
-      Number(nonProfileHours || 0) &&
+  Number(secondNonProfileHours || 0) ===
+  Number(nonProfileHours || 0) &&
 
-    (
-      !isMentor ||
+(
+  !isMentor ||
       Number(firstMentorHours || 0) +
         Number(secondMentorHours || 0) ===
         Number(salaryHours || 0)
@@ -240,10 +247,15 @@ const canSave =
     ) ||
 
     (
-      workZone === "warehouse" &&
-      salaryHours !== ""
-    )
-  );
+  workZone === "warehouse" &&
+  salaryHours !== ""
+) ||
+
+(
+  workZone === "receiving" &&
+  salaryHours !== ""
+)
+);
 const distributeAutomatically = useCallback(() => {
   const totalHours =
     Number(salaryHours) || 0;
@@ -398,13 +410,13 @@ const distributeAutomatically = useCallback(() => {
   }
 }, [
   salaryHours,
-  baseHours,
-  tobaccoHours,
-  boxes,
-  pallets,
-  blocks,
-  nonProfileHours,
-  isMentor,
+baseHours,
+tobaccoHours,
+boxes,
+pallets,
+blocks,
+nonProfileHours,
+isMentor,
 ]);
 useEffect(() => {
   if (
@@ -437,21 +449,23 @@ function clearTransitionDistribution() {
   setSecondBlocks("");
 
   setFirstNonProfileHours("");
-  setSecondNonProfileHours("");
+setSecondNonProfileHours("");
 
-  setFirstMentorHours("");
+setFirstMentorHours("");
   setSecondMentorHours("");
 }
 function clearWorkData() {
   setSalaryHours("");
   setBaseHours("");
   setTobaccoHours("");
-  setBoxes("");
+    setBoxes("");
   setPallets("");
   setBlocks("");
   setNonProfileHours("");
+setReturnHours("");
+setReturnMinutes("");
 
-  setIsMentor(false);
+setIsMentor(false);
 
   clearTransitionDistribution();
 }
@@ -540,6 +554,23 @@ if (currentShift.status === "vacation") {
       ? String(currentShift.nonProfileHours)
       : ""
   );
+  setReturnHours(
+  currentShift.returnHours
+    ? String(Math.floor(currentShift.returnHours))
+    : ""
+);
+
+setReturnMinutes(
+  currentShift.returnHours
+    ? String(
+        Math.round(
+          (currentShift.returnHours -
+            Math.floor(currentShift.returnHours)) *
+            60
+        )
+      )
+    : ""
+);
     setIsMentor(currentShift.mentor ?? false);
 
   if (currentShift.transitionDistribution) {
@@ -773,11 +804,15 @@ async function saveShift() {
       blocks:
         Number(blocks) || 0,
 
-      pallets:
-        Number(pallets) || 0,  
+            pallets:
+        Number(pallets) || 0,
 
       nonProfileHours:
         Number(nonProfileHours) || 0,
+
+      returnHours:
+  (Number(returnHours) || 0) +
+  (Number(returnMinutes) || 0) / 60,
 
       mentor: isMentor,
 
@@ -805,33 +840,37 @@ async function saveShift() {
 
                 nonProfileHours:
                   Number(firstNonProfileHours) || 0,
+                
+                returnHours: 0,
 
                 mentorHours:
                   Number(firstMentorHours) || 0,
               },
 
               secondMonth: {
-                baseHours:
-                  Number(secondBaseHours) || 0,
+  baseHours:
+    Number(secondBaseHours) || 0,
 
-                tobaccoHours:
-                  Number(secondTobaccoHours) || 0,
+  tobaccoHours:
+    Number(secondTobaccoHours) || 0,
 
-                boxes:
-                  Number(secondBoxes) || 0,
+  boxes:
+    Number(secondBoxes) || 0,
 
-                pallets:
-                  Number(secondPallets) || 0,  
+  pallets:
+    Number(secondPallets) || 0,  
 
-                blocks:
-                  Number(secondBlocks) || 0,
+  blocks:
+    Number(secondBlocks) || 0,
 
-                nonProfileHours:
-                  Number(secondNonProfileHours) || 0,
+  nonProfileHours:
+    Number(secondNonProfileHours) || 0,
 
-                mentorHours:
-                  Number(secondMentorHours) || 0,
-              },
+  returnHours: 0,
+
+  mentorHours:
+    Number(secondMentorHours) || 0,
+},
             }
           : undefined,
 
@@ -1261,6 +1300,7 @@ clearWorkData();
   (isStacker ? "Работа с паллетами" : "Основа")}
 {workZone === "base_tobacco" && "Основа + Табак"}
 {workZone === "tobacco" && "Табак"}
+{workZone === "receiving" && "Работа на приемке/отгрузке"}
 {workZone === "warehouse" && "Работа по складу"}
 {!workZone && "Выберите зону"}
     </span>
@@ -1293,44 +1333,57 @@ clearWorkData();
       Работа с паллетами
     </button>
   </>
+) : isStorekeeper ? (
+  <>
+    <button
+      type="button"
+      onClick={() => {
+        setWorkZone("receiving");
+        clearWorkData();
+        setIsWorkZoneOpen(false);
+      }}
+    >
+      Работа на приемке/отгрузке
+    </button>
+  </>
 ) : (
   <>
     {!isTobaccoPicker && (
-  <>
-    <button
-      type="button"
-      onClick={() => {
-        setWorkZone("base");
-        clearWorkData();
-        setIsWorkZoneOpen(false);
-      }}
-    >
-      Основа
-    </button>
+      <>
+        <button
+          type="button"
+          onClick={() => {
+            setWorkZone("base");
+            clearWorkData();
+            setIsWorkZoneOpen(false);
+          }}
+        >
+          Основа
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setWorkZone("base_tobacco");
+            clearWorkData();
+            setIsWorkZoneOpen(false);
+          }}
+        >
+          Основа + Табак
+        </button>
+      </>
+    )}
 
     <button
       type="button"
       onClick={() => {
-        setWorkZone("base_tobacco");
+        setWorkZone("tobacco");
         clearWorkData();
         setIsWorkZoneOpen(false);
       }}
     >
-      Основа + Табак
+      Табак
     </button>
-  </>
-)}
-
-<button
-  type="button"
-  onClick={() => {
-    setWorkZone("tobacco");
-    clearWorkData();
-    setIsWorkZoneOpen(false);
-  }}
->
-  Табак
-</button>
   </>
 )}
 
@@ -1503,7 +1556,151 @@ clearWorkData();
     }
   />
 )}
+{workZone === "receiving" && (
+  <>
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Паллеты принято/отгружено"
+      value={pallets}
+      onChange={(e) => setPallets(e.target.value)}
+    />
 
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Покоробочная приемка"
+      value={boxes}
+      onChange={(e) => setBoxes(e.target.value)}
+    />
+
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Непрофильные часы"
+      value={nonProfileHours}
+      onChange={(e) =>
+        setNonProfileHours(e.target.value)
+      }
+    />
+
+                <div>
+          <label
+            className={styles.label}
+            style={{ marginBottom: "6px" }}
+          >
+            Время приема возвратов
+          </label>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                height: "52px",
+                border: `1px solid ${
+                  returnHoursFocused
+                    ? "#ff0000"
+                    : "#e5e7eb"
+                }`,
+                borderRadius: "12px",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                padding: "0 14px",
+              }}
+            >
+              <input
+                type="text"
+                inputMode="numeric"
+                value={returnHours || "0"}
+                onFocus={(e) => {
+                  setReturnHoursFocused(true);
+                  e.currentTarget.setSelectionRange(0, 1);
+                }}
+                onBlur={() =>
+                  setReturnHoursFocused(false)
+                }
+                onChange={(e) => {
+                  const value =
+                    e.target.value.replace(/\D/g, "");
+
+                  setReturnHours(
+                    value.replace(/^0+(?=\d)/, "")
+                  );
+                }}
+                style={{
+                  width: "100%",
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  fontSize: "16px",
+                  textAlign: "center",
+                }}
+              />
+
+              <span style={{ marginLeft: "6px" }}>
+                час
+              </span>
+            </div>
+
+            <div
+              style={{
+                flex: 1,
+                height: "52px",
+                border: `1px solid ${
+                  returnMinutesFocused
+                    ? "#ff0000"
+                    : "#e5e7eb"
+                }`,
+                borderRadius: "12px",
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                padding: "0 14px",
+              }}
+            >
+              <input
+                type="text"
+                inputMode="numeric"
+                value={returnMinutes || "0"}
+                onFocus={(e) => {
+                  setReturnMinutesFocused(true);
+                  e.currentTarget.setSelectionRange(0, 1);
+                }}
+                onBlur={() =>
+                  setReturnMinutesFocused(false)
+                }
+                onChange={(e) => {
+                  const value =
+                    e.target.value.replace(/\D/g, "");
+
+                  setReturnMinutes(
+                    value.replace(/^0+(?=\d)/, "")
+                  );
+                }}
+                style={{
+                  width: "100%",
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  fontSize: "16px",
+                  textAlign: "center",
+                }}
+              />
+
+              <span style={{ marginLeft: "6px" }}>
+                минут
+              </span>
+            </div>
+          </div>
+        </div>
+  </>
+)}
 {isTransitionShift && (
     <div>
       <label className={styles.label}>
@@ -1558,17 +1755,24 @@ clearWorkData();
 
       {transitionMode !== null && (
   <div
-    style={{
-      display: "grid",
-      gridTemplateColumns:
-        "minmax(0, 1fr) minmax(0, 1fr)",
-      gap: "8px",
-      alignItems: "start",
-    }}
-  >
-    <div>
-      <label className={styles.label}>
-            {firstTransitionDate?.toLocaleDateString(
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "minmax(0, 1fr) minmax(0, 1fr)",
+    columnGap: "8px",
+    rowGap: "12px",
+    alignItems: "start",
+  }}
+>
+    <div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  }}
+>
+  <label className={styles.label}>
+    {firstTransitionDate?.toLocaleDateString(
           "ru-RU",
           {
             day: "numeric",
@@ -1771,6 +1975,43 @@ onChange={(e) =>
   />
 )}
 
+{workZone === "receiving" && (
+  <>
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Паллеты принято/отгружено"
+      value={firstPallets}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setFirstPallets(e.target.value)
+      }
+    />
+
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Покоробочная приемка"
+      value={firstBoxes}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setFirstBoxes(e.target.value)
+      }
+    />
+
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Непрофильные часы"
+      value={firstNonProfileHours}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setFirstNonProfileHours(e.target.value)
+      }
+    />
+  </>
+)}
+
 {isMentor && (
   <input
     type="number"
@@ -1788,9 +2029,15 @@ onChange={(e) =>
 
     </div>
 
-    <div>
-      <label className={styles.label}>
-        {secondTransitionDate?.toLocaleDateString(
+    <div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  }}
+>
+  <label className={styles.label}>
+    {secondTransitionDate?.toLocaleDateString(
           "ru-RU",
           {
             day: "numeric",
@@ -1991,6 +2238,42 @@ onChange={(e) =>
       )
     }
   />
+)}
+{workZone === "receiving" && (
+  <>
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Паллеты принято/отгружено"
+      value={secondPallets}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setSecondPallets(e.target.value)
+      }
+    />
+
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Покоробочная приемка"
+      value={secondBoxes}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setSecondBoxes(e.target.value)
+      }
+    />
+
+    <input
+      type="number"
+      className={styles.input}
+      placeholder="Непрофильные часы"
+      value={secondNonProfileHours}
+      disabled={transitionMode === "auto"}
+      onChange={(e) =>
+        setSecondNonProfileHours(e.target.value)
+      }
+    />
+  </>
 )}
 
 {isMentor && (

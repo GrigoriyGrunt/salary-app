@@ -112,6 +112,7 @@ export async function PATCH(
       blocks,
       pallets,
       nonProfileHours,
+      returnHours,
       mentor,
       transitionDistribution,
       isWorked,
@@ -152,6 +153,7 @@ export async function PATCH(
         blocks,
         pallets,
         nonProfileHours,
+        returnHours,
 
         mentor,
 
@@ -178,6 +180,7 @@ export async function PATCH(
         blocks,
         pallets,
         nonProfileHours,
+        returnHours,
 
         mentor,
 
@@ -278,6 +281,9 @@ export async function POST(
               nonProfileHours:
                 shift.nonProfileHours ?? 0,
 
+              returnHours:
+                shift.returnHours ?? 0,  
+
               mentor:
                 shift.mentor ?? false,
 
@@ -317,6 +323,9 @@ export async function POST(
 
               nonProfileHours:
                 shift.nonProfileHours ?? 0,
+
+              returnHours:
+                shift.returnHours ?? 0,  
 
               mentor:
                 shift.mentor ?? false,

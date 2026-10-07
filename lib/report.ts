@@ -37,6 +37,7 @@ type WorkedShiftData = {
   boxes: number;
   blocks: number;
   pallets: number;
+  returnHours: number;
   nonProfileHours: number;
   transitionPart: "first" | "second" | null;
 };
@@ -144,12 +145,14 @@ export function calculateMonthlyReport(
   shift.boxes ?? 0,
 blocks:
   shift.blocks ?? 0,
-pallets:
-  shift.pallets ?? 0,
-nonProfileHours:
-  shift.nonProfileHours ?? 0,
-transitionPart:
-  null,
+              pallets:
+                shift.pallets ?? 0,
+              returnHours:
+                shift.returnHours ?? 0,
+              nonProfileHours:
+                shift.nonProfileHours ?? 0,
+              transitionPart:
+                null,
             });
           }
 
@@ -180,18 +183,23 @@ blocks:
     .transitionDistribution
     .firstMonth
     .blocks ?? 0,
-pallets:
-  shift
-    .transitionDistribution
-    .firstMonth
-    .pallets ?? 0,
-nonProfileHours:
-  shift
-    .transitionDistribution
-    .firstMonth
-    .nonProfileHours ?? 0,
-transitionPart:
-  "first",
+            pallets:
+              shift
+                .transitionDistribution
+                .firstMonth
+                .pallets ?? 0,
+            returnHours:
+              shift
+                .transitionDistribution
+                .firstMonth
+                .returnHours ?? 0,
+            nonProfileHours:
+              shift
+                .transitionDistribution
+                .firstMonth
+                .nonProfileHours ?? 0,
+            transitionPart:
+              "first",
           });
         }
 
@@ -219,18 +227,23 @@ blocks:
     .transitionDistribution
     .secondMonth
     .blocks ?? 0,
-pallets:
-  shift
-    .transitionDistribution
-    .secondMonth
-    .pallets ?? 0,
-nonProfileHours:
-  shift
-    .transitionDistribution
-    .secondMonth
-    .nonProfileHours ?? 0,
-transitionPart:
-  "second",
+            pallets:
+              shift
+                .transitionDistribution
+                .secondMonth
+                .pallets ?? 0,
+            returnHours:
+              shift
+                .transitionDistribution
+                .secondMonth
+                .returnHours ?? 0,
+            nonProfileHours:
+              shift
+                .transitionDistribution
+                .secondMonth
+                .nonProfileHours ?? 0,
+            transitionPart:
+              "second",
           });
         }
 
@@ -243,6 +256,12 @@ transitionPart:
     monthShifts.filter(
       (shift) => shift.isWorked
     );
+
+  const isStacker =
+  user?.position === "Штабелер (водитель погрузчика)";
+
+const isStorekeeper =
+  user?.position === "Кладовщик";  
 
   const totalBoxes =
     workedMonthShiftData.reduce(
@@ -333,7 +352,42 @@ const palletRate =
       : 12;
 
 const salaryFromPallets =
-  totalPallets * palletRate;  
+  totalPallets * palletRate;
+
+const totalReturnHours =
+  workedMonthShiftData.reduce(
+    (total, item) =>
+      total + item.returnHours,
+    0
+  );
+
+const storekeeperPalletRate = 15;
+const storekeeperBoxRate = 3;
+
+const salaryFromStorekeeperPallets =
+  isStorekeeper
+    ? totalPallets * storekeeperPalletRate
+    : 0;
+
+const salaryFromStorekeeperBoxes =
+  isStorekeeper
+    ? totalBoxes * storekeeperBoxRate
+    : 0;
+
+const loaderHourlyRate =
+  originalMainShifts > 0
+    ? 58000 /
+      originalMainShifts /
+      11
+    : 0;
+
+const returnHourRate =
+  227 + loaderHourlyRate;
+
+const salaryFromReturnHours =
+  isStorekeeper
+    ? totalReturnHours * returnHourRate
+    : 0;  
 
   const salaryFromHours =
     workedMonthShiftData.reduce(
@@ -366,11 +420,11 @@ const salaryFromPallets =
           );
 
         const hourlyRate =
-          shiftOriginalMainShifts > 0
-            ? 23750 /
-              shiftOriginalMainShifts /
-              11
-            : 0;
+  shiftOriginalMainShifts > 0
+    ? (isStorekeeper ? 27000 : 23750) /
+      shiftOriginalMainShifts /
+      11
+    : 0;
 
         if (
           shift.workType !== "main" &&
@@ -482,11 +536,11 @@ const hourBreakdown =
         );
 
       const hourlyRate =
-        shiftOriginalMainShifts > 0
-          ? 23750 /
-            shiftOriginalMainShifts /
-            11
-          : 0;
+  shiftOriginalMainShifts > 0
+    ? (isStorekeeper ? 27000 : 23750) /
+      shiftOriginalMainShifts /
+      11
+    : 0;
 
       let nightHours = 0;
 
@@ -782,24 +836,27 @@ const dayOffCount =
         0
       );
 
-  const isStacker =
-  user?.position === "Штабелер (водитель погрузчика)";
-
 const errorsDeduction =
   totalErrors *
-  (isStacker ? 500 : 600);
+  (isStorekeeper
+    ? 1500
+    : isStacker
+      ? 500
+      : 600);
 
 const salaryWithoutErrors =
-  workedMonthShifts.length > 0 &&
-  (
-    isStacker
-      ? totalErrors === 0
-      : totalErrors <= 2
-  )
-    ? isStacker
-      ? 2000
-      : 5000
-    : 0;
+  isStorekeeper
+    ? 0
+    : workedMonthShifts.length > 0 &&
+      (
+        isStacker
+          ? totalErrors === 0
+          : totalErrors <= 2
+      )
+      ? isStacker
+        ? 2000
+        : 5000
+      : 0;
 
   const damageDeduction =
     currentMonthDeductions
@@ -864,13 +921,20 @@ const salaryWithoutErrors =
     salaryFromHours
   ) +
   Math.round(
-    salaryFromBoxes
+    isStorekeeper
+      ? salaryFromStorekeeperBoxes
+      : salaryFromBoxes
   ) +
   Math.round(
     salaryFromBlocks
   ) +
   Math.round(
-    salaryFromPallets
+    isStorekeeper
+      ? salaryFromStorekeeperPallets
+      : salaryFromPallets
+  ) +
+  Math.round(
+    salaryFromReturnHours
   ) +
   Math.round(
     salaryFromMentoring
@@ -1007,6 +1071,9 @@ totalPallets,
 averagePallets,
 palletRate,
 salaryFromPallets,
+totalReturnHours,
+salaryFromReturnHours,
+returnHourRate,
 
 totalNonProfileHours,
     salaryFromNonProfileHours,

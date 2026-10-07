@@ -21,6 +21,8 @@ const isTobaccoPicker =
 const isStacker =
   currentUser?.position ===
   "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";  
   const monthStats =
   getMonthProductionStats(
     shifts,
@@ -59,9 +61,9 @@ const averageBlocks =
       )
     : 0;
 
-  return (
-    <section className={styles.wrapper}>
-      <h2 className={styles.title}>Средние показатели</h2>
+  return isStorekeeper ? null : (
+  <section className={styles.wrapper}>
+    <h2 className={styles.title}>Средние показатели</h2>
 
                   <div
         className={`${styles.grid} ${

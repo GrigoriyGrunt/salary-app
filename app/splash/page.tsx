@@ -111,7 +111,6 @@ export default function SplashPage() {
 
         <div className={styles.footer}>
           <div className={styles.title}>Калькулятор ЗП</div>
-          <div className={styles.version}>Версия 1.0</div>
         </div>
       </div>
     </main>

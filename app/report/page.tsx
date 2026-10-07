@@ -97,6 +97,8 @@ export default function ReportPage() {
 
 const isStacker =
   user?.position === "Штабелер (водитель погрузчика)";
+const isStorekeeper =
+  user?.position === "Кладовщик";  
 
 const shifts = useScheduleStore(
     (state) => state.shifts
@@ -233,47 +235,83 @@ const shifts = useScheduleStore(
     );
   }
 
-  const production = isStacker
+const production = isStorekeeper
   ? [
+      report.totalBoxes !== 0
+        ? `Покоробочная приемка: ${formatNumber(report.totalBoxes)}`
+        : null,
+
+      report.totalBoxes !== 0
+        ? `Заработано за покоробочную приемку: ${formatMoney(
+            report.totalBoxes * 3
+          )}`
+        : null,
+
       report.totalPallets !== 0
-        ? `Паллетов обработано: ${formatNumber(report.totalPallets)}`
+        ? `Паллеты приемки/отгрузки: ${formatNumber(report.totalPallets)}`
         : null,
-      report.averagePallets !== 0
-        ? `Средняя по паллетам: ${formatNumber(report.averagePallets)}`
-        : null,
+
       report.totalPallets !== 0
-        ? `Ставка за паллет: ${report.palletRate} ₽`
+        ? `Заработано за паллеты приемки/отгрузки: ${formatMoney(
+            report.totalPallets * 15
+          )}`
         : null,
-      report.salaryFromPallets !== 0
-        ? `Заработано за паллеты: ${formatMoney(report.salaryFromPallets)}`
+
+      report.salaryFromReturnHours !== 0
+        ? `Приём возвратов: ${formatMoney(
+            report.salaryFromReturnHours
+          )} (${Math.floor(report.totalReturnHours)} ч ${
+            Math.round(
+              (report.totalReturnHours -
+                Math.floor(report.totalReturnHours)) *
+                60
+            )
+          } мин)`
         : null,
     ].filter(Boolean)
-  : [
-      report.totalBoxes !== 0
-        ? `Коробок собрано: ${formatNumber(report.totalBoxes)}`
-        : null,
-      report.averageBoxes !== 0
-        ? `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`
-        : null,
-      !isTobaccoPicker && report.boxRate !== 0
-        ? `Ставка за коробку: ${report.boxRate} ₽`
-        : null,
-      report.salaryFromBoxes !== 0
-        ? `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`
-        : null,
-      report.totalBlocks !== 0
-        ? `Блоков собрано: ${formatNumber(report.totalBlocks)}`
-        : null,
-      report.averageBlocks !== 0
-        ? `Средняя по блокам: ${formatNumber(report.averageBlocks)}`
-        : null,
-      report.blockRate !== 0
-        ? `Ставка за блок: ${report.blockRate} ₽`
-        : null,
-      report.salaryFromBlocks !== 0
-        ? `Заработано за блоки: ${formatMoney(report.salaryFromBlocks)}`
-        : null,
-    ].filter(Boolean);
+  : isStacker
+    ? [
+        report.totalPallets !== 0
+          ? `Паллетов обработано: ${formatNumber(report.totalPallets)}`
+          : null,
+        report.averagePallets !== 0
+          ? `Средняя по паллетам: ${formatNumber(report.averagePallets)}`
+          : null,
+        report.totalPallets !== 0
+          ? `Ставка за паллет: ${report.palletRate} ₽`
+          : null,
+        report.salaryFromPallets !== 0
+          ? `Заработано за паллеты: ${formatMoney(
+              report.salaryFromPallets
+            )}`
+          : null,
+      ].filter(Boolean)
+    : [
+        report.totalBoxes !== 0
+          ? `Коробок собрано: ${formatNumber(report.totalBoxes)}`
+          : null,
+        report.averageBoxes !== 0
+          ? `Средняя по коробкам: ${formatNumber(report.averageBoxes)}`
+          : null,
+        !isTobaccoPicker && report.boxRate !== 0
+          ? `Ставка за коробку: ${report.boxRate} ₽`
+          : null,
+        report.salaryFromBoxes !== 0
+          ? `Заработано за коробки: ${formatMoney(report.salaryFromBoxes)}`
+          : null,
+        report.totalBlocks !== 0
+          ? `Блоков собрано: ${formatNumber(report.totalBlocks)}`
+          : null,
+        report.averageBlocks !== 0
+          ? `Средняя по блокам: ${formatNumber(report.averageBlocks)}`
+          : null,
+        report.blockRate !== 0
+          ? `Ставка за блок: ${report.blockRate} ₽`
+          : null,
+        report.salaryFromBlocks !== 0
+          ? `Заработано за блоки: ${formatMoney(report.salaryFromBlocks)}`
+          : null,
+      ].filter(Boolean);
 
 if (production.length > 0) {
   textSections.push(
@@ -281,11 +319,15 @@ if (production.length > 0) {
     production.join("\n"),
     `Итого`,
     `Всего заработано: ${formatMoney(
-      isStacker
-        ? report.salaryFromPallets
-        : report.salaryFromBoxes +
-          report.salaryFromBlocks
-    )}`
+  isStorekeeper
+    ? report.totalBoxes * 3 +
+      report.totalPallets * 15 +
+      report.salaryFromReturnHours
+    : isStacker
+      ? report.salaryFromPallets
+      : report.salaryFromBoxes +
+        report.salaryFromBlocks
+)}`
   );
 }
 
@@ -718,7 +760,69 @@ if (totals.length > 0) {
                     styles.rows
                   }
                 >
-                  {!isStacker && (
+{isStorekeeper ? (
+  <>
+    <ReportRow
+      label="Покоробочная приемка"
+      value={formatNumber(
+        report.totalBoxes
+      )}
+      show={
+        report.totalBoxes !== 0
+      }
+    />
+
+    <ReportRow
+      label="Заработано за покоробочную приемку"
+      value={formatMoney(
+        report.totalBoxes * 3
+      )}
+      show={
+        report.totalBoxes !== 0
+      }
+    />
+
+    <ReportRow
+      label="Паллеты приемки/отгрузки"
+      value={formatNumber(
+        report.totalPallets
+      )}
+      show={
+        report.totalPallets !== 0
+      }
+    />
+
+    <ReportRow
+      label="Заработано за паллеты приемки/отгрузки"
+      value={formatMoney(
+        report.totalPallets * 15
+      )}
+      show={
+        report.totalPallets !== 0
+      }
+    />
+
+    <ReportRow
+  label="Приём возвратов"
+  value={`${formatMoney(
+    report.salaryFromReturnHours
+  )} (${Math.floor(
+    report.totalReturnHours
+  )} ч ${
+    Math.round(
+      (report.totalReturnHours -
+        Math.floor(
+          report.totalReturnHours
+        )) *
+        60
+    )
+  } мин)`}
+  show={
+    report.salaryFromReturnHours !== 0
+  }
+/>
+  </>
+) : !isStacker ? (
   <>
     <ReportRow
       label="Коробок собрано"
@@ -798,7 +902,7 @@ if (totals.length > 0) {
       }
     />
   </>
-)}
+) : null}
 
 {isStacker && (
   <>
@@ -850,16 +954,25 @@ if (totals.length > 0) {
 <ReportRow
   label="Всего заработано"
   value={formatMoney(
-  report.salaryFromBoxes +
-    report.salaryFromBlocks +
-    report.salaryFromPallets
-)}
-show={
-  report.salaryFromBoxes +
-    report.salaryFromBlocks +
-    report.salaryFromPallets !==
-  0
-}
+    isStorekeeper
+      ? report.totalBoxes * 3 +
+        report.totalPallets * 15 +
+        report.salaryFromReturnHours
+      : isStacker
+        ? report.salaryFromPallets
+        : report.salaryFromBoxes +
+          report.salaryFromBlocks
+  )}
+  show={
+    isStorekeeper
+      ? report.totalBoxes !== 0 ||
+        report.totalPallets !== 0 ||
+        report.salaryFromReturnHours !== 0
+      : report.salaryFromBoxes +
+          report.salaryFromBlocks +
+          report.salaryFromPallets !==
+        0
+  }
 />
                 </div>
               </section>

@@ -2,6 +2,7 @@
 
 import styles from "./MentorStats.module.css";
 import { useScheduleStore } from "@/store/scheduleStore";
+import { useUsersStore } from "@/store/usersStore";
 
 type MentorStatsProps = {
   selectedDate: Date;
@@ -13,6 +14,12 @@ export default function MentorStats({
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const isStorekeeper =
+  currentUser?.position === "Кладовщик";
 
   const mentorShifts = shifts
     .filter((shift) => {
@@ -30,8 +37,8 @@ export default function MentorStats({
         new Date(b.date).getTime()
     );
 
-  return (
-    <section className={styles.wrapper}>
+  return isStorekeeper ? null : (
+  <section className={styles.wrapper}>
       <h2 className={styles.title}>Наставник</h2>
 
       <div className={styles.column}>
