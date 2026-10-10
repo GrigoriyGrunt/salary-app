@@ -73,6 +73,7 @@ nonProfileHours: number;
 returnHours: number;
 
 mentor: boolean;
+returnReception?: boolean;
 
 transitionDistribution?:
   TransitionShiftDistribution;
@@ -304,8 +305,13 @@ const secondShiftDate = parseCalendarDate(
     );
 
     if (date < firstWorkingDay) {
-      continue;
-    }
+  continue;
+}
+
+if (date.getTime() === firstWorkingDay.getTime()) {
+  shifts.push(createShift(date, "off"));
+  continue;
+}
 
     const daysFromFirstShift =
       Math.floor(

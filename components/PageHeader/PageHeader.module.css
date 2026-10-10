@@ -146,9 +146,9 @@
 }
 
 .notificationPanel {
-  position: absolute;
-  top: 90px;
-  right: 0;
+  position: fixed;
+  top: 0;
+  right: 12px;
 
   width: min(
     340px,
@@ -182,7 +182,7 @@
 
   flex-shrink: 0;
 
-  padding: 14px 14px 14px 18px;
+  padding: 14px 4px 14px 18px;
 
   background: #ffffff;
   border-bottom: 1px solid #eeeeee;
@@ -257,7 +257,7 @@
 }
 
 .notificationCard {
-  padding: 18px;
+  padding: 18px 44px 18px 18px;
 }
 
 .notificationCard h3 {
@@ -303,7 +303,7 @@
   align-items: center;
   gap: 8px;
 
-  padding: 16px 18px;
+  padding: 16px 44px 16px 18px;
 
   font-size: 13px;
   line-height: 1.45;

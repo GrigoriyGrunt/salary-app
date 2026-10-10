@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import {
   ChevronLeft,
   X,
@@ -50,6 +51,12 @@ export default function PageHeader({
 
 const notificationPanelRef =
   useRef<HTMLDivElement>(null);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
+
+const [notificationPosition, setNotificationPosition] = useState({
+  top: 0,
+  right: 12,
+});
     const [now, setNow] = useState(
   () => new Date()
 );
@@ -70,11 +77,11 @@ useEffect(() => {
     const target = event.target as Node;
 
     if (
-      notificationWrapperRef.current &&
-      !notificationWrapperRef.current.contains(target)
-    ) {
-      setIsNotificationsOpen(false);
-    }
+  !notificationWrapperRef.current?.contains(target) &&
+  !notificationPanelRef.current?.contains(target)
+) {
+  setIsNotificationsOpen(false);
+}
   };
 
   document.addEventListener(
@@ -280,7 +287,38 @@ const clearAllNotifications = async () => {
           }
         ).format(notification.date)
       : "";
+useEffect(() => {
+  if (!isNotificationsOpen) return;
 
+  const updatePosition = () => {
+    const button = notificationButtonRef.current;
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const panelWidth = Math.min(340, window.innerWidth - 24);
+    const desiredRight = window.innerWidth - rect.right;
+    const maxRight = window.innerWidth - panelWidth - 12;
+
+    const panel = notificationPanelRef.current;
+    const panelHeight = panel?.getBoundingClientRect().height ?? 0;
+    const maxTop = window.innerHeight - panelHeight - 12;
+
+    setNotificationPosition({
+      top: Math.min(rect.bottom + 8, Math.max(12, maxTop)),
+      right: Math.max(12, Math.min(desiredRight, maxRight)),
+    });
+  };
+
+  updatePosition();
+
+  window.addEventListener("resize", updatePosition);
+  window.addEventListener("scroll", updatePosition, true);
+
+  return () => {
+    window.removeEventListener("resize", updatePosition);
+    window.removeEventListener("scroll", updatePosition, true);
+  };
+}, [isNotificationsOpen]);
   if (variant === "home") {
     return (
       <header
@@ -303,7 +341,8 @@ const clearAllNotifications = async () => {
   ref={notificationWrapperRef}
 >
           <button
-            className={styles.notification}
+  ref={notificationButtonRef}
+  className={styles.notification}
             onClick={() =>
               setIsNotificationsOpen(
                 !isNotificationsOpen
@@ -325,11 +364,17 @@ const clearAllNotifications = async () => {
 )}
           </button>
 
-          {isNotificationsOpen && (
-  <div
-    className={styles.notificationPanel}
-    ref={notificationPanelRef}
-  >
+{isNotificationsOpen &&
+  typeof document !== "undefined" &&
+  createPortal(
+    <div
+      className={styles.notificationPanel}
+      ref={notificationPanelRef}
+      style={{
+        top: notificationPosition.top,
+        right: notificationPosition.right,
+      }}
+    >
     <div className={styles.notificationHeader}>
       <h3>Уведомления</h3>
 
@@ -597,7 +642,8 @@ const clearAllNotifications = async () => {
   </div>
 )}
     </div>
-  </div>
+  </div>,
+  document.body
 )}
         </div>
       </header>

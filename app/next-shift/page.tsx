@@ -292,6 +292,15 @@ updateUser(currentUser.id, {
   isDayNight={isDayNight}
   isWatch1515={isWatch1515}
   showScheduleChangeHint={false}
+  minDate={
+  currentUser?.hireDate
+    ? (() => {
+        const date = new Date(currentUser.hireDate);
+        date.setDate(date.getDate() + 1);
+        return date;
+      })()
+    : undefined
+}
   firstDate={firstDate}
   secondDate={secondDate}
   onFirstDateChange={setFirstDate}

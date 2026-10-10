@@ -108,6 +108,7 @@ model Shift {
   nonProfileHours        Float    @default(0)
 
   mentor                 Boolean  @default(false)
+  returnReception        Boolean  @default(false)
 
   transitionDistribution Json?
 

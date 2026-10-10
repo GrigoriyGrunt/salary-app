@@ -256,3 +256,34 @@
 .createProfileConfirm:active {
   transform: scale(0.98);
 }
+
+.credentialsWarning {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff4e5;
+  color: #704b16;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.credentialsField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid #dcdfe4;
+  border-radius: 14px;
+  overflow-wrap: anywhere;
+}
+
+.credentialsField span {
+  color: #666666;
+  font-size: 14px;
+}
+
+.credentialsField strong {
+  color: #222222;
+  font-size: 18px;
+  font-weight: 600;
+}

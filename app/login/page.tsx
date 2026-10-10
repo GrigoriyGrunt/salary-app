@@ -21,6 +21,10 @@ const [isCodeVisible, setIsCodeVisible] = useState(false);
   useState(false);
   const [isCreateProfileOpen, setIsCreateProfileOpen] =
   useState(false);
+  const [isCredentialsOpen, setIsCredentialsOpen] =
+  useState(false);
+const [createdLogin, setCreatedLogin] = useState("");
+const [createdCode, setCreatedCode] = useState("");
 
 const [newProfileLastName, setNewProfileLastName] =
   useState("");
@@ -466,15 +470,17 @@ onChange={(event) =>
       return;
     }
 
-    alert("Профиль успешно создан");
+    setCreatedLogin(newProfileLogin.trim());
+setCreatedCode(newProfileCode);
 
-    setIsCreateProfileOpen(false);
+setIsCreateProfileOpen(false);
+setIsCredentialsOpen(true);
 
-    setNewProfileLastName("");
-    setNewProfileFirstName("");
-    setNewProfileMiddleName("");
-    setNewProfileLogin("");
-    setNewProfileCode("");
+setNewProfileLastName("");
+setNewProfileFirstName("");
+setNewProfileMiddleName("");
+setNewProfileLogin("");
+setNewProfileCode("");
   } catch (error) {
     console.error(
       "Ошибка создания профиля:",
@@ -492,7 +498,56 @@ onChange={(event) =>
 </div>
           </div>
         </div>
-      )}        
+      )}  
+            {isCredentialsOpen && (
+        <div className={styles.createProfileOverlay}>
+          <div className={styles.createProfileModal}>
+            <h2>Профиль создан</h2>
+
+            <p className={styles.credentialsWarning}>
+              Сохраните данные для входа в отдельном месте.
+              Они понадобятся вам для последующего входа
+              в приложение.
+            </p>
+
+            <div className={styles.credentialsField}>
+              <span>Логин</span>
+              <strong>{createdLogin}</strong>
+            </div>
+
+            <div className={styles.credentialsField}>
+              <span>Код для входа</span>
+              <strong>{createdCode}</strong>
+            </div>
+
+            <button
+              type="button"
+              className={styles.createProfileConfirm}
+              onClick={() =>
+                navigator.clipboard.writeText(
+                  `Логин: ${createdLogin}\nКод: ${createdCode}`
+                )
+              }
+            >
+              Скопировать данные
+            </button>
+
+            <button
+              type="button"
+              className={styles.createProfileCancel}
+              onClick={() => {
+                setLogin(createdLogin);
+                setCode(createdCode);
+                setIsCredentialsOpen(false);
+                setCreatedLogin("");
+                setCreatedCode("");
+              }}
+            >
+              Перейти ко входу
+            </button>
+          </div>
+        </div>
+      )}      
       </div>
     </main>
   );

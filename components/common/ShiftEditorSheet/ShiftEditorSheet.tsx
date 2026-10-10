@@ -80,6 +80,7 @@ const [workZone, setWorkZone] = useState<
 const [isWorkZoneOpen, setIsWorkZoneOpen] = useState(false);
 const [isDayTypeOpen, setIsDayTypeOpen] = useState(false);
 const [isMentor, setIsMentor] = useState(false);
+const [isReturnReception, setIsReturnReception] = useState(false);
 
 const [salaryHours, setSalaryHours] = useState("");
 const [baseHours, setBaseHours] = useState("");
@@ -572,6 +573,7 @@ setReturnMinutes(
     : ""
 );
     setIsMentor(currentShift.mentor ?? false);
+    setIsReturnReception(currentShift.returnReception ?? false);
 
   if (currentShift.transitionDistribution) {
     const distribution =
@@ -815,6 +817,7 @@ async function saveShift() {
   (Number(returnMinutes) || 0) / 60,
 
       mentor: isMentor,
+      returnReception: isReturnReception,
 
       transitionDistribution:
         isTransitionShift &&
@@ -1085,6 +1088,7 @@ function handleMentorChange(checked: boolean) {
       );
 
       setIsMentor(currentShift.mentor ?? false);
+      setIsReturnReception(currentShift.returnReception ?? false);
     }
   }
 
@@ -1583,122 +1587,113 @@ clearWorkData();
         setNonProfileHours(e.target.value)
       }
     />
+{isStorekeeper && (
+  <label className={styles.radioItem}>
+    <span>Приём возвратов</span>
+    <input
+      type="checkbox"
+      checked={isReturnReception}
+      onChange={(e) => setIsReturnReception(e.target.checked)}
+    />
+  </label>
+)}
+{isReturnReception && (
+  <div>
+    <label
+      className={styles.label}
+      style={{ marginBottom: "6px" }}
+    >
+      Время приема возвратов
+    </label>
 
-                <div>
-          <label
-            className={styles.label}
-            style={{ marginBottom: "6px" }}
-          >
-            Время приема возвратов
-          </label>
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          height: "52px",
+          border: `1px solid ${
+            returnHoursFocused ? "#ff0000" : "#e5e7eb"
+          }`,
+          borderRadius: "12px",
+          background: "#fff",
+          display: "flex",
+          alignItems: "center",
+          padding: "0 14px",
+        }}
+      >
+        <input
+          type="text"
+          inputMode="numeric"
+          value={returnHours || "0"}
+          onFocus={(e) => {
+            setReturnHoursFocused(true);
+            e.currentTarget.setSelectionRange(0, 1);
+          }}
+          onBlur={() => setReturnHoursFocused(false)}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, "");
+            setReturnHours(value.replace(/^0+(?=\d)/, ""));
+          }}
+          style={{
+            width: "100%",
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            fontSize: "16px",
+            textAlign: "center",
+          }}
+        />
 
-          <div
-            style={{
-              display: "flex",
-              gap: "8px",
-            }}
-          >
-            <div
-              style={{
-                flex: 1,
-                height: "52px",
-                border: `1px solid ${
-                  returnHoursFocused
-                    ? "#ff0000"
-                    : "#e5e7eb"
-                }`,
-                borderRadius: "12px",
-                background: "#fff",
-                display: "flex",
-                alignItems: "center",
-                padding: "0 14px",
-              }}
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={returnHours || "0"}
-                onFocus={(e) => {
-                  setReturnHoursFocused(true);
-                  e.currentTarget.setSelectionRange(0, 1);
-                }}
-                onBlur={() =>
-                  setReturnHoursFocused(false)
-                }
-                onChange={(e) => {
-                  const value =
-                    e.target.value.replace(/\D/g, "");
+        <span style={{ marginLeft: "6px" }}>час</span>
+      </div>
 
-                  setReturnHours(
-                    value.replace(/^0+(?=\d)/, "")
-                  );
-                }}
-                style={{
-                  width: "100%",
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  fontSize: "16px",
-                  textAlign: "center",
-                }}
-              />
+      <div
+        style={{
+          flex: 1,
+          height: "52px",
+          border: `1px solid ${
+            returnMinutesFocused ? "#ff0000" : "#e5e7eb"
+          }`,
+          borderRadius: "12px",
+          background: "#fff",
+          display: "flex",
+          alignItems: "center",
+          padding: "0 14px",
+        }}
+      >
+        <input
+          type="text"
+          inputMode="numeric"
+          value={returnMinutes || "0"}
+          onFocus={(e) => {
+            setReturnMinutesFocused(true);
+            e.currentTarget.setSelectionRange(0, 1);
+          }}
+          onBlur={() => setReturnMinutesFocused(false)}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, "");
+            setReturnMinutes(value.replace(/^0+(?=\d)/, ""));
+          }}
+          style={{
+            width: "100%",
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            fontSize: "16px",
+            textAlign: "center",
+          }}
+        />
 
-              <span style={{ marginLeft: "6px" }}>
-                час
-              </span>
-            </div>
-
-            <div
-              style={{
-                flex: 1,
-                height: "52px",
-                border: `1px solid ${
-                  returnMinutesFocused
-                    ? "#ff0000"
-                    : "#e5e7eb"
-                }`,
-                borderRadius: "12px",
-                background: "#fff",
-                display: "flex",
-                alignItems: "center",
-                padding: "0 14px",
-              }}
-            >
-              <input
-                type="text"
-                inputMode="numeric"
-                value={returnMinutes || "0"}
-                onFocus={(e) => {
-                  setReturnMinutesFocused(true);
-                  e.currentTarget.setSelectionRange(0, 1);
-                }}
-                onBlur={() =>
-                  setReturnMinutesFocused(false)
-                }
-                onChange={(e) => {
-                  const value =
-                    e.target.value.replace(/\D/g, "");
-
-                  setReturnMinutes(
-                    value.replace(/^0+(?=\d)/, "")
-                  );
-                }}
-                style={{
-                  width: "100%",
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  fontSize: "16px",
-                  textAlign: "center",
-                }}
-              />
-
-              <span style={{ marginLeft: "6px" }}>
-                минут
-              </span>
-            </div>
-          </div>
-        </div>
+        <span style={{ marginLeft: "6px" }}>минут</span>
+      </div>
+    </div>
+  </div>
+)}
   </>
 )}
 {isTransitionShift && (
