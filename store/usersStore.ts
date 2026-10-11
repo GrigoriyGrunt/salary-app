@@ -88,6 +88,13 @@ setCurrentUserFromServer: (user: User) =>
     localStorage.removeItem(
       `motivation-guide-${id}`
     );
+        localStorage.removeItem(
+      `instruction-invitation-handled-${id}`
+    );
+
+    localStorage.removeItem(
+      `show-motivation-guide-${id}`
+    );
   }
 
   set((state) => {

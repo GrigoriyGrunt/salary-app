@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader/PageHeader";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
-
+import InstructionGuide from "@/components/InstructionGuide/InstructionGuide";
 import styles from "./page.module.css";
 import { useUsersStore } from "@/store/usersStore";
 import { useScheduleStore } from "@/store/scheduleStore";
@@ -364,6 +364,16 @@ async function handleResetProfile() {
 <button
   className={styles.item}
   onClick={() => {
+    window.dispatchEvent(
+      new Event("open-instruction-guide")
+    );
+  }}
+>
+  Как пользоваться приложением
+</button>
+<button
+  className={styles.item}
+  onClick={() => {
     window.location.href = MAX_GROUP_URL;
   }}
 >
@@ -403,6 +413,7 @@ async function handleResetProfile() {
             </div>
 
       <BottomNavigation />
+      <InstructionGuide />
       {isUsersManagementOpen && (
   <div className={styles.overlay}>
     <div className={styles.usersModal}>

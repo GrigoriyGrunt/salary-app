@@ -125,6 +125,8 @@ salary-app
 │   ├── Input
 │   │   ├── Input.module.css
 │   │   └── Input.tsx
+│   ├── InstructionInvitation
+│   │   └── InstructionInvitation.tsx
 │   ├── Loader
 │   │   ├── Loader.module.css
 │   │   └── Loader.tsx
@@ -265,6 +267,8 @@ salary-app
 │   │   ├── 20261006011343_add_pallets_to_shift
 │   │   │   └── migration.sql
 │   │   ├── 20261007042740_add_return_hours
+│   │   │   └── migration.sql
+│   │   ├── 20261010060332_add_return_reception
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma

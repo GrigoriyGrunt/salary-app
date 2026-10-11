@@ -1,8 +1,9 @@
 "use client";
 
 import styles from "./page.module.css";
+import InstructionInvitation from "@/components/InstructionInvitation/InstructionInvitation";
 import WeekSection from "@/components/home/week/WeekSection";
-
+import InstructionGuide from "@/components/InstructionGuide/InstructionGuide";
 import PageHeader from "@/components/PageHeader/PageHeader";
 import TopStats from "@/components/home/TopStats";
 import SalaryCard from "@/components/home/SalaryCard";
@@ -22,7 +23,8 @@ export default function Page() {
   variant="home"
 />
 </div>
-
+<InstructionInvitation />
+<InstructionGuide />
     <div className={styles.content}>
       <TopStats />
       <SalaryCard />

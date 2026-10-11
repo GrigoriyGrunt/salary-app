@@ -191,11 +191,15 @@ export default function MotivationSection() {
       showGuide &&
       currentUser?.id
     ) {
-      localStorage.removeItem(
+            localStorage.removeItem(
         `show-motivation-guide-${currentUser.id}`
       );
 
       setShowGuide(false);
+
+      window.dispatchEvent(
+        new Event("motivation-guide-completed")
+      );
     }
   };
 
