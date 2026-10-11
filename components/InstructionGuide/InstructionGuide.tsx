@@ -58,13 +58,31 @@ export default function InstructionGuide() {
       setProgress(nextProgress);
 
       if (nextProgress >= 1) {
-        window.clearInterval(interval);
-        setIsOpen(false);
-      }
+  window.clearInterval(interval);
+
+  if (currentStory < STORIES.length - 1) {
+    elapsedRef.current = 0;
+    setProgress(0);
+    setCurrentStory((story) => story + 1);
+  } else {
+    setIsOpen(false);
+  }
+}
     }, 50);
 
     return () => window.clearInterval(interval);
-  }, [isOpen, isPaused]);
+  }, [isOpen, isPaused, currentStory]);
+
+    useEffect(() => {
+    if (!isOpen) return;
+
+    const nextStory = currentStory + 1;
+
+    if (nextStory < STORIES.length) {
+      const image = new Image();
+      image.src = STORIES[nextStory];
+    }
+  }, [isOpen, currentStory]);
 
   useEffect(() => {
     if (!isOpen) return;
