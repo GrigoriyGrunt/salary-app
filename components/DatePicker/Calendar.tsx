@@ -134,27 +134,27 @@ const yearListRef = useRef<HTMLDivElement>(null);
 >
   ←
 </button>
+                  <button
+          type="button"
+          className={`${styles.month} ${styles.monthButton}`}
+          onClick={() => {
+            setShowMonths(!showMonths);
+            setShowYears(false);
+          }}
+        >
+          {MONTHS[month]}
+        </button>
 
-        <div
-
-  className={styles.month}
-  onClick={() => {
-    setShowMonths(!showMonths);
-    setShowYears(false);
-  }}
->
-  {MONTHS[month]}
-</div>
-
-<div
-  className={styles.month}
-  onClick={() => {
-    setShowYears(!showYears);
-    setShowMonths(false);
-  }}
->
-  {year}
-</div>
+                        <button
+          type="button"
+          className={`${styles.month} ${styles.monthButton}`}
+          onClick={() => {
+            setShowYears(!showYears);
+            setShowMonths(false);
+          }}
+        >
+          {year}
+        </button>
 
         <button
   className={styles.navButton}

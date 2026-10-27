@@ -52,20 +52,16 @@ export default function InstructionInvitation() {
 
   if (!isOpen || !currentUser?.id) return null;
 
-  const handleChoice = (startGuide: boolean) => {
+  const handleChoice = () => {
     localStorage.setItem(
-      `instruction-invitation-handled-${currentUser.id}`,
+      `instruction-invitation-handled-${currentUser!.id}`,
       "true"
     );
 
     setIsOpen(false);
-
-    if (startGuide) {
-      window.dispatchEvent(
-        new Event("open-instruction-guide")
-      );
-    }
   };
+
+  if (!isOpen || !currentUser?.id) return null;
 
   return (
     <div
@@ -77,7 +73,7 @@ export default function InstructionInvitation() {
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
-        background: "rgba(0, 0, 0, 0.5)",
+        background: "rgba(0, 0, 0, 0.65)",
       }}
     >
       <div
@@ -100,43 +96,28 @@ export default function InstructionInvitation() {
             color: "#222222",
           }}
         >
-          Хотите посмотреть инструкцию как пользоваться
-          приложением КалькуляторЗП?
+          Это главный экран приложения. 
+          Здесь собрана общая информация по вашей выроботке.
+          Тут можно вносить данные по отработанной смене, 
+          а также установить цель в разделе «Мотивация».
+
         </p>
 
-        <div style={{ display: "flex", gap: 12 }}>
-          <button
-            onClick={() => handleChoice(true)}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              border: 0,
-              borderRadius: 12,
-              background: "#b5121b",
-color: "#ffffff",
-              fontSize: 15,
-              fontWeight: 600,
-            }}
-          >
-            Да
-          </button>
-
-          <button
-            onClick={() => handleChoice(false)}
-            style={{
-              flex: 1,
-              padding: "12px 8px",
-              border: "1px solid #d1d5db",
-              borderRadius: 12,
-              background: "#ffffff",
-              color: "#222222",
-              fontSize: 15,
-              fontWeight: 600,
-            }}
-          >
-            Нет, не хочу
-          </button>
-        </div>
+        <button
+          onClick={handleChoice}
+          style={{
+            width: "100%",
+            padding: "12px 8px",
+            border: 0,
+            borderRadius: 12,
+            background: "#b5121b",
+            color: "#ffffff",
+            fontSize: 15,
+            fontWeight: 600,
+          }}
+        >
+          ОК
+        </button>
       </div>
     </div>
   );

@@ -125,6 +125,9 @@ salary-app
 │   ├── Input
 │   │   ├── Input.module.css
 │   │   └── Input.tsx
+│   ├── InstructionGuide
+│   │   ├── InstructionGuide.module.css
+│   │   └── InstructionGuide.tsx
 │   ├── InstructionInvitation
 │   │   └── InstructionInvitation.tsx
 │   ├── Loader
@@ -292,6 +295,18 @@ salary-app
 │   │   │   ├── salary.png
 │   │   │   ├── schedule-black.png
 │   │   │   └── statistics-black.png
+│   │   ├── guide-bonus-deductions.png
+│   │   ├── guide-bonus-form.png
+│   │   ├── guide-home.png
+│   │   ├── guide-hours-mentor.png
+│   │   ├── guide-money.png
+│   │   ├── guide-month-summary.png
+│   │   ├── guide-profile.png
+│   │   ├── guide-report.png
+│   │   ├── guide-schedule.png
+│   │   ├── guide-shift-data.png
+│   │   ├── guide-statistics.png
+│   │   ├── guide-week.png
 │   │   ├── logo-full-app.svg
 │   │   ├── logo-icon-app-2.svg
 │   │   ├── logo-icon-app.svg

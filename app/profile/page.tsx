@@ -55,6 +55,58 @@ const [isForgotCodeOpen, setIsForgotCodeOpen] =
   useState(false);
   const [isAboutOpen, setIsAboutOpen] =
   useState(false);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
+const [selectedFaq, setSelectedFaq] = useState<number | null>(null);
+
+const faqItems = [
+  {
+    question: "Как внести данные за смену?",
+    answer: [
+      "Внести данные за смену можно несколькими способами.",
+      "На главном экране найдите блок «Текущая неделя». Сразу под ним будет карточка текущего дня и кнопка «Внести данные». Также эта карточка дублируется в разделе «График».",
+      "Также можно внести изменения по любой смене в месяце: выберите определённый день и нажмите кнопку «Внести или редактировать данные».",
+      "Также на главном экране, нажав на колокольчик уведомлений, вы увидите кнопку «Внести данные». При нажатии на неё автоматически откроется форма внесения данных.",
+    ],
+  },
+  {
+    question: "Как внести списание за ошибки, за бой и штрафы?",
+    answer: [
+      "Откройте раздел «Деньги» и найдите кнопку «Добавить списание».",
+      "После этого выберите тип списания, введите сумму и нажмите «Добавить».",
+    ],
+  },
+  {
+    question: "Как внести дополнительное премирование?",
+    answer: [
+      "Откройте раздел «Деньги», прокрутите вниз до блока «Из чего состоит зарплата» и нажмите кнопку «+ Премия».",
+      "Далее введите, за что начисляется премия, укажите сумму и нажмите «Добавить».",
+      "Премия может быть за выход на подработку или за замещение. Также это может быть стажёрский бонус и другие премии не учтённые в программе.",
+    ],
+  },
+  {
+    question: "Как внести зарплату, аванс и другие поступления?",
+    answer: [
+      "Откройте раздел «Деньги», найдите блок «Фактические поступления» и нажмите кнопку «Добавить поступление».",
+      "После этого выберите тип поступления, введите дату и сумму, затем нажмите «Сохранить».",
+    ],
+  },
+  {
+    question: "Как исправить или изменить график?",
+    answer: [
+      "Откройте раздел «График» и нажмите кнопку «Изменить график».",
+      "Укажите дату изменения графика, а затем две даты ближайших смен от даты изменения графика.",
+      "Для добавления графика вахты укажите начало и конец периода.",
+    ],
+  },
+  {
+    question: "Как сбросить параметры профиля?",
+    answer: [
+      "Если вы допустили ошибку при первой настройке или хотите удалить все данные, откройте раздел «Профиль», прокрутите страницу до конца вниз и нажмите «Сбросить параметры профиля».",
+      "Подтвердите действие.",
+      "Внимание: данные и настройки будут удалены.",
+    ],
+  },
+];
   const [isQrOpen, setIsQrOpen] =
   useState(false);
   const [isLogoutOpen, setIsLogoutOpen] =
@@ -110,6 +162,18 @@ async function loadUsers() {
 }
 
   const user = useUsersStore((state) => state.currentUser);
+    const [showProfileGuide, setShowProfileGuide] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const key = `profile-guide-shown-${user.id}`;
+
+    if (localStorage.getItem(key) !== "true") {
+      localStorage.setItem(key, "true");
+      setShowProfileGuide(true);
+    }
+  }, [user?.id]);
   useEffect(() => {
   if (user?.role === "admin") {
     loadUsers();
@@ -364,6 +428,15 @@ async function handleResetProfile() {
 <button
   className={styles.item}
   onClick={() => {
+    setSelectedFaq(null);
+    setIsFaqOpen(true);
+  }}
+>
+  Частые вопросы
+</button>
+<button
+  className={styles.item}
+  onClick={() => {
     window.dispatchEvent(
       new Event("open-instruction-guide")
     );
@@ -413,7 +486,132 @@ async function handleResetProfile() {
             </div>
 
       <BottomNavigation />
+            {showProfileGuide && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            background: "rgba(0, 0, 0, 0.65)",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 360,
+              padding: 24,
+              borderRadius: 20,
+              background: "#ffffff",
+              textAlign: "center",
+              boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            <p
+              style={{
+                margin: "0 0 24px",
+                fontSize: 18,
+                fontWeight: 600,
+                lineHeight: 1.45,
+                color: "#222222",
+              }}
+            >
+              Это раздел «Профиль». Здесь представлена общая информация о
+              вашем профиле. Тут Вы можете сформировать отчёт за выбранный
+              период, изменить код входа и настроить другие параметры
+              приложения.
+            </p>
+
+            <button
+              onClick={() => setShowProfileGuide(false)}
+              style={{
+                width: "100%",
+                padding: "12px 8px",
+                border: 0,
+                borderRadius: 12,
+                background: "#b5121b",
+                color: "#ffffff",
+                fontSize: 15,
+                fontWeight: 600,
+              }}
+            >
+              ОК
+            </button>
+          </div>
+        </div>
+      )}
       <InstructionGuide />
+      {isFaqOpen && (
+  <div
+    className={styles.faqOverlay}
+    onClick={() => {
+      setIsFaqOpen(false);
+      setSelectedFaq(null);
+    }}
+  >
+    <div
+      className={styles.faqModal}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className={styles.faqHeader}>
+        <h2>
+          {selectedFaq === null
+            ? "Частые вопросы"
+            : faqItems[selectedFaq].question}
+        </h2>
+
+        <button
+          type="button"
+          className={styles.faqClose}
+          aria-label="Закрыть"
+          onClick={() => {
+            setIsFaqOpen(false);
+            setSelectedFaq(null);
+          }}
+        >
+          ×
+        </button>
+      </div>
+
+      {selectedFaq === null ? (
+        <div className={styles.faqList}>
+          {faqItems.map((item, index) => (
+            <button
+              key={item.question}
+              type="button"
+              className={styles.faqQuestion}
+              onClick={() => setSelectedFaq(index)}
+            >
+              <span>{item.question}</span>
+              <span className={styles.faqArrow}>›</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.faqAnswerArea}>
+          <div className={styles.faqAnswer}>
+  {faqItems[selectedFaq].answer.map((paragraph, index) => (
+    <p key={index} className={styles.faqParagraph}>
+      {paragraph}
+    </p>
+  ))}
+</div>
+
+          <button
+            type="button"
+            className={styles.faqBack}
+            onClick={() => setSelectedFaq(null)}
+          >
+            Назад к вопросам
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
       {isUsersManagementOpen && (
   <div className={styles.overlay}>
     <div className={styles.usersModal}>

@@ -220,6 +220,8 @@ export default function MotivationSection() {
             чтобы приложение могло
             рассчитать ваш прогноз
             заработка.
+            <br />
+            Нажмите «Подробнее».
           </div>
         </div>
       )}

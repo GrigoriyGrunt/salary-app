@@ -454,14 +454,10 @@ const storekeeperWorkedSalary =
   11 *
   storekeeperHourlyRate;
 
-const storekeeperRemainingMotivation =
-  Math.max(
-    0,
-    goal -
-      storekeeperWorkedSalary -
-      storekeeperWorkedMotivation -
-      storekeeperFutureSalary
-  );
+const storekeeperRemainingMotivation = Math.max(
+  0,
+  goal - totalSalary - storekeeperFutureSalary
+);
 
 const storekeeperRequiredPallets =
   storekeeperFutureShifts > 0

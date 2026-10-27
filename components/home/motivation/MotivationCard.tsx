@@ -2,6 +2,7 @@ import styles from "./MotivationCard.module.css";
 import { useFinanceStore } from "@/store/financeStore";
 import { useScheduleStore } from "@/store/scheduleStore";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
+import { calculateMonthlyReport } from "@/lib/report";
 import { useUsersStore } from "@/store/usersStore";
 export default function MotivationCard() {
   const goal = useFinanceStore((state) => state.goal);
@@ -21,6 +22,22 @@ const isStorekeeper =
   const shifts = useScheduleStore(
     (state) => state.shifts
   );
+
+  const originalMainShiftsByMonth = useScheduleStore(
+  (state) => state.originalMainShiftsByMonth
+);
+
+const deductions = useFinanceStore(
+  (state) => state.deductions
+);
+
+const premiums = useFinanceStore(
+  (state) => state.premiums
+);
+
+const payments = useFinanceStore(
+  (state) => state.payments
+);
 
   const today = new Date();
 
@@ -257,20 +274,24 @@ const storekeeperFutureSalary =
   11 *
   storekeeperHourlyRate;
 
-const storekeeperWorkedPallets =
-  totalPallets;
+const currentMonthReport = calculateMonthlyReport(
+  {
+    user: currentUser,
+    shifts,
+    originalMainShiftsByMonth,
+    deductions,
+    premiums,
+    payments,
+  },
+  today
+);
 
-const storekeeperEarnedMotivation =
-  storekeeperWorkedPallets * 15;
-
-const storekeeperRemainingMotivation =
-  Math.max(
-    0,
-    goal -
-      storekeeperEarnedSalary -
-      storekeeperFutureSalary -
-      storekeeperEarnedMotivation
-  );
+const storekeeperRemainingMotivation = Math.max(
+  0,
+  goal -
+    currentMonthReport.totalSalary -
+    storekeeperFutureSalary
+);
 
 const storekeeperRequiredPallets =
   storekeeperFutureShifts > 0
@@ -311,8 +332,10 @@ const storekeeperRequiredPallets =
 
   <div className={styles.statCard}>
   <span className={styles.label}>
-    Цель средняя в месяц
-  </span>
+  {isStorekeeper
+    ? "Цель заработка в месяц"
+    : "Цель средняя в месяц"}
+</span>
 
   <strong className={styles.value}>
   {goal}

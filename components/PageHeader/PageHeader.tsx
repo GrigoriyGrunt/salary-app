@@ -1,5 +1,8 @@
 "use client";
 
+import {
+  useShiftEditor,
+} from "@/components/common/ShiftEditorProvider/ShiftEditorProvider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -44,6 +47,7 @@ export default function PageHeader({
   variant = "default",
 }: PageHeaderProps) {
     const router = useRouter();
+    const { openShiftEditor } = useShiftEditor();
   const [isNotificationsOpen, setIsNotificationsOpen] =
     useState(false);
     const notificationWrapperRef =
@@ -531,10 +535,23 @@ useEffect(() => {
           ⚠️
         </span>
 
-        <span>
-          Внесите данные по рабочей смене за{" "}
-          <strong>{date}</strong>
-        </span>
+        <div>
+  <span>
+    Внесите данные по рабочей смене за{" "}
+    <strong>{date}</strong>
+  </span>
+
+  <button
+    type="button"
+    className={styles.addPaymentButton}
+    onClick={() => {
+      setIsNotificationsOpen(false);
+      openShiftEditor(new Date(shiftNotification.date));
+    }}
+  >
+    Внести данные
+  </button>
+</div>
 
         <button
           type="button"
