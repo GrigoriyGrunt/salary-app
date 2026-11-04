@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-
+import { getWarehouseConfig } from "@/lib/warehouses/config";
 import styles from "./DayDetailsModal.module.css";
 import { useUsersStore } from "@/store/usersStore";
 import { useScheduleStore } from "@/store/scheduleStore";
@@ -124,6 +124,9 @@ export function getDayEarnings(
   >,
   user: User | null
 ) {
+    const tariffs = getWarehouseConfig(user?.warehouse)?.tariffs;
+
+  if (!tariffs) return 0;
   const salaryHours =
     shift?.salaryHours ?? 0;
 
@@ -187,15 +190,11 @@ const originalMainShifts =
     user?.position === "Кладовщик";
 
   const hourlyRate =
-  getOriginalMainShiftsForDate(
-    user,
-    selectedDate
-  ) > 0
-    ? (isStorekeeper ? 27000 : 23750) /
-      getOriginalMainShiftsForDate(
-        user,
-        selectedDate
-      ) /
+  getOriginalMainShiftsForDate(user, selectedDate) > 0
+    ? (isStorekeeper
+        ? tariffs.monthlySalary.storekeeper
+        : tariffs.monthlySalary.default) /
+      getOriginalMainShiftsForDate(user, selectedDate) /
       11
     : 0;
 
@@ -227,9 +226,9 @@ const originalMainShifts =
 
       salaryFromHours =
         normalHours * hourlyRate +
-        nightHours *
+                nightHours *
           hourlyRate *
-          1.2 +
+          (1 + tariffs.nightSurchargeRate) +
         afterNightHours *
           hourlyRate;
     } else {
@@ -240,7 +239,7 @@ const originalMainShifts =
     if (
       shift?.workType === "extra"
     ) {
-      salaryFromHours *= 2;
+      salaryFromHours *= tariffs.extraShiftMultiplier;
     }
   }
 
@@ -270,11 +269,9 @@ const originalMainShifts =
       : 0;
 
   const boxRate =
-    averageBoxes >= 1800
-      ? 4
-      : averageBoxes >= 1200
-        ? 3.6
-        : 2.7;
+  tariffs.boxes
+    .filter((tier) => averageBoxes >= tier.minAverage)
+    .at(-1)?.rate ?? 0;
 
   const boxesEarnings =
     boxes * boxRate;
@@ -305,13 +302,9 @@ const originalMainShifts =
       : 0;
 
   const blockRate =
-    averageBlocks >= 4000
-      ? 1
-      : averageBlocks >= 3200
-        ? 0.8
-        : averageBlocks >= 2200
-          ? 0.7
-          : 0.6;
+  tariffs.blocks
+    .filter((tier) => averageBlocks >= tier.minAverage)
+    .at(-1)?.rate ?? 0;
 
     const blocksEarnings =
     blocks * blockRate;
@@ -334,14 +327,11 @@ const originalMainShifts =
       : 0;
 
   const palletRate =
-    user?.position ===
-    "Штабелер (водитель погрузчика)"
-      ? averagePallets >= 300
-        ? 17
-        : averagePallets >= 250
-          ? 14
-          : 12
-      : 0;
+  user?.position === "Штабелер (водитель погрузчика)"
+    ? tariffs.pallets
+        .filter((tier) => averagePallets >= tier.minAverage)
+        .at(-1)?.rate ?? 0
+    : 0;
 
     const palletsEarnings =
     user?.position ===
@@ -349,31 +339,25 @@ const originalMainShifts =
       ? pallets * palletRate
       : 0;
 
-  const storekeeperPalletsEarnings =
+    const storekeeperPalletsEarnings =
     isStorekeeper
-      ? pallets * 15
+      ? pallets * tariffs.storekeeper.palletRate
       : 0;
 
   const storekeeperBoxesEarnings =
     isStorekeeper
-      ? boxes * 3
+      ? boxes * tariffs.storekeeper.boxRate
       : 0;
 
   const loaderHourlyRate =
-    getOriginalMainShiftsForDate(
-      user,
-      selectedDate
-    ) > 0
-      ? 58000 /
-        getOriginalMainShiftsForDate(
-          user,
-          selectedDate
-        ) /
+    getOriginalMainShiftsForDate(user, selectedDate) > 0
+      ? tariffs.storekeeper.loaderMonthlyBase /
+        getOriginalMainShiftsForDate(user, selectedDate) /
         11
       : 0;
 
   const returnHourRate =
-    227 + loaderHourlyRate;
+    tariffs.storekeeper.returnBaseHourRate + loaderHourlyRate;
 
   const returnHoursEarnings =
     isStorekeeper
@@ -381,17 +365,20 @@ const originalMainShifts =
       : 0;
 
   const nonProfileEarnings =
-    nonProfileHours * 136;
+    nonProfileHours * tariffs.nonProfileHourRate;
 
-  const mentorEarnings =
+    const mentorEarnings =
     shift?.mentor
       ? averageBoxes === 0
-        ? 1200 * 3.6
-        : averageBoxes < 1200
-          ? 1000 * 2.7
-          : averageBoxes < 1800
-            ? 1200 * 3.6
-            : 1800 * 4
+        ? tariffs.mentor.zeroAverage.boxes *
+          tariffs.mentor.zeroAverage.rate
+        : (() => {
+            const tier = tariffs.mentor.tiers
+              .filter((item) => averageBoxes >= item.minAverage)
+              .at(-1);
+
+            return tier ? tier.boxes * tier.rate : 0;
+          })()
       : 0;
 
         return (

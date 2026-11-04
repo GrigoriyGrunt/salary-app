@@ -19,8 +19,8 @@ export default function StatisticsPage() {
   );
     const [showStatisticsGuide, setShowStatisticsGuide] = useState(false);
 
-  useEffect(() => {
-    if (!currentUser?.id) return;
+    useEffect(() => {
+    if (!currentUser?.id || !currentUser.isSetupCompleted) return;
 
     const key = `statistics-guide-shown-${currentUser.id}`;
 
@@ -28,7 +28,7 @@ export default function StatisticsPage() {
       localStorage.setItem(key, "true");
       setShowStatisticsGuide(true);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.isSetupCompleted]);
 
   const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";

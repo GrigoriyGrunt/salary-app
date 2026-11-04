@@ -164,8 +164,8 @@ async function loadUsers() {
   const user = useUsersStore((state) => state.currentUser);
     const [showProfileGuide, setShowProfileGuide] = useState(false);
 
-  useEffect(() => {
-    if (!user?.id) return;
+    useEffect(() => {
+    if (!user?.id || !user.isSetupCompleted) return;
 
     const key = `profile-guide-shown-${user.id}`;
 
@@ -173,7 +173,7 @@ async function loadUsers() {
       localStorage.setItem(key, "true");
       setShowProfileGuide(true);
     }
-  }, [user?.id]);
+  }, [user?.id, user?.isSetupCompleted]);
   useEffect(() => {
   if (user?.role === "admin") {
     loadUsers();
@@ -341,6 +341,11 @@ async function handleResetProfile() {
     localStorage.removeItem("currentUserId");
     localStorage.removeItem("rememberLogin");
     localStorage.removeItem("loginExpiresAt");
+    localStorage.removeItem(`instruction-invitation-handled-${user.id}`);
+    localStorage.removeItem(`schedule-guide-shown-${user.id}`);
+    localStorage.removeItem(`money-guide-shown-${user.id}`);
+    localStorage.removeItem(`statistics-guide-shown-${user.id}`);
+    localStorage.removeItem(`profile-guide-shown-${user.id}`);
 
     setIsResetOpen(false);
 

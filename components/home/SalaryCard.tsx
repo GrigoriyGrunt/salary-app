@@ -9,6 +9,7 @@ import { getExperienceBonus } from "@/lib/experience";
 import { getOriginalMainShiftsForDate } from "@/lib/getOriginalMainShiftsForMonth";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
 import { calculateMonthlyReport } from "@/lib/report";
+import { getWarehouseConfig } from "@/lib/warehouses/config";
 
 export default function SalaryCard() {
   const shifts = useScheduleStore((state) => state.shifts);
@@ -38,6 +39,17 @@ export default function SalaryCard() {
   );
 
   const currentDate = new Date();
+  const warehouseConfig = getWarehouseConfig(
+  user?.warehouse
+);
+
+if (!warehouseConfig) {
+  throw new Error(
+    `Не найдена конфигурация склада: ${user?.warehouse}`
+  );
+}
+
+const tariffs = warehouseConfig.tariffs;
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
@@ -96,8 +108,9 @@ const isStorekeeper =
   );
 
   const experienceBonus = getExperienceBonus(
-    user?.hireDate || ""
-  );
+  user?.hireDate || "",
+  tariffs.experienceBonus
+);
 
 const monthStats =
   getMonthProductionStats(
@@ -122,11 +135,10 @@ const averagePallets =
     : 0;
 
 const palletPrice =
-  averagePallets >= 300
-    ? 17
-    : averagePallets >= 250
-      ? 14
-      : 12;
+  [...tariffs.pallets]
+    .reverse()
+    .find((tier) => averagePallets >= tier.minAverage)
+    ?.rate ?? 0;
 
 const palletSalary =
   totalPallets * palletPrice;
@@ -139,17 +151,14 @@ const averageBoxes =
     : 0;  
 
   const boxPrice =
-  averageBoxes > 0
-    ? averageBoxes < 1200
-      ? 2.7
-      : averageBoxes < 1800
-        ? 3.6
-        : 4
-    : goal < 1200
-      ? 2.7
-      : goal < 1800
-        ? 3.6
-        : 4;
+  [...tariffs.boxes]
+    .reverse()
+    .find(
+      (tier) =>
+        (averageBoxes > 0 ? averageBoxes : goal) >=
+        tier.minAverage
+    )
+    ?.rate ?? 0;
     const totalBlocks =
     monthStats.blocks;
 
@@ -164,21 +173,14 @@ const averageBoxes =
       : 0;
 
   const blockPrice =
-    averageBlocks > 0
-      ? averageBlocks < 2200
-        ? 0.6
-        : averageBlocks < 3200
-          ? 0.7
-          : averageBlocks < 4000
-            ? 0.8
-            : 1
-      : goal < 2200
-        ? 0.6
-        : goal < 3200
-          ? 0.7
-          : goal < 4000
-            ? 0.8
-            : 1;
+  [...tariffs.blocks]
+    .reverse()
+    .find(
+      (tier) =>
+        (averageBlocks > 0 ? averageBlocks : goal) >=
+        tier.minAverage
+    )
+    ?.rate ?? 0;
 
   const motivationPrice =
   user?.position === "Комплектовщик табака"
@@ -186,17 +188,14 @@ const averageBoxes =
     : boxPrice;
 
 const palletForecastPrice =
-  averagePallets > 0
-    ? averagePallets < 250
-      ? 12
-      : averagePallets < 300
-        ? 14
-        : 17
-    : goal < 250
-      ? 12
-      : goal < 300
-        ? 14
-        : 17;
+  [...tariffs.pallets]
+    .reverse()
+    .find(
+      (tier) =>
+        (averagePallets > 0 ? averagePallets : goal) >=
+        tier.minAverage
+    )
+    ?.rate ?? 0;
 
 const forecastBoxPrice =
   isStacker
@@ -210,7 +209,9 @@ const forecastMotivationPrice =
 
 const hourlyRate =
     originalMainShifts > 0
-      ? 23750 /
+      ? tariffs.monthlySalary[
+  isStorekeeper ? "storekeeper" : "default"
+] /
         originalMainShifts /
         11
       : 0;
@@ -218,7 +219,9 @@ const hourlyRate =
   const regularShiftSalary =
   originalMainShifts > 0
     ? (
-        23750 +
+        tariffs.monthlySalary[
+  isStorekeeper ? "storekeeper" : "default"
+] +
         goal *
           forecastMotivationPrice *
           originalMainShifts
@@ -227,7 +230,9 @@ const hourlyRate =
 
 const regularNightShiftSalary =
   regularShiftSalary +
-  hourlyRate * 7 * 0.2;
+  hourlyRate *
+    7 *
+    tariffs.nightSurchargeRate;
 
 const extraShiftSalary =
   hourlyRate * 22 +
@@ -236,8 +241,11 @@ const extraShiftSalary =
 const extraNightShiftSalary =
   (
     hourlyRate * 11 +
-    hourlyRate * 7 * 0.2
-  ) * 2 +
+    hourlyRate *
+      7 *
+      tariffs.nightSurchargeRate
+  ) *
+    tariffs.extraShiftMultiplier +
   goal * forecastMotivationPrice;
 
   const mainAndOvertimeCount =
@@ -278,37 +286,45 @@ const extraNightShiftSalary =
       );
 
     const shiftHourlyRate =
-      shiftOriginalMainShifts > 0
-        ? 23750 /
-          shiftOriginalMainShifts /
-          11
-        : 0;
+  shiftOriginalMainShifts > 0
+    ? tariffs.monthlySalary[
+        isStorekeeper ? "storekeeper" : "default"
+      ] /
+      shiftOriginalMainShifts /
+      11
+    : 0;
 
-    const shiftRegularSalary =
+const shiftRegularSalary =
   shiftOriginalMainShifts > 0
     ? (
-        23750 +
+        tariffs.monthlySalary[
+          isStorekeeper ? "storekeeper" : "default"
+        ] +
         goal *
           forecastMotivationPrice *
           shiftOriginalMainShifts
-      ) /
-      shiftOriginalMainShifts
+      ) / shiftOriginalMainShifts
     : 0;
 
     const shiftRegularNightSalary =
-      shiftRegularSalary +
-      shiftHourlyRate * 7 * 0.2;
+  shiftRegularSalary +
+  shiftHourlyRate *
+    7 *
+    tariffs.nightSurchargeRate;
 
-    const shiftExtraSalary =
-      shiftHourlyRate * 22 +
-      goal * forecastMotivationPrice;
+const shiftExtraSalary =
+  shiftHourlyRate * 22 +
+  goal * forecastMotivationPrice;
 
-    const shiftExtraNightSalary =
-      (
-        shiftHourlyRate * 11 +
-        shiftHourlyRate * 7 * 0.2
-      ) * 2 +
-      goal * forecastMotivationPrice;
+const shiftExtraNightSalary =
+  (
+    shiftHourlyRate * 11 +
+    shiftHourlyRate *
+      7 *
+      tariffs.nightSurchargeRate
+  ) *
+    tariffs.extraShiftMultiplier +
+  goal * forecastMotivationPrice;
 
     const isNightShift =
       shift.type === "night";
@@ -343,15 +359,22 @@ const extraNightShiftSalary =
   });
 
   const errorCount =
-    monthDeductions.filter(
-      (deduction) =>
-        deduction.type === "Ошибка"
-    ).reduce(
-      (total, deduction) =>
-        total +
-        Number(deduction.amount || 0),
-      0
-    ) / 600;
+  monthDeductions.filter(
+    (deduction) =>
+      deduction.type === "Ошибка"
+  ).reduce(
+    (total, deduction) =>
+      total +
+      Number(deduction.amount || 0),
+    0
+  ) /
+  tariffs.bonuses.errorDeduction[
+    isStacker
+      ? "stacker"
+      : isStorekeeper
+        ? "storekeeper"
+        : "default"
+  ];
 
   const hasAbsence =
     monthShifts.some(
@@ -366,25 +389,24 @@ const extraNightShiftSalary =
   ).length;
 
 const absenceDeduction =
-  absenceCount * 3000;
+  absenceCount * tariffs.bonuses.absenceDeduction;
 
   const disciplineBonus =
-    hasAbsence
-      ? 0
-      : 2000;
+  hasAbsence
+    ? 0
+    : tariffs.bonuses.discipline;
 
   const withoutErrorsBonus =
-    errorCount < 3
-      ? 5000
-      : 0;
-  const stackerWithoutErrorsBonus =
-    isStacker &&
-    monthShifts.some(
-      (shift) => shift.isWorked
-    ) &&
-    errorCount < 3
-      ? 2000
-      : 0;
+  !isStorekeeper && !isStacker && errorCount === 0
+    ? tariffs.bonuses.noErrors
+    : 0;
+
+const stackerWithoutErrorsBonus =
+  isStacker &&
+  monthShifts.some((shift) => shift.isWorked) &&
+  errorCount === 0
+    ? tariffs.bonuses.stackerNoErrors
+    : 0;
 
 const totalSalary =
   currentMonthReport.totalSalary;  
@@ -415,7 +437,7 @@ const storekeeperTotalMainShifts =
 
 const storekeeperHourlyRate =
   storekeeperTotalMainShifts > 0
-    ? 27000 /
+    ? tariffs.monthlySalary.storekeeper /
       storekeeperTotalMainShifts /
       11
     : 0;
@@ -424,7 +446,8 @@ const storekeeperWorkedPallets =
   totalPallets;
 
 const storekeeperWorkedMotivation =
-  storekeeperWorkedPallets * 15;
+  storekeeperWorkedPallets *
+  tariffs.storekeeper.palletRate;
 
 const storekeeperWorkedMainShifts =
   monthShifts.filter(
@@ -463,7 +486,7 @@ const storekeeperRequiredPallets =
   storekeeperFutureShifts > 0
     ? Math.ceil(
         storekeeperRemainingMotivation /
-          15 /
+          tariffs.storekeeper.palletRate /
           storekeeperFutureShifts
       )
     : 0;
@@ -492,8 +515,8 @@ const storekeeperRequiredPallets =
     ? totalSalary +
       storekeeperFutureSalary +
       storekeeperRequiredPallets *
-  15 *
-  storekeeperFutureShifts
+        tariffs.storekeeper.palletRate *
+        storekeeperFutureShifts
     : totalSalary +
       futureForecast -
       absenceDeduction;

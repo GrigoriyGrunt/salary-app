@@ -17,10 +17,19 @@ export function getExperienceYears(hireDate: string) {
 
   return Math.max(0, years);
 }
-export function getExperienceBonus(hireDate: string) {
+export function getExperienceBonus(
+  hireDate: string,
+  experienceBonus: {
+    firstYear: number;
+    additionalYear: number;
+  }
+) {
   const years = getExperienceYears(hireDate);
 
   if (years < 1) return 0;
 
-  return 2000 + (years - 1) * 1000;
+  return (
+    experienceBonus.firstYear +
+    (years - 1) * experienceBonus.additionalYear
+  );
 }

@@ -11,6 +11,7 @@ import {
 import { useFinanceStore } from "@/store/financeStore";
 import { useEffect, useState } from "react";
 import BottomSheet from "@/components/BottomSheet/BottomSheet";
+import { getWarehouseConfig } from "@/lib/warehouses/config";
 
 type Props = {
   selectedDate: Date;
@@ -35,6 +36,8 @@ export default function SalaryBreakdown({
     const [deductionsModalOpen, setDeductionsModalOpen] =
     useState(false);
   const user = useUsersStore((state) => state.currentUser);
+  const warehouseConfig = getWarehouseConfig(user?.warehouse);
+const tariffs = warehouseConfig?.tariffs;
   const isTobaccoPicker =
   user?.position === "Комплектовщик табака";
 
@@ -71,7 +74,11 @@ const originalMainShiftsByMonth = useScheduleStore(
 );
 
 const experienceBonus = getExperienceBonus(
-  user?.hireDate || ""
+  user?.hireDate || "",
+  tariffs?.experienceBonus ?? {
+    firstYear: 2000,
+    additionalYear: 1000,
+  }
 );
 
 const currentDate = selectedDate;
@@ -260,10 +267,12 @@ const shiftOriginalMainShifts =
 
 const hourlyRate =
   shiftOriginalMainShifts > 0
-    ? (isStorekeeper ? 27000 : 23750) /
+    ? (isStorekeeper
+        ? tariffs?.monthlySalary.storekeeper ?? 27000
+        : tariffs?.monthlySalary.default ?? 23750) /
       shiftOriginalMainShifts /
       11
-    : 0; 
+    : 0;
 
       if (
         shift.workType !== "main" &&
@@ -279,12 +288,12 @@ const hourlyRate =
         if (transitionPart === "first") {
           shiftSalary =
             2 * hourlyRate +
-            2 * hourlyRate * 1.2;
+            2 * hourlyRate * (1 + (tariffs?.nightSurchargeRate ?? 0.2));
         } else if (
           transitionPart === "second"
         ) {
           shiftSalary =
-            5 * hourlyRate * 1.2 +
+            5 * hourlyRate * (1 + (tariffs?.nightSurchargeRate ?? 0.2)) +
             2 * hourlyRate;
         } else {
           const normalHours = Math.min(
@@ -309,7 +318,7 @@ const hourlyRate =
             normalHours * hourlyRate +
             nightHours *
               hourlyRate *
-              1.2 +
+              (1 + (tariffs?.nightSurchargeRate ?? 0.2)) +
             afterNightHours * hourlyRate;
         }
       } else {
@@ -318,8 +327,8 @@ const hourlyRate =
       }
 
       if (shift.workType === "extra") {
-        shiftSalary *= 2;
-      }
+  shiftSalary *= tariffs?.extraShiftMultiplier ?? 2;
+}
 
       return total + shiftSalary;
     },
@@ -349,11 +358,9 @@ const averageBoxes =
     : 0;
 
 const boxRate =
-  averageBoxes >= 1800
-    ? 4
-    : averageBoxes >= 1200
-      ? 3.6
-      : 2.7;
+  tariffs?.boxes
+    .filter((tier) => averageBoxes >= tier.minAverage)
+    .at(-1)?.rate ?? 2.7;
 
 const salaryFromBoxes =
   isStacker
@@ -380,13 +387,9 @@ const averageBlocks =
     : 0;
 
 const blockRate =
-  averageBlocks >= 4000
-    ? 1
-    : averageBlocks >= 3200
-      ? 0.8
-      : averageBlocks >= 2200
-        ? 0.7
-        : 0.6;
+  tariffs?.blocks
+    .filter((tier) => averageBlocks >= tier.minAverage)
+    .at(-1)?.rate ?? 0.6;
 
 const salaryFromBlocks =
   isStacker
@@ -407,11 +410,9 @@ const averagePallets =
     : 0;
 
 const palletRate =
-  averagePallets >= 300
-    ? 17
-    : averagePallets >= 250
-      ? 14
-      : 12;
+  tariffs?.pallets
+    .filter((tier) => averagePallets >= tier.minAverage)
+    .at(-1)?.rate ?? 12;
 
 const salaryFromPallets =
   isStacker
@@ -426,23 +427,24 @@ const totalReturnHours =
 
 const salaryFromStorekeeperPallets =
   isStorekeeper
-    ? totalPallets * 15
+    ? totalPallets * (tariffs?.storekeeper.palletRate ?? 15)
     : 0;
 
 const salaryFromStorekeeperBoxes =
   isStorekeeper
-    ? totalBoxes * 3
+    ? totalBoxes * (tariffs?.storekeeper.boxRate ?? 3)
     : 0;
 
 const loaderHourlyRate =
   originalMainShifts > 0
-    ? 58000 /
+    ? (tariffs?.storekeeper.loaderMonthlyBase ?? 58000) /
       originalMainShifts /
       11
     : 0;
 
 const returnHourRate =
-  227 + loaderHourlyRate;
+  (tariffs?.storekeeper.returnBaseHourRate ?? 227) +
+  loaderHourlyRate;
 
 const salaryFromReturnHours =
   isStorekeeper
@@ -450,12 +452,18 @@ const salaryFromReturnHours =
     : 0;    
 const mentorSalaryPerShift =
   averageBoxes === 0
-    ? 1200 * 3.6
-    : averageBoxes < 1200
-      ? 1000 * 2.7
-      : averageBoxes < 1800
-        ? 1200 * 3.6
-        : 1800 * 4;
+    ? (tariffs?.mentor.zeroAverage.boxes ?? 1200) *
+      (tariffs?.mentor.zeroAverage.rate ?? 3.6)
+    : (() => {
+        const tier = tariffs?.mentor.tiers
+          .filter((item) => averageBoxes >= item.minAverage)
+          .at(-1);
+
+        return (
+          (tier?.boxes ?? 1000) *
+          (tier?.rate ?? 2.7)
+        );
+      })();
 
 const salaryFromMentoring = shifts.reduce(
   (total, shift) => {
@@ -518,7 +526,7 @@ const salaryFromMentoring = shifts.reduce(
   );
 
 const salaryFromNonProfileHours =
-  totalNonProfileHours * 136;
+  totalNonProfileHours * (tariffs?.nonProfileHourRate ?? 136);
   const workedMainShiftsCount = monthShifts.filter(
   (shift) =>
     shift.workType === "main" &&
@@ -528,7 +536,7 @@ const salaryFromNonProfileHours =
 const salaryFromDiscipline =
   originalMainShifts > 0 &&
   workedMainShiftsCount === originalMainShifts
-    ? 2000
+    ? tariffs?.bonuses.discipline ?? 2000
     : 0;
     const totalErrors = monthDeductions
   .filter((deduction) => deduction.type === "Ошибка")
@@ -541,10 +549,10 @@ const salaryFromDiscipline =
 const errorsDeduction =
   totalErrors *
   (isStorekeeper
-    ? 1500
+    ? tariffs?.bonuses.errorDeduction.storekeeper ?? 1500
     : isStacker
-      ? 500
-      : 600);
+      ? tariffs?.bonuses.errorDeduction.stacker ?? 500
+      : tariffs?.bonuses.errorDeduction.default ?? 600);
 
 const salaryWithoutErrors =
   isStorekeeper
@@ -552,11 +560,11 @@ const salaryWithoutErrors =
     : isStacker
       ? workedMonthShifts.length > 0 &&
         totalErrors === 0
-        ? 2000
+        ? tariffs?.bonuses.stackerNoErrors ?? 2000
         : 0
       : workedMonthShifts.length > 0 &&
         totalErrors <= 2
-        ? 5000
+        ? tariffs?.bonuses.noErrors ?? 5000
         : 0;
 
 const damageDeduction = monthDeductions
@@ -583,7 +591,8 @@ const absenceCount = monthShifts.filter(
   (shift) => shift.status === "absence"
 ).length;
 
-const absenceDeduction = absenceCount * 3000;
+const absenceDeduction =
+  absenceCount * (tariffs?.bonuses.absenceDeduction ?? 3000);
 
 const totalPenaltyDeduction =
   manualPenaltyDeduction + absenceDeduction;

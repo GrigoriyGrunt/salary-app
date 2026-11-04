@@ -23,8 +23,8 @@ export default function SchedulePage() {
 
   const [showScheduleGuide, setShowScheduleGuide] = useState(false);
 
-  useEffect(() => {
-    if (!currentUser?.id) return;
+    useEffect(() => {
+    if (!currentUser?.id || !currentUser.isSetupCompleted) return;
 
     const key = `schedule-guide-shown-${currentUser.id}`;
 
@@ -32,7 +32,7 @@ export default function SchedulePage() {
       localStorage.setItem(key, "true");
       setShowScheduleGuide(true);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.isSetupCompleted]);
   const {
   openShiftEditor,
   selectedDate,

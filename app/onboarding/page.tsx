@@ -101,10 +101,13 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
   setWarehouse(value);
 }}
             options={[
-              {
-                label: "РЦ Хабаровск",
-              },
-            ]}
+  {
+    label: "РЦ Хабаровск",
+  },
+  {
+    label: "РЦ Кстово",
+  },
+]}
           />
 
           <Select

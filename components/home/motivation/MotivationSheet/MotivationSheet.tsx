@@ -4,6 +4,7 @@ import { useState } from "react";
 import BottomSheet from "@/components/BottomSheet/BottomSheet";
 import styles from "./MotivationSheet.module.css";
 import { useUsersStore } from "@/store/usersStore";
+import { getWarehouseConfig } from "@/lib/warehouses/config";
 
 type Props = {
   open: boolean;
@@ -30,6 +31,10 @@ const numberValue = Number(value);
 const currentUser = useUsersStore(
   (state) => state.currentUser
 );
+const warehouseConfig = getWarehouseConfig(
+  currentUser?.warehouse
+);
+const tariffs = warehouseConfig?.tariffs;
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
@@ -106,17 +111,17 @@ const isValid =
 
     <div className={styles.row}>
       <span>до 1200</span>
-      <span>2,70 ₽/кор</span>
+      <span>{(tariffs?.boxes[0]?.rate ?? 2.7).toFixed(2).replace(".", ",")} ₽/кор</span>
     </div>
 
     <div className={styles.row}>
       <span>1200–1799</span>
-      <span>3,60 ₽/кор</span>
+      <span>{(tariffs?.boxes[1]?.rate ?? 3.6).toFixed(2).replace(".", ",")} ₽/кор</span>
     </div>
 
     <div className={styles.row}>
       <span>1800+</span>
-      <span>4,00 ₽/кор</span>
+      <span>{(tariffs?.boxes[2]?.rate ?? 4).toFixed(2).replace(".", ",")} ₽/кор</span>
     </div>
   </div>
 )}
@@ -128,22 +133,22 @@ const isValid =
 
           <div className={styles.row}>
             <span>до 2200</span>
-            <span>0,60 ₽/блок</span>
+            <span>{(tariffs?.blocks[0]?.rate ?? 0.6).toFixed(2).replace(".", ",")} ₽/блок</span>
           </div>
 
           <div className={styles.row}>
             <span>2200–3199</span>
-            <span>0,70 ₽/блок</span>
+            <span>{(tariffs?.blocks[1]?.rate ?? 0.7).toFixed(2).replace(".", ",")} ₽/блок</span>
           </div>
 
           <div className={styles.row}>
             <span>3200–3999</span>
-            <span>0,80 ₽/блок</span>
+            <span>{(tariffs?.blocks[2]?.rate ?? 0.8).toFixed(2).replace(".", ",")} ₽/блок</span>
           </div>
 
           <div className={styles.row}>
             <span>4000+</span>
-            <span>1,00 ₽/блок</span>
+            <span>{(tariffs?.blocks[3]?.rate ?? 1).toFixed(2).replace(".", ",")} ₽/блок</span>
           </div>
         </div>
         )}
@@ -155,12 +160,12 @@ const isValid =
 
     <div className={styles.row}>
       <span>Приёмка и отгрузка</span>
-      <span>15,00 ₽/паллет</span>
+      <span>{(tariffs?.storekeeper.palletRate ?? 15).toFixed(2).replace(".", ",")} ₽/паллет</span>
     </div>
 
     <div className={styles.row}>
       <span>Покоробочная приёмка</span>
-      <span>3,00 ₽/короб</span>
+      <span>{(tariffs?.storekeeper.boxRate ?? 3).toFixed(2).replace(".", ",")} ₽/короб</span>
     </div>
   </div>
 )}        
@@ -172,17 +177,17 @@ const isValid =
 
     <div className={styles.row}>
       <span>до 249</span>
-      <span>12,00 ₽/паллет</span>
+      <span>{(tariffs?.pallets[0]?.rate ?? 12).toFixed(2).replace(".", ",")} ₽/паллет</span>
     </div>
 
     <div className={styles.row}>
       <span>250–299</span>
-      <span>14,00 ₽/паллет</span>
+      <span>{(tariffs?.pallets[1]?.rate ?? 14).toFixed(2).replace(".", ",")} ₽/паллет</span>
     </div>
 
     <div className={styles.row}>
       <span>300+</span>
-      <span>17,00 ₽/паллет</span>
+      <span>{(tariffs?.pallets[2]?.rate ?? 17).toFixed(2).replace(".", ",")} ₽/паллет</span>
     </div>
   </div>
 )}        

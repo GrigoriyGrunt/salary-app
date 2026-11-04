@@ -88,8 +88,8 @@ export default function MoneyPage() {
 
   const [showMoneyGuide, setShowMoneyGuide] = useState(false);
 
-  useEffect(() => {
-    if (!currentUser?.id) return;
+    useEffect(() => {
+    if (!currentUser?.id || !currentUser.isSetupCompleted) return;
 
     const key = `money-guide-shown-${currentUser.id}`;
 
@@ -97,7 +97,7 @@ export default function MoneyPage() {
       localStorage.setItem(key, "true");
       setShowMoneyGuide(true);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.isSetupCompleted]);
 
   const payments = useFinanceStore((state) => state.payments);
 

@@ -242,6 +242,8 @@ salary-app
 │   ├── positions
 │   │   ├── config.ts
 │   │   └── index.ts
+│   ├── warehouses
+│   │   └── config.ts
 │   ├── applyScheduleChanges.ts
 │   ├── auth.ts
 │   ├── buildSegment.ts

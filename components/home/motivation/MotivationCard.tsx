@@ -4,11 +4,15 @@ import { useScheduleStore } from "@/store/scheduleStore";
 import { getMonthProductionStats } from "@/lib/getMonthProductionStats";
 import { calculateMonthlyReport } from "@/lib/report";
 import { useUsersStore } from "@/store/usersStore";
+import { getWarehouseConfig } from "@/lib/warehouses/config";
 export default function MotivationCard() {
   const goal = useFinanceStore((state) => state.goal);
   const currentUser = useUsersStore(
   (state) => state.currentUser
 );
+
+const warehouseConfig = getWarehouseConfig(currentUser?.warehouse);
+const tariffs = warehouseConfig?.tariffs;
 
 const isTobaccoPicker =
   currentUser?.position === "Комплектовщик табака";
@@ -95,27 +99,19 @@ const averagePallets =
       )
     : 0;    
 const boxPrice =
-  averageBoxes < 1200
-    ? 2.7
-    : averageBoxes < 1800
-      ? 3.6
-      : 4;
+  tariffs?.boxes
+    .filter((tier) => averageBoxes >= tier.minAverage)
+    .at(-1)?.rate ?? 0;
 
 const blockPrice =
-  averageBlocks < 2200
-    ? 0.6
-    : averageBlocks < 3200
-      ? 0.7
-      : averageBlocks < 4000
-        ? 0.8
-        : 1;
+  tariffs?.blocks
+    .filter((tier) => averageBlocks >= tier.minAverage)
+    .at(-1)?.rate ?? 0;
 
 const palletPrice =
-  averagePallets < 250
-    ? 12
-    : averagePallets < 300
-      ? 14
-      : 17;
+  tariffs?.pallets
+    .filter((tier) => averagePallets >= tier.minAverage)
+    .at(-1)?.rate ?? 0;
 
 const hasProductionData =
   isStacker
@@ -256,12 +252,12 @@ const storekeeperHourlyRate =
   storekeeperWorkedMainShifts +
     storekeeperFutureMainShifts >
   0
-    ? 27000 /
-      (
-        storekeeperWorkedMainShifts +
-        storekeeperFutureMainShifts
-      ) /
-      11
+    ? (tariffs?.monthlySalary.storekeeper ?? 27000) /
+  (
+    storekeeperWorkedMainShifts +
+    storekeeperFutureMainShifts
+  ) /
+  11
     : 0;
 
 const storekeeperEarnedSalary =
@@ -297,7 +293,7 @@ const storekeeperRequiredPallets =
   storekeeperFutureShifts > 0
     ? Math.ceil(
         storekeeperRemainingMotivation /
-          15 /
+          (tariffs?.storekeeper.palletRate ?? 15) /
           storekeeperFutureShifts
       )
     : 0;
@@ -316,7 +312,7 @@ const storekeeperRequiredPallets =
 
 <strong className={styles.value}>
   {isStorekeeper
-    ? "15,00 ₽"
+  ? `${(tariffs?.storekeeper.palletRate ?? 15).toFixed(2).replace(".", ",")} ₽`
     : hasProductionData
       ? `${(isStacker
           ? palletPrice
