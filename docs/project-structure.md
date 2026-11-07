@@ -278,6 +278,8 @@ salary-app
 │   │   │   └── migration.sql
 │   │   ├── 20261104130000_add_watch_motivation_goals
 │   │   │   └── migration.sql
+│   │   ├── 20261107044635_add_goal_period_key
+│   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma
 ├── public
