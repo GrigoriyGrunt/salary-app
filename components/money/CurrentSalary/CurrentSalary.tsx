@@ -3,15 +3,21 @@ import styles from "./CurrentSalary.module.css";
 type Props = {
   total: number;
   paid: number;
+  isWatchEmployee?: boolean;
 };
 
 export default function CurrentSalary({
   total,
   paid,
+  isWatchEmployee,
 }: Props) {
   return (
     <section className={styles.card}>
-      <h2 className={styles.title}>Расчет за текущий месяц</h2>
+      <h2 className={styles.title}>
+  {isWatchEmployee
+    ? "Расчет за текущий период вахты"
+    : "Расчет за текущий месяц"}
+</h2>
 
       <div className={styles.content}>
         <div className={styles.block}>

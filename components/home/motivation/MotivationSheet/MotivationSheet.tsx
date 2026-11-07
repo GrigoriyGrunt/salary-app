@@ -44,6 +44,9 @@ const isStacker =
 
 const isStorekeeper =
   currentUser?.position === "Кладовщик";
+  const isWatchMotivation =
+  currentUser?.position === "Комплектовщик основы" &&
+  currentUser?.schedule === "15/15 вахта";
 
 const isValid =
   Number.isInteger(numberValue) &&
@@ -59,10 +62,12 @@ const isValid =
         </h2>
 
         <div className={styles.section}>
-          <div className={styles.label}>
-  {isStorekeeper
-    ? "Цель заработка в месяц"
-    : "Цель на месяц"}
+<div className={styles.label}>
+  {isWatchMotivation
+    ? "Цель на вахту"
+    : isStorekeeper
+      ? "Цель заработка в месяц"
+      : "Цель на месяц"}
 </div>
 
           <div className={styles.goalRow}>

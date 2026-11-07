@@ -38,16 +38,42 @@ export default function MotivationSection() {
       (state) => state.syncGoalMonth
     );
 
-  const currentUser =
-    useUsersStore(
-      (state) => state.currentUser
-    );
+  const currentUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const lastScheduleChange =
+  currentUser?.scheduleChanges?.[
+    (currentUser.scheduleChanges?.length ?? 1) - 1
+  ];
+
+const activeSchedule =
+  lastScheduleChange?.schedule ?? currentUser?.schedule;
+
+const watchFirstDate =
+  lastScheduleChange?.firstShiftDate ??
+  currentUser?.firstShiftDate;
+
+const watchSecondDate =
+  lastScheduleChange?.secondShiftDate ??
+  currentUser?.secondShiftDate;
+
+const isWatchMotivation =
+  currentUser?.position === "Комплектовщик основы" &&
+  activeSchedule === "15/15 вахта";
+
+const watchPeriodKey =
+  isWatchMotivation && watchFirstDate && watchSecondDate
+    ? `${new Date(watchFirstDate).toISOString().slice(0, 10)}-${new Date(watchSecondDate).toISOString().slice(0, 10)}`
+    : null;
 
   useEffect(() => {
+  if (!isWatchMotivation) {
     syncGoalMonth();
-  }, [syncGoalMonth]);
+  }
+}, [syncGoalMonth, isWatchMotivation]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (
       typeof window === "undefined" ||
       !currentUser?.id
@@ -61,11 +87,31 @@ export default function MotivationSection() {
       `show-motivation-guide-${currentUser.id}`;
 
     const shouldShow =
-      localStorage.getItem(guideKey) ===
-      "true";
+      localStorage.getItem(guideKey) === "true";
 
     if (!shouldShow) {
       return;
+    }
+
+    if (isWatchMotivation) {
+      if (!watchFirstDate || !watchSecondDate) {
+        localStorage.removeItem(guideKey);
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const watchStart = new Date(watchFirstDate);
+      watchStart.setHours(0, 0, 0, 0);
+
+      const watchEnd = new Date(watchSecondDate);
+      watchEnd.setHours(0, 0, 0, 0);
+
+      if (today < watchStart || today > watchEnd) {
+        localStorage.removeItem(guideKey);
+        return;
+      }
     }
 
     setShowGuide(true);
@@ -78,7 +124,12 @@ export default function MotivationSection() {
         block: "center",
       });
     });
-  }, [currentUser?.id]);
+  }, [
+    currentUser?.id,
+    isWatchMotivation,
+    watchFirstDate,
+    watchSecondDate,
+  ]);
 
     useEffect(() => {
     if (!showGuide) {
@@ -216,10 +267,9 @@ export default function MotivationSection() {
               top: `${guideMessageTop}px`,
             }}
           >
-            Установите мотивацию на месяц,
-            чтобы приложение могло
-            рассчитать ваш прогноз
-            заработка.
+            {isWatchMotivation
+  ? "Установите мотивацию на период вахты, чтобы приложение могло рассчитать ваш прогноз заработка."
+  : "Установите мотивацию на месяц, чтобы приложение могло рассчитать ваш прогноз заработка."}
             <br />
             Нажмите «Подробнее».
           </div>
@@ -257,7 +307,9 @@ export default function MotivationSection() {
           onClose={
             handleCloseMotivation
           }
-          onGoalChange={setGoal}
+          onGoalChange={(value) =>
+  setGoal(value, isWatchMotivation ? watchPeriodKey : null)
+}
           onSave={handleSave}
         />
       </section>

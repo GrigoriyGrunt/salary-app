@@ -4,6 +4,7 @@ import BottomSheet from "@/components/BottomSheet/BottomSheet";
 import DatePicker from "@/components/DatePicker/DatePicker";
 import NextShiftSelector from "@/components/common/NextShiftSelector/NextShiftSelector";
 import Button from "@/components/Button/Button";
+import Select from "@/components/Select/Select";
 import type { ScheduleChange } from "@/lib/profile";
 import styles from "./ChangeScheduleSheet.module.css";
 import { generateSchedule } from "@/lib/generateSchedule";
@@ -15,7 +16,19 @@ type ChangeScheduleSheetProps = {
   isOpen: boolean;
   onClose: () => void;
 };
+function toCalendarDate(value: Date | string): Date {
+  if (
+    typeof value === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value)
+  ) {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  }
 
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
 export default function ChangeScheduleSheet({
   isOpen,
   onClose,
@@ -35,9 +48,41 @@ const syncSchedule = useScheduleStore(
 const updateUser = useUsersStore(
   (state) => state.updateUser
 );
+const selectedUser = useUsersStore(
+  (state) => state.currentUser
+);
+
+const scheduleChanges = selectedUser?.scheduleChanges ?? [];
+
+const sortedChanges = [...scheduleChanges].sort(
+  (a, b) =>
+    new Date(a.changeDate).getTime() -
+    new Date(b.changeDate).getTime()
+);
+
+const lastChange = sortedChanges[sortedChanges.length - 1];
+
+const activeSchedule =
+  lastChange?.schedule ?? selectedUser?.schedule;
+
+const lastWatchEnd =
+  activeSchedule === "15/15 вахта"
+    ? lastChange?.secondShiftDate ?? selectedUser?.secondShiftDate
+    : undefined;
+
+const watchChangeMinDate = lastWatchEnd
+  ? toCalendarDate(lastWatchEnd)
+  : undefined;
+
+watchChangeMinDate?.setDate(
+  watchChangeMinDate.getDate() + 1
+);
 
   const [scheduleType, setScheduleType] =
-    useState("");
+  useState("");
+
+const [watchType, setWatchType] =
+  useState<"main" | "extra" | "">("");
 
   const [
     isScheduleOpen,
@@ -65,9 +110,12 @@ const [secondShift, setSecondShift] =
   );
   const [shiftDatesError, setShiftDatesError] =
   useState(false);
+  const [showChangeDateError, setShowChangeDateError] =
+  useState(false);
   const resetForm = () => {
   setChangeDate(undefined);
   setScheduleType("");
+  setWatchType("");
   setIsScheduleOpen(false);
   setStep("settings");
 
@@ -107,11 +155,33 @@ const handleClose = () => {
 </h2>
 
         <DatePicker
-          label=""
-          value={changeDate}
-          onChange={setChangeDate}
-          mode="calendar"
-        />
+  label=""
+  value={changeDate}
+  onChange={(date) => {
+  setChangeDate(date);
+  setShowChangeDateError(false);
+}}
+  mode="calendar"
+  minDate={
+    scheduleType === "shift"
+      ? watchChangeMinDate
+      : undefined
+  }
+/>
+{showChangeDateError && (
+  <div
+    style={{
+      padding: "12px 14px",
+      borderRadius: "12px",
+      background: "#fff1f1",
+      color: "#c62828",
+      fontSize: "14px",
+      lineHeight: "1.4",
+    }}
+  >
+    Выбранная дата изменения графика не может быть выбрана, так как это рабочая смена предыдущей вахты. Выберите дату после окончания текущего периода вахты.
+  </div>
+)}
 
         <div className={styles.selectWrapper}>
           <button
@@ -134,7 +204,7 @@ const handleClose = () => {
                 "2/2 день/ночь"}
 
               {scheduleType === "shift" &&
-                "Вахта"}
+  "15/15 вахта"}
 
               {!scheduleType &&
                 "Выберите график"}
@@ -182,18 +252,65 @@ const handleClose = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setScheduleType("shift");
-                  setIsScheduleOpen(false);
-                }}
+  setScheduleType("shift");
+  setShowChangeDateError(false);
+  setIsScheduleOpen(false);
+}}
               >
-                Вахта
+                                15/15 вахта
               </button>
             </div>
           )}
-        </div>
+                </div>
+
+        {scheduleType === "shift" && (
+          <Select
+            label="Тип вахты"
+            placeholder="Выберите тип вахты"
+            value={
+              watchType === "main"
+                ? "Плановая вахта"
+                : watchType === "extra"
+                  ? "Межвахта"
+                  : ""
+            }
+            onChange={(value) => {
+              setWatchType(
+                value === "Плановая вахта" ? "main" : "extra"
+              );
+            }}
+            options={[
+              {
+                label: "Плановая вахта",
+                description:
+                  'Плановая вахта - это основные смены по графику с возможностью взять два выходных (в календаре выходные не указаны, изменить тип можно потом самостоятельно в разделе "График"). В графике смены будут отображаться ОСН (основная смена).',
+              },
+              {
+                label: "Межвахта",
+                description:
+                  "Межвахта - это период между плановыми вахтами, в которой каждая смена считается подработкой (двойной оклад), выходные в межвахте не предусмотрены. В графике смены будут отображаться ДОП (подработка).",
+              },
+            ]}
+          />
+        )}
 
         <Button
-  onClick={() => setStep("shifts")}
+  onClick={() => {
+  if (scheduleType === "shift" && !watchType) return;
+
+  if (
+    scheduleType === "shift" &&
+    changeDate &&
+    watchChangeMinDate &&
+    toCalendarDate(changeDate) < watchChangeMinDate
+  ) {
+    setShowChangeDateError(true);
+    return;
+  }
+
+  setShowChangeDateError(false);
+  setStep("shifts");
+}}
 >
   Продолжить
 </Button>
@@ -240,9 +357,8 @@ hasDatesError={shiftDatesError}
     // Допустимо:
     // 15 → 16 — смены подряд
     // 15 → 18 — между сменами два выходных
-    if (scheduleType !== "shift") {
-      const DAY =
-        24 * 60 * 60 * 1000;
+        if (scheduleType === "shift") {
+      const DAY = 24 * 60 * 60 * 1000;
 
       const first = new Date(firstDate);
       const second = new Date(secondDate);
@@ -250,18 +366,28 @@ hasDatesError={shiftDatesError}
       first.setHours(0, 0, 0, 0);
       second.setHours(0, 0, 0, 0);
 
-      const daysBetween =
-        Math.round(
-          (
-            second.getTime() -
-            first.getTime()
-          ) / DAY
-        );
+      const daysBetween = Math.round(
+        (second.getTime() - first.getTime()) / DAY
+      );
 
-      if (
-        daysBetween !== 1 &&
-        daysBetween !== 3
-      ) {
+      if (daysBetween !== 14) {
+        setShiftDatesError(true);
+        return;
+      }
+    } else {
+      const DAY = 24 * 60 * 60 * 1000;
+
+      const first = new Date(firstDate);
+      const second = new Date(secondDate);
+
+      first.setHours(0, 0, 0, 0);
+      second.setHours(0, 0, 0, 0);
+
+      const daysBetween = Math.round(
+        (second.getTime() - first.getTime()) / DAY
+      );
+
+      if (daysBetween !== 1 && daysBetween !== 3) {
         setShiftDatesError(true);
         return;
       }
@@ -344,7 +470,9 @@ updateUser(currentUser.id, {
 const recalculatedShifts =
   applyScheduleChanges(
     shifts,
-    scheduleChanges
+    scheduleChanges,
+    scheduleType === "shift" && watchType !== "" ? watchType : undefined,
+    scheduleType === "shift" ? changeDate : undefined
   );
 
 const updatedShifts = recalculatedShifts.map(

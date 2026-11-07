@@ -7,6 +7,7 @@ import styles from "./BottomSheet.module.css";
 export type BottomSheetOption = {
   label: string;
   disabled?: boolean;
+  description?: string;
 };
 
 type BottomSheetProps = {
@@ -28,7 +29,8 @@ export default function BottomSheet({
     children,
   className,
 }: BottomSheetProps) {
-  const [mounted, setMounted] = useState(false);
+    const [mounted, setMounted] = useState(false);
+  const [activeDescription, setActiveDescription] = useState<string | null>(null);
 
 useEffect(() => {
   setMounted(true);
@@ -60,22 +62,49 @@ return createPortal(
     </h2>
 
     <div className={styles.list}>
-      {options?.map((option) => (
-        <button
-          key={option.label}
-          type="button"
-          disabled={option.disabled}
-          className={`${styles.option} ${
-            option.disabled ? styles.disabled : ""
-          }`}
-          onClick={() => {
-            if (!option.disabled) {
-              onSelect?.(option.label);
-            }
-          }}
-        >
-          {option.label}
-        </button>
+            {options?.map((option) => (
+        <div key={option.label} className={styles.optionRow}>
+          <button
+            type="button"
+            disabled={option.disabled}
+            className={`${styles.option} ${
+              option.disabled ? styles.disabled : ""
+            }`}
+            onClick={() => {
+              if (!option.disabled) {
+                onSelect?.(option.label);
+              }
+            }}
+          >
+            {option.label}
+          </button>
+
+          {option.description && (
+            <div className={styles.infoWrapper}>
+              <button
+                type="button"
+                className={styles.infoIcon}
+                aria-label="Описание"
+                aria-expanded={activeDescription === option.label}
+                onClick={() =>
+                  setActiveDescription(
+                    activeDescription === option.label
+                      ? null
+                      : option.label
+                  )
+                }
+              >
+                ?
+              </button>
+
+              {activeDescription === option.label && (
+                <div className={styles.tooltip}>
+                  {option.description}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       ))}
     </div>
   </>

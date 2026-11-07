@@ -43,6 +43,7 @@ model User {
   shifts                 Shift[]
   originalMainShifts     OriginalMainShift[]
   financeSettings        FinanceSettings?
+  watchMotivationGoals   WatchMotivationGoal[]
   payments               Payment[]
   deductions             Deduction[]
   premiums               Premium[]
@@ -142,6 +143,7 @@ model FinanceSettings {
 
   goal         Float  @default(0)
   goalMonthKey String?
+  goalPeriodKey String?
 }
 
 model Payment {
@@ -193,4 +195,21 @@ model DismissedNotification {
   notificationId String
 
   @@unique([userId, notificationId])
+}
+
+model WatchMotivationGoal {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  startDate DateTime
+  endDate   DateTime
+  goal      Float    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, startDate, endDate])
+  @@index([userId])
 }

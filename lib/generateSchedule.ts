@@ -198,7 +198,7 @@ function parseCalendarDate(value: string): Date {
   );
 }
 export function generateSchedule(
-  user: User
+  user: User & { watchType?: "main" | "extra" | null }
 ): Shift[] {
   const shifts: Shift[] = [];
 
@@ -231,20 +231,23 @@ const secondShiftDate = parseCalendarDate(
     return shifts;
   }
 
-  if (user.schedule === "15/15 вахта") {
-  const watchStart = startOfDay(firstShiftDate);
-  const watchEnd = startOfDay(secondShiftDate);
+    if (user.schedule === "15/15 вахта") {
+    const watchStart = startOfDay(firstShiftDate);
+    const watchEnd = startOfDay(secondShiftDate);
 
-  for (let i = 0; i < 365; i++) {
-    const date = new Date(startDate);
+    const watchGenerationStart =
+      watchStart < startDate ? watchStart : startDate;
 
-    date.setDate(
-      startDate.getDate() + i
-    );
+    for (let i = 0; i < 365; i++) {
+      const date = new Date(watchGenerationStart);
 
-    if (date < firstWorkingDay) {
-      continue;
-    }
+      date.setDate(
+        watchGenerationStart.getDate() + i
+      );
+
+      if (date < firstWorkingDay) {
+        continue;
+      }
 
     const currentDate = startOfDay(date);
 
@@ -252,12 +255,16 @@ const secondShiftDate = parseCalendarDate(
       currentDate >= watchStart &&
       currentDate <= watchEnd;
 
-    shifts.push(
-      createShift(
-        date,
-        isWatchDay ? "day" : "off"
-      )
+        const shift = createShift(
+      date,
+      isWatchDay ? "day" : "off"
     );
+
+    if (isWatchDay) {
+      shift.workType = user.watchType ?? "main";
+    }
+
+    shifts.push(shift);
   }
 
   return shifts;

@@ -233,7 +233,8 @@ salary-app
 │   │       │   ├── ScheduleChange.ts
 │   │       │   ├── Session.ts
 │   │       │   ├── Shift.ts
-│   │       │   └── User.ts
+│   │       │   ├── User.ts
+│   │       │   └── WatchMotivationGoal.ts
 │   │       ├── browser.ts
 │   │       ├── client.ts
 │   │       ├── commonInputTypes.ts
@@ -274,6 +275,8 @@ salary-app
 │   │   ├── 20261007042740_add_return_hours
 │   │   │   └── migration.sql
 │   │   ├── 20261010060332_add_return_reception
+│   │   │   └── migration.sql
+│   │   ├── 20261104130000_add_watch_motivation_goals
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma

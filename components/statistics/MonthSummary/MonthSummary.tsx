@@ -5,10 +5,15 @@ import { useUsersStore } from "@/store/usersStore";
 import ProductionDetailsModal from "@/components/statistics/ProductionDetailsModal/ProductionDetailsModal";
 type MonthSummaryProps = {
   selectedDate: Date;
+  watchPeriod?: {
+    startDate: string;
+    endDate: string;
+  };
 };
 
 export default function MonthSummary({
   selectedDate,
+  watchPeriod,
 }: MonthSummaryProps) {
   const shifts = useScheduleStore(
     (state) => state.shifts
@@ -30,126 +35,104 @@ const isStorekeeper =
 >(null);
 
   const monthShifts = shifts.filter((shift) => {
-    const shiftDate = new Date(shift.date);
+  const shiftDate = new Date(shift.date);
 
-    return (
-      shiftDate.getMonth() === selectedDate.getMonth() &&
-      shiftDate.getFullYear() === selectedDate.getFullYear() &&
-      shift.isWorked
+  const isInWatchPeriod = watchPeriod
+    ? shiftDate >= new Date(`${watchPeriod.startDate}T00:00:00`) &&
+      shiftDate <= new Date(`${watchPeriod.endDate}T23:59:59`)
+    : shiftDate.getMonth() === selectedDate.getMonth() &&
+      shiftDate.getFullYear() === selectedDate.getFullYear();
+
+  return isInWatchPeriod && shift.isWorked;
+});
+
+const totalBoxes = watchPeriod
+  ? monthShifts.reduce(
+      (total, shift) =>
+        total +
+        (shift.transitionDistribution
+          ? (shift.transitionDistribution.firstMonth.boxes || 0) +
+            (shift.transitionDistribution.secondMonth.boxes || 0)
+          : shift.boxes || 0),
+      0
+    )
+  : shifts.reduce(
+      (total, shift) => {
+        if (!shift.isWorked) return total;
+
+        const shiftDate = new Date(shift.date);
+
+        const isCurrentMonth =
+          shiftDate.getMonth() === selectedDate.getMonth() &&
+          shiftDate.getFullYear() === selectedDate.getFullYear();
+
+        if (shift.transitionDistribution) {
+          const nextDay = new Date(shiftDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+
+          const isSecondMonth =
+            nextDay.getMonth() === selectedDate.getMonth() &&
+            nextDay.getFullYear() === selectedDate.getFullYear();
+
+          if (isCurrentMonth) {
+            return total + (shift.transitionDistribution.firstMonth.boxes || 0);
+          }
+
+          if (isSecondMonth) {
+            return total + (shift.transitionDistribution.secondMonth.boxes || 0);
+          }
+
+          return total;
+        }
+
+        return isCurrentMonth ? total + shift.boxes : total;
+      },
+      0
     );
-  });
 
-  const totalBoxes = shifts.reduce(
-  (total, shift) => {
-    if (!shift.isWorked) {
-      return total;
-    }
+const totalBlocks = watchPeriod
+  ? monthShifts.reduce(
+      (total, shift) =>
+        total +
+        (shift.transitionDistribution
+          ? (shift.transitionDistribution.firstMonth.blocks || 0) +
+            (shift.transitionDistribution.secondMonth.blocks || 0)
+          : shift.blocks || 0),
+      0
+    )
+  : shifts.reduce(
+      (total, shift) => {
+        if (!shift.isWorked) return total;
 
-    const shiftDate = new Date(shift.date);
+        const shiftDate = new Date(shift.date);
 
-    const isCurrentMonth =
-      shiftDate.getMonth() ===
-        selectedDate.getMonth() &&
-      shiftDate.getFullYear() ===
-        selectedDate.getFullYear();
+        const isCurrentMonth =
+          shiftDate.getMonth() === selectedDate.getMonth() &&
+          shiftDate.getFullYear() === selectedDate.getFullYear();
 
-    if (shift.transitionDistribution) {
-      const nextDay = new Date(shiftDate);
+        if (shift.transitionDistribution) {
+          const nextDay = new Date(shiftDate);
+          nextDay.setDate(nextDay.getDate() + 1);
 
-      nextDay.setDate(
-        nextDay.getDate() + 1
-      );
+          const isSecondMonth =
+            nextDay.getMonth() === selectedDate.getMonth() &&
+            nextDay.getFullYear() === selectedDate.getFullYear();
 
-      const isFirstMonth =
-        isCurrentMonth;
+          if (isCurrentMonth) {
+            return total + (shift.transitionDistribution.firstMonth.blocks || 0);
+          }
 
-      const isSecondMonth =
-        nextDay.getMonth() ===
-          selectedDate.getMonth() &&
-        nextDay.getFullYear() ===
-          selectedDate.getFullYear();
+          if (isSecondMonth) {
+            return total + (shift.transitionDistribution.secondMonth.blocks || 0);
+          }
 
-      if (isFirstMonth) {
-        return (
-          total +
-          (shift.transitionDistribution
-            .firstMonth.boxes || 0)
-        );
-      }
+          return total;
+        }
 
-      if (isSecondMonth) {
-        return (
-          total +
-          (shift.transitionDistribution
-            .secondMonth.boxes || 0)
-        );
-      }
-
-      return total;
-    }
-
-    return isCurrentMonth
-      ? total + shift.boxes
-      : total;
-  },
-  0
-);
-
-const totalBlocks = shifts.reduce(
-  (total, shift) => {
-    if (!shift.isWorked) {
-      return total;
-    }
-
-    const shiftDate = new Date(shift.date);
-
-    const isCurrentMonth =
-      shiftDate.getMonth() ===
-        selectedDate.getMonth() &&
-      shiftDate.getFullYear() ===
-        selectedDate.getFullYear();
-
-    if (shift.transitionDistribution) {
-      const nextDay = new Date(shiftDate);
-
-      nextDay.setDate(
-        nextDay.getDate() + 1
-      );
-
-      const isFirstMonth =
-        isCurrentMonth;
-
-      const isSecondMonth =
-        nextDay.getMonth() ===
-          selectedDate.getMonth() &&
-        nextDay.getFullYear() ===
-          selectedDate.getFullYear();
-
-      if (isFirstMonth) {
-        return (
-          total +
-          (shift.transitionDistribution
-            .firstMonth.blocks || 0)
-        );
-      }
-
-      if (isSecondMonth) {
-        return (
-          total +
-          (shift.transitionDistribution
-            .secondMonth.blocks || 0)
-        );
-      }
-
-      return total;
-    }
-
-    return isCurrentMonth
-      ? total + shift.blocks
-      : total;
-  },
-  0
-);
+        return isCurrentMonth ? total + shift.blocks : total;
+      },
+      0
+    );
 const totalPallets = shifts.reduce(
   (total, shift) => {
     if (!shift.isWorked) {

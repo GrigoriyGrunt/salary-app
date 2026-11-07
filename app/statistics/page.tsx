@@ -3,7 +3,7 @@
 import PageHeader from "@/components/PageHeader/PageHeader";
 import BottomNavigation from "@/components/navigation/BottomNavigation";
 import PeriodPicker from "@/components/statistics/PeriodPicker/PeriodPicker";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useUsersStore } from "@/store/usersStore";
 import MonthSummary from "@/components/statistics/MonthSummary/MonthSummary";
 import AverageStats from "@/components/statistics/AverageStats/AverageStats";
@@ -11,12 +11,114 @@ import DailyStatistics from "@/components/statistics/DailyStatistics/DailyStatis
 import WorkHours from "@/components/statistics/WorkHours/WorkHours";
 import MentorStats from "@/components/statistics/MentorStats/MentorStats";
 import styles from "./page.module.css";
+function toDateKey(value: Date | string | null | undefined) {
+  if (!value) return null;
 
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  const dateKey = String(value).slice(0, 10);
+
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateKey)
+    ? dateKey
+    : null;
+}
 export default function StatisticsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const currentUser = useUsersStore(
     (state) => state.currentUser
   );
+  const isWatchEmployee =
+  currentUser?.position === "Комплектовщик основы" &&
+  currentUser?.schedule === "15/15 вахта";
+
+const watchPeriods = useMemo(() => {
+  if (!isWatchEmployee || !currentUser) return [];
+
+  const periods = [
+    {
+      startDate: toDateKey(currentUser.firstShiftDate),
+      endDate: toDateKey(currentUser.secondShiftDate),
+    },
+    ...(currentUser.scheduleChanges ?? [])
+      .filter((change) => change.schedule === "15/15 вахта")
+      .map((change) => ({
+        startDate: toDateKey(change.firstShiftDate),
+        endDate: toDateKey(change.secondShiftDate),
+      })),
+  ].filter(
+    (period): period is { startDate: string; endDate: string } =>
+      Boolean(
+        period.startDate &&
+        period.endDate &&
+        period.endDate >= period.startDate
+      )
+  );
+
+  return Array.from(
+    new Map(
+      periods.map((period) => [
+        `${period.startDate}_${period.endDate}`,
+        period,
+      ])
+    ).values()
+  ).sort((a, b) =>
+    a.startDate.localeCompare(b.startDate)
+  );
+}, [currentUser, isWatchEmployee]);
+
+const [selectedWatchPeriodIndex, setSelectedWatchPeriodIndex] =
+  useState(0);
+
+useEffect(() => {
+  if (!isWatchEmployee || watchPeriods.length === 0) return;
+
+  const today = toDateKey(new Date())!;
+
+  const completedPeriods = watchPeriods.filter(
+    (period) => period.endDate < today
+  );
+
+  let index: number;
+
+  if (completedPeriods.length > 0) {
+    index = watchPeriods.indexOf(
+      completedPeriods[completedPeriods.length - 1]
+    );
+  } else {
+    const nearestPeriod = watchPeriods.findIndex(
+      (period) => period.endDate >= today
+    );
+
+    index = nearestPeriod >= 0 ? nearestPeriod : 0;
+  }
+
+  setSelectedWatchPeriodIndex(index);
+  setSelectedDate(
+    new Date(`${watchPeriods[index].startDate}T00:00:00`)
+  );
+}, [isWatchEmployee, watchPeriods]);
+
+const handleWatchPeriodChange = (index: number) => {
+  const period = watchPeriods[index];
+
+  if (!period) return;
+
+  setSelectedWatchPeriodIndex(index);
+  setSelectedDate(
+    new Date(`${period.startDate}T00:00:00`)
+  );
+};
+
+const selectedWatchPeriod =
+  isWatchEmployee && watchPeriods.length > 0
+    ? watchPeriods[selectedWatchPeriodIndex]
+    : undefined;
     const [showStatisticsGuide, setShowStatisticsGuide] = useState(false);
 
     useEffect(() => {
@@ -42,23 +144,51 @@ const isStacker =
 
       <div className={styles.content}>
         <div className={styles.scrollContent}>
-          <PeriodPicker
+<PeriodPicker
   selectedDate={selectedDate}
   onChange={setSelectedDate}
+  watchPeriods={
+    isWatchEmployee && watchPeriods.length > 0
+      ? watchPeriods
+      : undefined
+  }
+  selectedWatchPeriodIndex={
+    isWatchEmployee && watchPeriods.length > 0
+      ? selectedWatchPeriodIndex
+      : undefined
+  }
+  onWatchPeriodChange={
+    isWatchEmployee && watchPeriods.length > 0
+      ? handleWatchPeriodChange
+      : undefined
+  }
 />
-<MonthSummary selectedDate={selectedDate} />
+<MonthSummary
+  selectedDate={selectedDate}
+  watchPeriod={selectedWatchPeriod}
+/>
 
-<AverageStats selectedDate={selectedDate} />
+<AverageStats
+  selectedDate={selectedDate}
+  watchPeriod={selectedWatchPeriod}
+/>
 
 <DailyStatistics
   selectedDate={selectedDate}
   onChange={setSelectedDate}
+  watchPeriod={selectedWatchPeriod}
 />
 
-<WorkHours selectedDate={selectedDate} />
+<WorkHours
+  selectedDate={selectedDate}
+  watchPeriod={selectedWatchPeriod}
+/>
 
 {!isTobaccoPicker && !isStacker && (
-  <MentorStats selectedDate={selectedDate} />
+  <MentorStats
+  selectedDate={selectedDate}
+  watchPeriod={selectedWatchPeriod}
+/>
 )}
         </div>
       </div>

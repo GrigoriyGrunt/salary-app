@@ -21,8 +21,19 @@ function getShiftEndTime(shift: Shift) {
 
 export function getShiftNotifications(
   shifts: Shift[],
-  currentDate = new Date()
+  currentDate = new Date(),
+  watchPeriod?: { start: Date; end: Date } | null
 ): ShiftNotification[] {
+  if (watchPeriod) {
+    const today = new Date(currentDate);
+    today.setHours(0, 0, 0, 0);
+
+    const watchEnd = new Date(watchPeriod.end);
+    watchEnd.setHours(0, 0, 0, 0);
+
+    if (today > watchEnd) return [];
+  }
+
   return shifts
     .filter((shift) => {
       const isWorkingShift =
@@ -30,9 +41,7 @@ export function getShiftNotifications(
         shift.workType === "overtime" ||
         shift.workType === "extra";
 
-      if (!isWorkingShift) {
-        return false;
-      }
+      if (!isWorkingShift) return false;
 
       if (
         shift.type !== "day" &&
@@ -41,39 +50,36 @@ export function getShiftNotifications(
         return false;
       }
 
-            if (shift.isWorked) {
-        return false;
-      }
+      if (shift.isWorked) return false;
 
-            const shiftDate = new Date(
-        shift.date
-      );
+      const shiftDate = new Date(shift.date);
+      const endTime = getShiftEndTime(shift);
 
-      const endTime =
-        getShiftEndTime(shift);
+      if (watchPeriod) {
+        const start = new Date(watchPeriod.start);
+        const end = new Date(watchPeriod.end);
 
-      const isCurrentMonthShift =
-        shiftDate.getFullYear() ===
-          currentDate.getFullYear() &&
-        shiftDate.getMonth() ===
-          currentDate.getMonth();
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
 
-            const isPreviousMonthNightShift =
-        shift.type === "night" &&
-        endTime.getFullYear() ===
-          currentDate.getFullYear() &&
-        endTime.getMonth() ===
-          currentDate.getMonth() &&
-        endTime.getDate() ===
-          currentDate.getDate() &&
-        shiftDate.getMonth() !==
-          currentDate.getMonth();
+        if (shiftDate < start || shiftDate > end) {
+          return false;
+        }
+      } else {
+        const isCurrentMonthShift =
+          shiftDate.getFullYear() === currentDate.getFullYear() &&
+          shiftDate.getMonth() === currentDate.getMonth();
 
-      if (
-        !isCurrentMonthShift &&
-        !isPreviousMonthNightShift
-      ) {
-        return false;
+        const isPreviousMonthNightShift =
+          shift.type === "night" &&
+          endTime.getFullYear() === currentDate.getFullYear() &&
+          endTime.getMonth() === currentDate.getMonth() &&
+          endTime.getDate() === currentDate.getDate() &&
+          shiftDate.getMonth() !== currentDate.getMonth();
+
+        if (!isCurrentMonthShift && !isPreviousMonthNightShift) {
+          return false;
+        }
       }
 
       return currentDate >= endTime;

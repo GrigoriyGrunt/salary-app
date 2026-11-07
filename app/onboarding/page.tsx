@@ -33,9 +33,12 @@ const [position, setPosition] = useState(
 const [schedule, setSchedule] = useState<WorkSchedule | "">(
   (currentUser?.schedule as WorkSchedule) ?? ""
 );
+const [watchType, setWatchType] = useState<"main" | "extra" | "">("");
 
   async function handleContinue() {
   if (!warehouse || !position || !schedule) return;
+
+if (schedule === "15/15 вахта" && !watchType) return;
 
   if (!currentUser) return;
 
@@ -59,12 +62,16 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
     }
 
     updateUser(currentUser.id, {
-      warehouse,
-      position,
-      schedule,
-    });
+  warehouse,
+  position,
+  schedule,
+});
 
-    router.push("/hire-date");
+if (schedule === "15/15 вахта") {
+  sessionStorage.setItem("watchType", watchType);
+}
+
+router.push("/hire-date");
   } catch (error) {
     console.error(
       "Ошибка сохранения onboarding:",
@@ -105,8 +112,9 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
     label: "РЦ Хабаровск",
   },
   {
-    label: "РЦ Кстово",
-  },
+  label: "РЦ Кстово",
+  disabled: true,
+},
 ]}
           />
 
@@ -162,7 +170,40 @@ const [schedule, setSchedule] = useState<WorkSchedule | "">(
   disabled: true,
 },
             ]}
-          />
+                    />
+
+{schedule === "15/15 вахта" && (
+  <>
+    <Select
+      label="Тип вахты"
+      placeholder="Выберите тип вахты"
+      value={
+        watchType === "main"
+          ? "Плановая вахта"
+          : watchType === "extra"
+            ? "Межвахта"
+            : ""
+      }
+      onChange={(value) => {
+        setWatchType(
+          value === "Плановая вахта" ? "main" : "extra"
+        );
+      }}
+      options={[
+  {
+    label: "Плановая вахта",
+    description:
+      'Плановая вахта - это основные смены по графику с возможностью взять два выходных (в календаре выходные не указаны, изменить тип можно потом самостоятельно в разделе "График"). В графике смены будут отображаться ОСН (основная смена).',
+  },
+  {
+    label: "Межвахта",
+    description:
+      "Межвахта - это период между плановыми вахтами, в которой каждая смена считается подработкой (двойной оклад), выходные в межвахте не предусмотрены. В графике смены будут отображаться ДОП (подработка).",
+  },
+]}
+    />
+  </>
+)}
 
           <Button onClick={handleContinue}>
             Продолжить

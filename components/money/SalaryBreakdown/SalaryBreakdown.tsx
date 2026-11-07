@@ -16,11 +16,16 @@ import { getWarehouseConfig } from "@/lib/warehouses/config";
 type Props = {
   selectedDate: Date;
   onTotalChange: (total: number) => void;
+  watchPeriod?: {
+    startDate: string;
+    endDate: string;
+  };
 };
 
 export default function SalaryBreakdown({
   selectedDate,
   onTotalChange,
+  watchPeriod,
 }: Props) {
     const [premiumSheetOpen, setPremiumSheetOpen] =
     useState(false);
@@ -95,26 +100,41 @@ const monthDeductions = financeDeductions.filter(
   (deduction) => deduction.monthKey === currentMonthKey
 );
 
-const storedOriginalMainShifts =
-  originalMainShiftsByMonth[currentMonthKey];
-
-
-const originalMainShifts =
-  storedOriginalMainShifts !== undefined
-    ? storedOriginalMainShifts
-    : getOriginalMainShiftsForMonth(
-        user,
-        selectedDate
-      );
-
 const monthShifts = shifts.filter((shift) => {
   const shiftDate = new Date(shift.date);
+
+  if (watchPeriod) {
+    const dateKey = [
+      shiftDate.getFullYear(),
+      String(shiftDate.getMonth() + 1).padStart(2, "0"),
+      String(shiftDate.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    return (
+      dateKey >= watchPeriod.startDate &&
+      dateKey <= watchPeriod.endDate
+    );
+  }
 
   return (
     shiftDate.getFullYear() === currentDate.getFullYear() &&
     shiftDate.getMonth() === currentDate.getMonth()
   );
 });
+
+const storedOriginalMainShifts =
+  originalMainShiftsByMonth[currentMonthKey];
+
+const originalMainShifts = watchPeriod
+  ? monthShifts.filter(
+      (shift) => shift.workType === "main"
+    ).length
+  : storedOriginalMainShifts !== undefined
+    ? storedOriginalMainShifts
+    : getOriginalMainShiftsForMonth(
+        user,
+        selectedDate
+      );
 const workedMonthShiftData = shifts.reduce(
   (result, shift) => {
     if (!shift.isWorked) {
@@ -122,7 +142,33 @@ const workedMonthShiftData = shifts.reduce(
     }
 
     const shiftDate = new Date(shift.date);
+        if (watchPeriod) {
+      const dateKey = [
+        shiftDate.getFullYear(),
+        String(shiftDate.getMonth() + 1).padStart(2, "0"),
+        String(shiftDate.getDate()).padStart(2, "0"),
+      ].join("-");
 
+      if (
+        dateKey >= watchPeriod.startDate &&
+        dateKey <= watchPeriod.endDate
+      ) {
+        result.push({
+          shift,
+          salaryHours: shift.salaryHours ?? 0,
+          baseHours: shift.baseHours ?? 0,
+          tobaccoHours: shift.tobaccoHours ?? 0,
+          boxes: shift.boxes ?? 0,
+          blocks: shift.blocks ?? 0,
+          pallets: shift.pallets ?? 0,
+          returnHours: shift.returnHours ?? 0,
+          nonProfileHours: shift.nonProfileHours ?? 0,
+          transitionPart: null,
+        });
+      }
+
+      return result;
+    }
     const isCurrentMonth =
       shiftDate.getFullYear() ===
         currentDate.getFullYear() &&
@@ -476,11 +522,22 @@ const salaryFromMentoring = shifts.reduce(
 
     const shiftDate = new Date(shift.date);
 
+    if (watchPeriod) {
+      const dateKey = [
+        shiftDate.getFullYear(),
+        String(shiftDate.getMonth() + 1).padStart(2, "0"),
+        String(shiftDate.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      return dateKey >= watchPeriod.startDate &&
+        dateKey <= watchPeriod.endDate
+        ? total + mentorSalaryPerShift
+        : total;
+    }
+
     const isCurrentMonth =
-      shiftDate.getFullYear() ===
-        currentDate.getFullYear() &&
-      shiftDate.getMonth() ===
-        currentDate.getMonth();
+      shiftDate.getFullYear() === currentDate.getFullYear() &&
+      shiftDate.getMonth() === currentDate.getMonth();
 
     if (!shift.transitionDistribution) {
       return isCurrentMonth
@@ -489,29 +546,18 @@ const salaryFromMentoring = shifts.reduce(
     }
 
     const nextDay = new Date(shiftDate);
-
-    nextDay.setDate(
-      nextDay.getDate() + 1
-    );
+    nextDay.setDate(nextDay.getDate() + 1);
 
     const isSecondMonth =
-      nextDay.getFullYear() ===
-        currentDate.getFullYear() &&
-      nextDay.getMonth() ===
-        currentDate.getMonth();
+      nextDay.getFullYear() === currentDate.getFullYear() &&
+      nextDay.getMonth() === currentDate.getMonth();
 
     if (isCurrentMonth) {
-      return (
-        total +
-        (mentorSalaryPerShift * 4) / 11
-      );
+      return total + (mentorSalaryPerShift * 4) / 11;
     }
 
     if (isSecondMonth) {
-      return (
-        total +
-        (mentorSalaryPerShift * 7) / 11
-      );
+      return total + (mentorSalaryPerShift * 7) / 11;
     }
 
     return total;

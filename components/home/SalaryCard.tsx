@@ -39,6 +39,59 @@ export default function SalaryCard() {
   );
 
   const currentDate = new Date();
+  const toDateOnly = (value: Date | string) => {
+  const date =
+    value instanceof Date
+      ? new Date(value)
+      : new Date(`${String(value).split("T")[0]}T00:00:00`);
+
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const todayDate = toDateOnly(currentDate);
+
+const scheduleChanges = user?.scheduleChanges ?? [];
+
+const activeScheduleChange = [...scheduleChanges]
+  .filter((change) => {
+    return toDateOnly(change.changeDate) <= todayDate;
+  })
+  .sort(
+    (a, b) =>
+      toDateOnly(b.changeDate).getTime() -
+      toDateOnly(a.changeDate).getTime()
+  )[0];
+
+const activeSchedule =
+  activeScheduleChange?.schedule ?? user?.schedule;
+
+const isBasePickerWatch =
+  user?.position === "Комплектовщик основы" &&
+  activeSchedule === "15/15 вахта";
+
+const watchStartValue = activeScheduleChange
+  ? activeScheduleChange.firstShiftDate
+  : user?.firstShiftDate;
+
+const watchEndValue = activeScheduleChange
+  ? activeScheduleChange.secondShiftDate
+  : user?.secondShiftDate;
+
+const watchStart = watchStartValue
+  ? toDateOnly(watchStartValue)
+  : null;
+
+const watchEnd = watchEndValue
+  ? toDateOnly(watchEndValue)
+  : null;
+
+const hasCurrentWatchPeriod =
+  isBasePickerWatch &&
+  watchStart !== null &&
+  watchEnd !== null &&
+  todayDate >= watchStart &&
+  todayDate <= watchEnd;
   const warehouseConfig = getWarehouseConfig(
   user?.warehouse
 );
@@ -68,7 +121,15 @@ const tariffs = warehouseConfig.tariffs;
     premiums,
     payments,
   },
-  currentDate
+  currentDate,
+  isBasePickerWatch
+    ? hasCurrentWatchPeriod
+      ? {
+          startDate: watchStart!,
+          endDate: watchEnd!,
+        }
+      : null
+    : undefined
 );
 
 const isStacker =
@@ -96,7 +157,19 @@ const isStorekeeper =
         new Date(a.date).getTime() -
         new Date(b.date).getTime()
     );
+const calculationShifts =
+  isBasePickerWatch
+    ? hasCurrentWatchPeriod
+      ? shifts.filter((shift) => {
+          const shiftDate = toDateOnly(shift.date);
 
+          return (
+            shiftDate >= watchStart! &&
+            shiftDate <= watchEnd!
+          );
+        })
+      : []
+    : monthShifts;
   const monthDeductions = deductions.filter(
     (deduction) =>
       deduction.monthKey === currentMonthKey
@@ -249,24 +322,21 @@ const extraNightShiftSalary =
   goal * forecastMotivationPrice;
 
   const mainAndOvertimeCount =
-    monthShifts.filter(
-      (shift) =>
-        shift.workType === "main" ||
-        shift.workType === "overtime"
-    ).length;
+  calculationShifts.filter(
+    (shift) =>
+      shift.workType === "main" ||
+      shift.workType === "overtime"
+  ).length;
 
-  const regularShiftsNeeded =
-    Math.max(
-      0,
-      originalMainShifts -
-        mainAndOvertimeCount
-    );
+  const regularShiftsNeeded = isBasePickerWatch
+  ? 0
+  : Math.max(0, originalMainShifts - mainAndOvertimeCount);
 
   let extraUsedAsRegular = 0;
 
     let futureForecast = 0;
 
-  monthShifts.forEach((shift) => {
+  calculationShifts.forEach((shift) => {
     const isWorkingShift =
       shift.workType === "main" ||
       shift.workType === "overtime" ||
@@ -409,7 +479,9 @@ const stackerWithoutErrorsBonus =
     : 0;
 
 const totalSalary =
-  currentMonthReport.totalSalary;  
+  isBasePickerWatch && !hasCurrentWatchPeriod
+    ? 0
+    : currentMonthReport.totalSalary; 
 const storekeeperFutureShifts =
   monthShifts.filter(
     (shift) =>
@@ -511,27 +583,30 @@ const storekeeperRequiredPallets =
     premiumTotal;
 
   const forecast =
-  isStorekeeper
-    ? totalSalary +
-      storekeeperFutureSalary +
-      storekeeperRequiredPallets *
-        tariffs.storekeeper.palletRate *
-        storekeeperFutureShifts
-    : totalSalary +
-      futureForecast -
-      absenceDeduction;
+  isBasePickerWatch && !hasCurrentWatchPeriod
+    ? 0
+    : isStorekeeper
+      ? totalSalary +
+        storekeeperFutureSalary +
+        storekeeperRequiredPallets *
+          tariffs.storekeeper.palletRate *
+          storekeeperFutureShifts
+      : totalSalary +
+        futureForecast -
+        absenceDeduction;
 
   return (
     <section className={styles.card}>
       <div className={styles.top}>
         <div>
           <p className={styles.label}>
-            Заработано за{" "}
-            {new Intl.DateTimeFormat(
-              "ru-RU",
-              { month: "long" }
-            ).format(new Date())}
-          </p>
+  {isBasePickerWatch
+    ? "Заработано в текущей вахте"
+    : `Заработано за ${new Intl.DateTimeFormat(
+        "ru-RU",
+        { month: "long" }
+      ).format(new Date())}`}
+</p>
 
           <h2 className={styles.amount}>
             {Math.round(totalSalary)

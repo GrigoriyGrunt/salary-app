@@ -20,11 +20,16 @@ type PaymentsProps = {
   selectedDate: Date;
   autoOpenType?: string | null;
   autoOpenDate?: string | null;
+  watchPeriod?: {
+    startDate: string;
+    endDate: string;
+  };
 };
 export default function Payments({
   selectedDate,
   autoOpenType,
   autoOpenDate,
+  watchPeriod,
 }: PaymentsProps) {
   const payments = useFinanceStore((state) => state.payments);
   const savePayment = useFinanceStore((state) => state.savePayment);
@@ -36,6 +41,13 @@ export default function Payments({
     `${selectedDate.getFullYear()}-${String(
       selectedDate.getMonth() + 1
     ).padStart(2, "0")}`;
+    const periodKey = watchPeriod
+  ? `${watchPeriod.startDate}_${watchPeriod.endDate}`
+  : undefined;
+
+const availablePaymentTypes = watchPeriod
+  ? ["Зарплата"]
+  : paymentTypes;
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedType, setSelectedType] = useState("");
@@ -57,15 +69,17 @@ export default function Payments({
     autoOpenType,
     autoOpenDate,
   ]);
-    const selectedPayment =
-    selectedType === "Аванс" ||
-    selectedType === "Зарплата"
-      ? payments.find(
-          (payment) =>
-            payment.type === selectedType &&
-            payment.monthKey === monthKey
-        )
-      : undefined;
+const selectedPayment =
+  selectedType === "Аванс" ||
+  selectedType === "Зарплата"
+    ? payments.find(
+        (payment) =>
+          payment.type === selectedType &&
+          (watchPeriod
+            ? payment.periodKey === periodKey
+            : payment.monthKey === monthKey)
+      )
+    : undefined;
 
   const handleClose = () => {
     setSheetOpen(false);
@@ -73,8 +87,11 @@ export default function Payments({
     setTypeListOpen(false);
   };
   const monthPayments = payments.filter(
-    (payment) => payment.monthKey === monthKey
-  );
+  (payment) =>
+    watchPeriod
+      ? payment.periodKey === periodKey
+      : payment.monthKey === monthKey
+);
   return (
     <section className={styles.card}>
       <h2 className={styles.title}>
@@ -166,7 +183,7 @@ export default function Payments({
 
             {typeListOpen && (
               <div className={styles.options}>
-                {paymentTypes.map((type) => (
+                {availablePaymentTypes.map((type) => (
                   <button
                     key={type}
                     type="button"
@@ -210,42 +227,39 @@ export default function Payments({
                     "ru-RU"
                   ) + " ₽";
 
-                                if (
-                  selectedType === "Аванс" ||
-                  selectedType === "Зарплата"
-                ) {
-                  const index = payments.findIndex(
-                    (payment) =>
-                      payment.type === selectedType &&
-                      payment.monthKey === monthKey
-                  );
+if (
+  selectedType === "Аванс" ||
+  selectedType === "Зарплата"
+) {
+  const index = payments.findIndex(
+    (payment) =>
+      payment.type === selectedType &&
+      (watchPeriod
+        ? payment.periodKey === periodKey
+        : payment.monthKey === monthKey)
+  );
 
-                  if (index !== -1) {
-                    savePayment(
-                      {
-                        date,
-                        type: selectedType,
-                        amount: formattedAmount,
-                        monthKey,
-                      },
-                      payments[index].id
-                    );
-                  } else {
-                    savePayment({
-                      date,
-                      type: selectedType,
-                      amount: formattedAmount,
-                      monthKey,
-                    });
-                  }
-                } else {
-                  savePayment({
-                    date,
-                    type: selectedType,
-                    amount: formattedAmount,
-                    monthKey,
-                  });
-                }
+  const paymentData = {
+    date,
+    type: selectedType,
+    amount: formattedAmount,
+    monthKey,
+    ...(watchPeriod && periodKey ? { periodKey } : {}),
+  };
+
+  if (index !== -1) {
+    savePayment(paymentData, payments[index].id);
+  } else {
+    savePayment(paymentData);
+  }
+} else {
+  savePayment({
+    date,
+    type: selectedType,
+    amount: formattedAmount,
+    monthKey,
+  });
+}
 
                 handleClose();
               }}

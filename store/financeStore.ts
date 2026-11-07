@@ -7,6 +7,7 @@ export type Payment = {
   type: string;
   amount: string;
   monthKey: string;
+  periodKey?: string;
 };
 
 export type Deduction = {
@@ -29,6 +30,7 @@ type UserFinanceData = {
 
   goal: number;
   goalMonthKey: string | null;
+  goalPeriodKey: string | null;
 
   deductions: Deduction[];
   premiums: Premium[];
@@ -42,6 +44,7 @@ type FinanceState = {
 
   goal: number;
   goalMonthKey: string | null;
+  goalPeriodKey: string | null;
 
   deductions: Deduction[];
   premiums: Premium[];
@@ -53,7 +56,7 @@ setFinanceData: (data: UserFinanceData) => void;
 syncFinance: () => Promise<void>;
   setTotalSalary: (totalSalary: number) => void;
 
-  setGoal: (goal: number) => void;
+  setGoal: (goal: number, periodKey?: string | null) => void;
   syncGoalMonth: () => void;
 
   savePayment: (
@@ -97,6 +100,7 @@ const createEmptyUserFinance =
 
     goal: 0,
     goalMonthKey: null,
+    goalPeriodKey: null,
 
     deductions: [],
     premiums: [],
@@ -118,14 +122,15 @@ export const useFinanceStore =
       (set, get) => ({
         currentUserId: null,
 
-        payments: [],
-        totalSalary: 0,
+payments: [],
+totalSalary: 0,
 
-        goal: 0,
-        goalMonthKey: null,
+goal: 0,
+goalMonthKey: null,
+goalPeriodKey: null,
 
-        deductions: [],
-        premiums: [],
+deductions: [],
+premiums: [],
 
         financeByUser: {},
 
@@ -136,13 +141,14 @@ export const useFinanceStore =
                 currentUserId: null,
 
                 payments: [],
-                totalSalary: 0,
+totalSalary: 0,
 
-                goal: 0,
-                goalMonthKey: null,
+goal: 0,
+goalMonthKey: null,
+goalPeriodKey: null,
 
-                deductions: [],
-                premiums: [],
+deductions: [],
+premiums: [],
               };
             }
 
@@ -160,8 +166,8 @@ export const useFinanceStore =
                 userFinance.totalSalary,
 
               goal: userFinance.goal,
-              goalMonthKey:
-                userFinance.goalMonthKey,
+goalMonthKey: userFinance.goalMonthKey,
+goalPeriodKey: userFinance.goalPeriodKey ?? null,
 
               deductions:
                 userFinance.deductions,
@@ -176,10 +182,9 @@ setFinanceData: (data) =>
       return {
         payments: data.payments,
         totalSalary: data.totalSalary,
-
         goal: data.goal,
         goalMonthKey: data.goalMonthKey,
-
+        goalPeriodKey: data.goalPeriodKey ?? null,
         deductions: data.deductions,
         premiums: data.premiums,
       };
@@ -188,78 +193,58 @@ setFinanceData: (data) =>
     return {
       payments: data.payments,
       totalSalary: data.totalSalary,
-
       goal: data.goal,
       goalMonthKey: data.goalMonthKey,
-
+      goalPeriodKey: data.goalPeriodKey ?? null,
       deductions: data.deductions,
       premiums: data.premiums,
 
       financeByUser: {
         ...state.financeByUser,
-
         [state.currentUserId]: data,
       },
     };
   }),
 syncFinance: async () => {
-  const state =
-    useFinanceStore.getState();
+  const state = useFinanceStore.getState();
 
   if (!state.currentUserId) {
     return;
   }
 
-  const response = await fetch(
-    "/api/finance",
-    {
-      method: "POST",
-
-      headers: {
-        "Content-Type":
-          "application/json",
-      },
-
-      body: JSON.stringify({
-        userId: state.currentUserId,
-
-        totalSalary:
-          state.totalSalary,
-
-        goal: state.goal,
-
-        goalMonthKey:
-          state.goalMonthKey,
-
-        payments:
-          state.payments,
-
-        deductions:
-          state.deductions,
-
-        premiums:
-          state.premiums,
-      }),
-    }
-  );
+  const response = await fetch("/api/finance", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: state.currentUserId,
+      totalSalary: state.totalSalary,
+      goal: state.goal,
+      goalMonthKey: state.goalMonthKey,
+      goalPeriodKey: state.goalPeriodKey,
+      payments: state.payments,
+      deductions: state.deductions,
+      premiums: state.premiums,
+    }),
+  });
 
   if (!response.ok) {
-    throw new Error(
-      "Не удалось сохранить финансовые данные"
-    );
+    throw new Error("Не удалось сохранить финансовые данные");
   }
 },
 
         setTotalSalary: (totalSalary) => {
   set((state) => {
     const updatedData = {
-      payments: state.payments,
-      totalSalary,
-      goal: state.goal,
-      goalMonthKey: state.goalMonthKey,
-      deductions: state.deductions,
-      premiums: state.premiums,
-    };
+  payments: state.payments,
+  totalSalary,
+  goal: state.goal,
+  goalMonthKey: state.goalMonthKey,
+  goalPeriodKey: state.goalPeriodKey,
+  deductions: state.deductions,
+  premiums: state.premiums,
+};
 
     if (!state.currentUserId) {
       return {
@@ -280,15 +265,16 @@ syncFinance: async () => {
 
   void get().syncFinance();
 },
-        setGoal: (goal) => {
+setGoal: (goal, periodKey) => {
   set((state) => {
-    const goalMonthKey =
-      getCurrentMonthKey();
+    const goalMonthKey = periodKey ? null : getCurrentMonthKey();
+    const goalPeriodKey = periodKey ?? null;
 
     if (!state.currentUserId) {
       return {
         goal,
         goalMonthKey,
+        goalPeriodKey,
       };
     }
 
@@ -297,71 +283,64 @@ syncFinance: async () => {
         state.financeByUser,
         state.currentUserId
       ),
-
       goal,
       goalMonthKey,
+      goalPeriodKey,
     };
 
     return {
       goal,
       goalMonthKey,
-
+      goalPeriodKey,
       financeByUser: {
         ...state.financeByUser,
-
-        [state.currentUserId]:
-          userFinance,
+        [state.currentUserId]: userFinance,
       },
     };
   });
 
   void get().syncFinance();
 },
-        syncGoalMonth: () =>
-          set((state) => {
-            const currentMonthKey =
-              getCurrentMonthKey();
+syncGoalMonth: () =>
+  set((state) => {
+    if (state.goalPeriodKey) {
+      return {};
+    }
 
-            if (
-              state.goalMonthKey ===
-              currentMonthKey
-            ) {
-              return {};
-            }
+    const currentMonthKey = getCurrentMonthKey();
 
-            if (!state.currentUserId) {
-              return {
-                goal: 0,
-                goalMonthKey:
-                  currentMonthKey,
-              };
-            }
+    if (state.goalMonthKey === currentMonthKey) {
+      return {};
+    }
 
-            const userFinance = {
-              ...getUserFinance(
-                state.financeByUser,
-                state.currentUserId
-              ),
+    if (!state.currentUserId) {
+      return {
+        goal: 0,
+        goalMonthKey: currentMonthKey,
+        goalPeriodKey: null,
+      };
+    }
 
-              goal: 0,
-              goalMonthKey:
-                currentMonthKey,
-            };
+    const userFinance = {
+      ...getUserFinance(
+        state.financeByUser,
+        state.currentUserId
+      ),
+      goal: 0,
+      goalMonthKey: currentMonthKey,
+      goalPeriodKey: null,
+    };
 
-            return {
-              goal: 0,
-              goalMonthKey:
-                currentMonthKey,
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]:
-                  userFinance,
-              },
-            };
-          }),
-
+    return {
+      goal: 0,
+      goalMonthKey: currentMonthKey,
+      goalPeriodKey: null,
+      financeByUser: {
+        ...state.financeByUser,
+        [state.currentUserId]: userFinance,
+      },
+    };
+  }),
         savePayment: (payment, id) => {
   set((state) => {
     const payments =
@@ -631,75 +610,62 @@ syncFinance: async () => {
 
   void get().syncFinance();
 },
-        clear: () =>
-          set((state) => {
-            if (!state.currentUserId) {
-              return {
-                payments: [],
-                totalSalary: 0,
+clear: () =>
+  set((state) => {
+    if (!state.currentUserId) {
+      return {
+        payments: [],
+        totalSalary: 0,
+        goal: 0,
+        goalMonthKey: null,
+        goalPeriodKey: null,
+        deductions: [],
+        premiums: [],
+      };
+    }
 
-                goal: 0,
-                goalMonthKey: null,
+    const emptyFinance = createEmptyUserFinance();
 
-                deductions: [],
-                premiums: [],
-              };
-            }
+    return {
+      payments: [],
+      totalSalary: 0,
+      goal: 0,
+      goalMonthKey: null,
+      goalPeriodKey: null,
+      deductions: [],
+      premiums: [],
+      financeByUser: {
+        ...state.financeByUser,
+        [state.currentUserId]: emptyFinance,
+      },
+    };
+  }),
+deleteUserFinance: (userId) =>
+  set((state) => {
+    const financeByUser = {
+      ...state.financeByUser,
+    };
 
-            const emptyFinance =
-              createEmptyUserFinance();
+    delete financeByUser[userId];
 
-            return {
-              payments: [],
-              totalSalary: 0,
+    if (state.currentUserId === userId) {
+      return {
+        currentUserId: null,
+        payments: [],
+        totalSalary: 0,
+        goal: 0,
+        goalMonthKey: null,
+        goalPeriodKey: null,
+        deductions: [],
+        premiums: [],
+        financeByUser,
+      };
+    }
 
-              goal: 0,
-              goalMonthKey: null,
-
-              deductions: [],
-              premiums: [],
-
-              financeByUser: {
-                ...state.financeByUser,
-
-                [state.currentUserId]:
-                  emptyFinance,
-              },
-            };
-          }),
-
-        deleteUserFinance: (userId) =>
-          set((state) => {
-            const financeByUser = {
-              ...state.financeByUser,
-            };
-
-            delete financeByUser[userId];
-
-            if (
-              state.currentUserId ===
-              userId
-            ) {
-              return {
-                currentUserId: null,
-
-                payments: [],
-                totalSalary: 0,
-
-                goal: 0,
-                goalMonthKey: null,
-
-                deductions: [],
-                premiums: [],
-
-                financeByUser,
-              };
-            }
-
-            return {
-              financeByUser,
-            };
-          }),
+        return {
+      financeByUser,
+    };
+  }),
       }),
 
       {
@@ -707,29 +673,26 @@ syncFinance: async () => {
 
         skipHydration: true,
 
-        merge: (
-          persistedState,
-          currentState
-        ) => {
-          const persisted =
-            persistedState as Partial<FinanceState>;
+merge: (persistedState, currentState) => {
+  const persisted = persistedState as Partial<FinanceState>;
 
-          return {
-            ...currentState,
-            ...persisted,
+  return {
+    ...currentState,
+    ...persisted,
 
-            currentUserId: null,
+    currentUserId: null,
 
-            payments: [],
-            totalSalary: 0,
+    payments: [],
+    totalSalary: 0,
 
-            goal: 0,
-            goalMonthKey: null,
+    goal: 0,
+    goalMonthKey: null,
+    goalPeriodKey: null,
 
-            deductions: [],
-            premiums: [],
-          };
-        },
+    deductions: [],
+    premiums: [],
+  };
+},
       }
     )
   );

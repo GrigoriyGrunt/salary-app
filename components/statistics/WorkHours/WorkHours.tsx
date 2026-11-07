@@ -4,10 +4,15 @@ import { useUsersStore } from "@/store/usersStore";
 
 type WorkHoursProps = {
   selectedDate: Date;
+  watchPeriod?: {
+    startDate: string;
+    endDate: string;
+  };
 };
 
 export default function WorkHours({
   selectedDate,
+  watchPeriod,
 }: WorkHoursProps) {
   const shifts = useScheduleStore(
     (state) => state.shifts
@@ -25,107 +30,119 @@ const isStacker =
 const isStorekeeper =
   currentUser?.position === "Кладовщик";  
   const getMonthHours = (
-  field:
-    | "baseHours"
-    | "nonProfileHours"
-    | "tobaccoHours"
-    | "returnHours"
-) => {
-  return shifts.reduce((total, shift) => {
-    if (!shift.isWorked) {
-      return total;
-    }
+    field:
+      | "baseHours"
+      | "nonProfileHours"
+      | "tobaccoHours"
+      | "returnHours"
+  ) => {
+    return shifts.reduce((total, shift) => {
+      if (!shift.isWorked) return total;
 
-    const shiftDate = new Date(shift.date);
-
-    const isCurrentMonth =
-      shiftDate.getMonth() ===
-        selectedDate.getMonth() &&
-      shiftDate.getFullYear() ===
-        selectedDate.getFullYear();
-
-    if (shift.transitionDistribution) {
+      const shiftDate = new Date(shift.date);
       const nextDay = new Date(shiftDate);
+      nextDay.setDate(nextDay.getDate() + 1);
 
-      nextDay.setDate(
-        nextDay.getDate() + 1
+      if (watchPeriod) {
+        const watchStart = new Date(
+          `${watchPeriod.startDate}T00:00:00`
+        );
+        const watchEnd = new Date(
+          `${watchPeriod.endDate}T23:59:59`
+        );
+
+        const isFirstDayInside =
+          shiftDate >= watchStart && shiftDate <= watchEnd;
+
+        const isSecondDayInside =
+          nextDay >= watchStart && nextDay <= watchEnd;
+
+        if (shift.transitionDistribution) {
+          return (
+            total +
+            (isFirstDayInside
+              ? shift.transitionDistribution.firstMonth[field] || 0
+              : 0) +
+            (isSecondDayInside
+              ? shift.transitionDistribution.secondMonth[field] || 0
+              : 0)
+          );
+        }
+
+        return isFirstDayInside
+          ? total + (shift[field] || 0)
+          : total;
+      }
+
+      const isCurrentMonth =
+        shiftDate.getMonth() === selectedDate.getMonth() &&
+        shiftDate.getFullYear() === selectedDate.getFullYear();
+
+      if (shift.transitionDistribution) {
+        const isSecondMonth =
+          nextDay.getMonth() === selectedDate.getMonth() &&
+          nextDay.getFullYear() === selectedDate.getFullYear();
+
+        if (isCurrentMonth) {
+          return total + (shift.transitionDistribution.firstMonth[field] || 0);
+        }
+
+        if (isSecondMonth) {
+          return total + (shift.transitionDistribution.secondMonth[field] || 0);
+        }
+
+        return total;
+      }
+
+      return isCurrentMonth
+        ? total + (shift[field] || 0)
+        : total;
+    }, 0);
+  };
+
+const salaryHours = watchPeriod
+  ? shifts.reduce((total, shift) => {
+      if (!shift.isWorked) return total;
+
+      const shiftDate = new Date(shift.date);
+      const watchStart = new Date(
+        `${watchPeriod.startDate}T00:00:00`
+      );
+      const watchEnd = new Date(
+        `${watchPeriod.endDate}T23:59:59`
       );
 
-      const isSecondMonth =
-        nextDay.getMonth() ===
-          selectedDate.getMonth() &&
-        nextDay.getFullYear() ===
-          selectedDate.getFullYear();
+      return shiftDate >= watchStart && shiftDate <= watchEnd
+        ? total + (shift.salaryHours || 0)
+        : total;
+    }, 0)
+  : shifts.reduce((total, shift) => {
+      if (!shift.isWorked) return total;
 
-      if (isCurrentMonth) {
-        return (
-          total +
-          (shift.transitionDistribution
-            .firstMonth[field] || 0)
-        );
+      const shiftDate = new Date(shift.date);
+
+      const isCurrentMonth =
+        shiftDate.getMonth() === selectedDate.getMonth() &&
+        shiftDate.getFullYear() === selectedDate.getFullYear();
+
+      if (shift.transitionDistribution) {
+        const nextDay = new Date(shiftDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+
+        const isSecondMonth =
+          nextDay.getMonth() === selectedDate.getMonth() &&
+          nextDay.getFullYear() === selectedDate.getFullYear();
+
+        if (isCurrentMonth) return total + 4;
+        if (isSecondMonth) return total + 7;
+
+        return total;
       }
 
-      if (isSecondMonth) {
-        return (
-          total +
-          (shift.transitionDistribution
-            .secondMonth[field] || 0)
-        );
-      }
-
-      return total;
-    }
-
-    return isCurrentMonth
-      ? total + (shift[field] || 0)
-      : total;
-  }, 0);
-};
-
-const salaryHours = shifts.reduce(
-  (total, shift) => {
-    if (!shift.isWorked) {
-      return total;
-    }
-
-    const shiftDate = new Date(shift.date);
-
-    const isCurrentMonth =
-      shiftDate.getMonth() ===
-        selectedDate.getMonth() &&
-      shiftDate.getFullYear() ===
-        selectedDate.getFullYear();
-
-    if (shift.transitionDistribution) {
-      const nextDay = new Date(shiftDate);
-
-      nextDay.setDate(
-        nextDay.getDate() + 1
-      );
-
-      const isSecondMonth =
-        nextDay.getMonth() ===
-          selectedDate.getMonth() &&
-        nextDay.getFullYear() ===
-          selectedDate.getFullYear();
-
-      if (isCurrentMonth) {
-        return total + 4;
-      }
-
-      if (isSecondMonth) {
-        return total + 7;
-      }
-
-      return total;
-    }
-
-    return isCurrentMonth
-      ? total + (shift.salaryHours || 0)
-      : total;
-  },
-  0
-);
+      return isCurrentMonth
+        ? total + (shift.salaryHours || 0)
+        : total;
+    }, 0);
 
 const baseHours = getMonthHours(
   "baseHours"

@@ -46,3 +46,16 @@
   flex-direction: column;
   gap: 20px;
 }
+
+.watchDescription {
+  margin-top: -10px;
+  padding: 12px 14px;
+
+  background: #fff;
+  border: 1px solid #e2e5e9;
+  border-radius: 10px;
+
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}

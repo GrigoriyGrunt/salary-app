@@ -9,6 +9,7 @@ type PaymentNotification = {
     monthKey: string;
     paymentType: "Аванс" | "Зарплата";
     date: string;
+    periodKey?: string;
   };
 };
 
@@ -85,7 +86,50 @@ function getPreviousWorkingDay(date: Date) {
 
   return result;
 }
+function getNextWorkingDay(date: Date) {
+  const result = new Date(date);
 
+  while (!isWorkingDay(result)) {
+    result.setDate(result.getDate() + 1);
+  }
+
+  return result;
+}
+
+type WatchPeriod = {
+  startDate: string;
+  endDate: string;
+};
+
+function getWatchPaymentDate(endDate: string) {
+  const [year, month, day] = endDate
+    .split("-")
+    .map(Number);
+
+  let scheduledDate: Date;
+
+  if (day >= 10 && day <= 24) {
+    scheduledDate = new Date(year, month - 1, 25);
+  } else if (day >= 25) {
+    scheduledDate = new Date(year, month, 10);
+  } else {
+    scheduledDate = new Date(year, month - 1, 10);
+  }
+
+  const paymentDate = getPreviousWorkingDay(scheduledDate);
+
+  const lastShiftDate = new Date(year, month - 1, day);
+
+  if (
+    paymentDate.getTime() === lastShiftDate.getTime()
+  ) {
+    return getNextWorkingDay(
+      new Date(year, month - 1, day + 1)
+    );
+  }
+
+  return paymentDate;
+}
 function getAdvanceDate(year: number, month: number) {
   return getPreviousWorkingDay(
     new Date(year, month, 25)
@@ -155,10 +199,73 @@ function getMonthDate(monthKey: string) {
 
 export function getPaymentNotifications(
   payments: Payment[],
-  now: Date
+  now: Date,
+  watchPeriods?: WatchPeriod[]
 ): PaymentNotification[] {
   const notifications: PaymentNotification[] = [];
+  if (watchPeriods !== undefined) {
+if (now.getHours() < 16) return [];
 
+const todayKey = `${now.getFullYear()}-${String(
+  now.getMonth() + 1
+).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+const completedPeriods = watchPeriods.filter(
+  (period) => period.endDate < todayKey
+);
+
+const previousCompletedPeriod =
+  completedPeriods[completedPeriods.length - 1];
+
+if (!previousCompletedPeriod) return [];
+
+return [previousCompletedPeriod].flatMap((period) => {
+      const periodKey =
+        `${period.startDate}_${period.endDate}`;
+
+      const alreadyPaid = payments.some(
+        (payment) =>
+          payment.type === "Зарплата" &&
+          payment.periodKey === periodKey
+      );
+
+      if (alreadyPaid) return [];
+
+      const paymentDate = getWatchPaymentDate(
+        period.endDate
+      );
+
+      if (!isSameOrAfter(now, paymentDate)) {
+        return [];
+      }
+
+      const [year, month] = period.startDate
+        .split("-")
+        .map(Number);
+
+      const isToday =
+        now.getFullYear() === paymentDate.getFullYear() &&
+        now.getMonth() === paymentDate.getMonth() &&
+        now.getDate() === paymentDate.getDate();
+
+      return [{
+        id: `watch-salary-${periodKey}`,
+        type: "reminder" as const,
+        title: isToday
+          ? "Сегодня зарплата"
+          : "Внесите данные по поступлению зарплаты",
+        lines: [
+          `${isToday ? "Сегодня должна поступить" : `${getDateLabel(paymentDate)} должна была поступить`} зарплата за вахту ${period.startDate.split("-").reverse().join(".")} – ${period.endDate.split("-").reverse().join(".")}.`,
+        ],
+        action: {
+          monthKey: `${year}-${String(month).padStart(2, "0")}`,
+          paymentType: "Зарплата" as const,
+          date: formatPaymentDate(paymentDate),
+          periodKey,
+        },
+      }];
+    });
+  }
   const currentMonthKey = getMonthKey(now);
 
   const previousMonthDate = new Date(

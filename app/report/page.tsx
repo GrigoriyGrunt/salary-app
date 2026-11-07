@@ -88,7 +88,7 @@ export default function ReportPage() {
         1
       );
     });
-
+const [watchPeriodOffset, setWatchPeriodOffset] = useState(0);
   const user = useUsersStore(
     (state) => state.currentUser
   );
@@ -99,7 +99,125 @@ const isStacker =
   user?.position === "Штабелер (водитель погрузчика)";
 const isStorekeeper =
   user?.position === "Кладовщик";  
+const isBasePickerWatch =
+  user?.position === "Комплектовщик основы";
 
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const activeScheduleChange = (user?.scheduleChanges ?? [])
+  .filter((change) => {
+    const date = new Date(change.changeDate);
+    date.setHours(0, 0, 0, 0);
+    return date <= today;
+  })
+  .sort(
+    (a, b) =>
+      new Date(a.changeDate).getTime() -
+      new Date(b.changeDate).getTime()
+  )
+  .at(-1);
+
+const activeSchedule =
+  activeScheduleChange?.schedule ?? user?.schedule;
+
+const watchStart =
+  activeScheduleChange?.firstShiftDate ??
+  user?.firstShiftDate;
+
+const watchEnd =
+  activeScheduleChange?.secondShiftDate ??
+  user?.secondShiftDate;
+const toDateKey = (value: string | Date) => {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+const watchPeriods =
+  isBasePickerWatch &&
+  activeSchedule === "15/15 вахта" &&
+  user
+    ? [
+        {
+          startDate: toDateKey(user.firstShiftDate),
+endDate: toDateKey(user.secondShiftDate),
+        },
+        ...(user.scheduleChanges ?? [])
+          .filter((change) => change.schedule === "15/15 вахта")
+          .map((change) => ({
+            startDate: toDateKey(change.firstShiftDate),
+endDate: toDateKey(change.secondShiftDate),
+          })),
+      ]
+        .filter(
+          (period) => period.startDate && period.endDate
+        )
+        .reduce((unique, period) => {
+          if (
+            !unique.some(
+              (item) =>
+                item.startDate === period.startDate &&
+                item.endDate === period.endDate
+            )
+          ) {
+            unique.push(period);
+          }
+          return unique;
+        }, [] as { startDate: string; endDate: string }[])
+        .sort((a, b) =>
+          a.startDate.localeCompare(b.startDate)
+        )
+    : [];
+
+const todayKey = [
+  today.getFullYear(),
+  String(today.getMonth() + 1).padStart(2, "0"),
+  String(today.getDate()).padStart(2, "0"),
+].join("-");
+
+const currentPeriodIndex = watchPeriods.findIndex(
+  (period) =>
+    period.startDate <= todayKey &&
+    period.endDate >= todayKey
+);
+
+const lastPastPeriodIndex = watchPeriods.reduce(
+  (lastIndex, period, index) =>
+    period.endDate < todayKey ? index : lastIndex,
+  -1
+);
+
+const defaultPeriodIndex =
+  currentPeriodIndex >= 0
+    ? currentPeriodIndex
+    : lastPastPeriodIndex >= 0
+      ? lastPastPeriodIndex
+      : 0;
+
+const selectedPeriodIndex = Math.min(
+  Math.max(defaultPeriodIndex + watchPeriodOffset, 0),
+  watchPeriods.length - 1
+);
+
+const watchPeriod =
+  watchPeriods.length > 0
+    ? {
+        startDate: new Date(
+          `${watchPeriods[selectedPeriodIndex].startDate}T00:00:00`
+        ),
+        endDate: new Date(
+          `${watchPeriods[selectedPeriodIndex].endDate}T00:00:00`
+        ),
+      }
+    : null;
 const shifts = useScheduleStore(
     (state) => state.shifts
   );
@@ -127,17 +245,18 @@ const shifts = useScheduleStore(
       return null;
     }
 
-    return calculateMonthlyReport(
-      {
-        user,
-        shifts,
-        originalMainShiftsByMonth,
-        deductions,
-        premiums,
-        payments,
-      },
-      selectedDate
-    );
+return calculateMonthlyReport(
+  {
+    user,
+    shifts,
+    originalMainShiftsByMonth,
+    deductions,
+    premiums,
+    payments,
+  },
+  selectedDate,
+  watchPeriod
+);
   }, [
     user,
     shifts,
@@ -146,27 +265,45 @@ const shifts = useScheduleStore(
     premiums,
     payments,
     selectedDate,
+    watchPeriod,
   ]);
 
-  const goPreviousMonth = () => {
-    setSelectedDate(
-      new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth() - 1,
-        1
-      )
+const goPreviousMonth = () => {
+  if (watchPeriod) {
+    setWatchPeriodOffset((prev) =>
+      Math.max(prev - 1, -defaultPeriodIndex)
     );
-  };
+    return;
+  }
 
-  const goNextMonth = () => {
-    setSelectedDate(
-      new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth() + 1,
-        1
+  setSelectedDate(
+    new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() - 1,
+      1
+    )
+  );
+};
+
+const goNextMonth = () => {
+  if (watchPeriod) {
+    setWatchPeriodOffset((prev) =>
+      Math.min(
+        prev + 1,
+        watchPeriods.length - 1 - defaultPeriodIndex
       )
     );
-  };
+    return;
+  }
+
+  setSelectedDate(
+    new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() + 1,
+      1
+    )
+  );
+};
 
   const monthKey =
     getMonthKey(selectedDate);
@@ -502,17 +639,24 @@ if (totals.length > 0) {
   }
 
   const monthShifts =
-    shifts.filter((shift) => {
-      const date =
-        new Date(shift.date);
+  shifts.filter((shift) => {
+    const date = new Date(shift.date);
 
-      return (
-        date.getFullYear() ===
-          selectedDate.getFullYear() &&
-        date.getMonth() ===
-          selectedDate.getMonth()
-      );
-    });
+    if (watchPeriod) {
+      const start = new Date(watchPeriod.startDate);
+      const end = new Date(watchPeriod.endDate);
+
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      return date >= start && date <= end;
+    }
+
+    return (
+      date.getFullYear() === selectedDate.getFullYear() &&
+      date.getMonth() === selectedDate.getMonth()
+    );
+  });
 
   const hasData =
     monthShifts.length > 0 ||
@@ -592,14 +736,18 @@ if (totals.length > 0) {
               }
             >
               <span
-                className={
-                  styles.periodTitle
-                }
-              >
-                {getMonthName(
-                  selectedDate
-                )}
-              </span>
+  className={
+    styles.periodTitle
+  }
+>
+  {watchPeriod
+    ? `${getDateLabel(watchPeriod.startDate)} — ${watchPeriod.endDate.toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}`
+    : getMonthName(selectedDate)}
+</span>
 
               <input
                 className={

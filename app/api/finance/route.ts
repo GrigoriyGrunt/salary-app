@@ -10,11 +10,12 @@ export async function GET() {
   try {
     const user = await requireUser();
 
-    const [
+        const [
       financeSettings,
       payments,
       deductions,
       premiums,
+      watchMotivationGoals,
     ] = await Promise.all([
       prisma.financeSettings.findUnique({
         where: {
@@ -43,6 +44,14 @@ export async function GET() {
           userId: user.id,
         },
       }),
+            prisma.watchMotivationGoal.findMany({
+        where: {
+          userId: user.id,
+        },
+        orderBy: {
+          startDate: "asc",
+        },
+      }),
     ]);
 
     return NextResponse.json({
@@ -54,10 +63,13 @@ export async function GET() {
 
       goalMonthKey:
         financeSettings?.goalMonthKey ?? null,
+        goalPeriodKey:
+  financeSettings?.goalPeriodKey ?? null,
 
-      payments,
+            payments,
       deductions,
       premiums,
+      watchMotivationGoals,
     });
   } catch (error) {
     const authError =
@@ -91,13 +103,15 @@ export async function POST(
 
     const body = await request.json();
 
-    const {
-      totalSalary,
-      goal,
-      goalMonthKey,
-      payments,
+        const {
+  totalSalary,
+  goal,
+  goalMonthKey,
+  goalPeriodKey,
+  payments,
       deductions,
       premiums,
+      watchMotivationGoals = [],
     } = body;
 
     if (
@@ -132,6 +146,8 @@ export async function POST(
 
             goalMonthKey:
               goalMonthKey ?? null,
+              goalPeriodKey:
+  goalPeriodKey ?? null,
           },
 
           create: {
@@ -145,6 +161,8 @@ export async function POST(
 
             goalMonthKey:
               goalMonthKey ?? null,
+              goalPeriodKey:
+  goalPeriodKey ?? null,
           },
         });
 
@@ -214,6 +232,38 @@ export async function POST(
               })
             ),
           });
+        }
+                if (Array.isArray(watchMotivationGoals)) {
+          for (const item of watchMotivationGoals) {
+            const startDate = new Date(item.startDate);
+            const endDate = new Date(item.endDate);
+
+            if (
+              !Number.isFinite(startDate.getTime()) ||
+              !Number.isFinite(endDate.getTime())
+            ) {
+              continue;
+            }
+
+            await tx.watchMotivationGoal.upsert({
+              where: {
+                userId_startDate_endDate: {
+                  userId: user.id,
+                  startDate,
+                  endDate,
+                },
+              },
+              update: {
+                goal: Number(item.goal) || 0,
+              },
+              create: {
+                userId: user.id,
+                startDate,
+                endDate,
+                goal: Number(item.goal) || 0,
+              },
+            });
+          }
         }
       }
     );

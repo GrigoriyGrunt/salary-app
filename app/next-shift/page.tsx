@@ -121,6 +121,12 @@ async function handleContinue() {
     ) /
       (1000 * 60 * 60 * 24)
   );
+  if (isWatch1515 && daysBetween !== 14) {
+  alert(
+    "Для вахтового графика необходимо указать ровно 15 рабочих смен."
+  );
+  return;
+}
 
   if (
     isDayNight &&
@@ -136,15 +142,20 @@ async function handleContinue() {
     return;
   }
 
+    const watchType: "main" | "extra" | null = isWatch1515
+  ? (sessionStorage.getItem("watchType") as "main" | "extra" | null)
+  : null;
+
   const userForSchedule = {
-  ...currentUser,
-  firstShiftDate:
-    formatCalendarDate(firstDate),
-  secondShiftDate:
-    formatCalendarDate(secondDate),
-  firstShiftType: resolvedFirstShift,
-  secondShiftType: resolvedSecondShift,
-};
+    ...currentUser,
+    firstShiftDate:
+      formatCalendarDate(firstDate),
+    secondShiftDate:
+      formatCalendarDate(secondDate),
+    firstShiftType: resolvedFirstShift,
+    secondShiftType: resolvedSecondShift,
+    watchType,
+  };
 
   const shifts = generateSchedule(userForSchedule);
 
@@ -255,7 +266,9 @@ updateUser(currentUser.id, {
       secondShiftType: resolvedSecondShift,
       isSetupCompleted: true,
     });
-
+    if (isWatch1515) {
+      sessionStorage.removeItem("watchType");
+    }
     localStorage.setItem(
       `show-motivation-guide-${currentUser.id}`,
       "true"

@@ -41,7 +41,23 @@ type PageHeaderProps = {
   title: string;
   variant?: "default" | "home";
 };
+function toDateKey(value: Date | string | null | undefined) {
+  if (!value) return null;
 
+  if (value instanceof Date) {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  const dateKey = String(value).slice(0, 10);
+
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateKey)
+    ? dateKey
+    : null;
+}
 export default function PageHeader({
   title,
   variant = "default",
@@ -113,6 +129,9 @@ useEffect(() => {
 const goal = useFinanceStore(
   (state) => state.goal
 );
+const goalPeriodKey = useFinanceStore(
+  (state) => state.goalPeriodKey
+);
 
 const syncGoalMonth =
   useFinanceStore(
@@ -161,16 +180,6 @@ const syncGoalMonth =
       shifts,
       originalMainShiftsByMonth
     );
-    const shiftNotifications =
-  getShiftNotifications(
-    shifts,
-    now
-  );
-  const paymentNotifications =
-  getPaymentNotifications(
-    payments,
-    now
-  );
 
   const getMonthKey = (
     date: Date
@@ -180,18 +189,118 @@ const syncGoalMonth =
     ).padStart(2, "0")}`;
   };
 
-  const currentMonthKey =
-    getMonthKey(now);
-    const scheduleNotificationId =
+ const currentMonthKey = getMonthKey(now);
+ const scheduleNotificationId =
   `schedule-${currentMonthKey}`;
-const motivationNotificationId =
-  `motivation-${currentMonthKey}`;
 
-const hasMotivationNotification =
-  goal === 0 &&
-  !dismissedNotifications.includes(
-    motivationNotificationId
+const lastScheduleChange =
+  currentUser?.scheduleChanges?.[
+    (currentUser.scheduleChanges?.length ?? 1) - 1
+  ];
+
+const activeSchedule =
+  lastScheduleChange?.schedule ?? currentUser?.schedule;
+
+const watchFirstDate =
+  lastScheduleChange?.firstShiftDate ??
+  currentUser?.firstShiftDate;
+
+const watchSecondDate =
+  lastScheduleChange?.secondShiftDate ??
+  currentUser?.secondShiftDate;
+
+const isWatchMotivation =
+  currentUser?.position === "Комплектовщик основы" &&
+  activeSchedule === "15/15 вахта";
+const watchPeriods = isWatchMotivation && currentUser
+  ? [
+      {
+        startDate: toDateKey(currentUser.firstShiftDate),
+        endDate: toDateKey(currentUser.secondShiftDate),
+      },
+      ...(currentUser.scheduleChanges ?? [])
+        .filter((change) => change.schedule === "15/15 вахта")
+        .map((change) => ({
+          startDate: toDateKey(change.firstShiftDate),
+          endDate: toDateKey(change.secondShiftDate),
+        })),
+    ]
+      .filter(
+        (period): period is { startDate: string; endDate: string } =>
+          Boolean(
+            period.startDate &&
+            period.endDate &&
+            period.endDate >= period.startDate
+          )
+      )
+      .reduce((unique, period) => {
+        if (
+          !unique.some(
+            (item) =>
+              item.startDate === period.startDate &&
+              item.endDate === period.endDate
+          )
+        ) {
+          unique.push(period);
+        }
+        return unique;
+      }, [] as { startDate: string; endDate: string }[])
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  : undefined;
+    const paymentNotifications =
+  getPaymentNotifications(
+    payments,
+    now,
+    watchPeriods
   );
+const watchPeriodKey =
+  isWatchMotivation && watchFirstDate && watchSecondDate
+    ? `${new Date(watchFirstDate).toISOString().slice(0, 10)}-${new Date(watchSecondDate).toISOString().slice(0, 10)}`
+    : null;
+
+const motivationNotificationId = isWatchMotivation
+  ? `motivation-${watchPeriodKey}`
+  : `motivation-${currentMonthKey}`;
+
+const today = new Date(now);
+today.setHours(0, 0, 0, 0);
+
+const watchStart = watchFirstDate
+  ? new Date(watchFirstDate)
+  : null;
+
+const watchEnd = watchSecondDate
+  ? new Date(watchSecondDate)
+  : null;
+
+watchStart?.setHours(0, 0, 0, 0);
+watchEnd?.setHours(0, 0, 0, 0);
+const shiftNotifications = getShiftNotifications(
+  shifts,
+  now,
+  isWatchMotivation && watchStart && watchEnd
+    ? {
+        start: watchStart,
+        end: watchEnd,
+      }
+    : null
+);
+const isInsideWatchPeriod =
+  watchStart !== null &&
+  watchEnd !== null &&
+  today >= watchStart &&
+  today <= watchEnd;
+
+const hasMotivationNotification = isWatchMotivation
+  ? isInsideWatchPeriod &&
+    goalPeriodKey !== watchPeriodKey &&
+    !dismissedNotifications.includes(
+      motivationNotificationId
+    )
+  : goal === 0 &&
+    !dismissedNotifications.includes(
+      motivationNotificationId
+    );
   const visibleScheduleNotification =
   notification &&
   !dismissedNotifications.includes(
@@ -428,8 +537,10 @@ useEffect(() => {
     </button>
 
     <h3>
-      🎯 Укажите цель на месяц
-    </h3>
+  🎯 {isWatchMotivation
+    ? "Укажите цель на вахту"
+    : "Укажите цель на месяц"}
+</h3>
 
     <p>
       Укажите цель средней
@@ -627,13 +738,15 @@ useEffect(() => {
     return;
   }
 
-  const params =
-    new URLSearchParams({
-      month: action.monthKey,
-      paymentType:
-        action.paymentType,
-      paymentDate: action.date,
-    });
+const params = new URLSearchParams({
+  month: action.monthKey,
+  paymentType: action.paymentType,
+  paymentDate: action.date,
+});
+
+if (action.periodKey) {
+  params.set("periodKey", action.periodKey);
+}
 
   setIsNotificationsOpen(false);
 

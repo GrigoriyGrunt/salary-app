@@ -32,6 +32,10 @@ function isSameDay(date1: Date, date2: Date) {
 }
 
 type DailyStatisticsProps = {
+  watchPeriod?: {
+  startDate: string;
+  endDate: string;
+};
   selectedDate: Date;
   onChange: (date: Date) => void;
   title?: string;
@@ -43,6 +47,7 @@ export default function DailyStatistics({
   onChange,
   title = "Статистика по дням",
   mode = "statistics",
+  watchPeriod,
 }: DailyStatisticsProps) {
   const { openShiftEditor } = useShiftEditor();
 
@@ -90,21 +95,62 @@ const weekDays = [
   "Сб",
 ];
 
-const monthStart = new Date(
-  selectedDate.getFullYear(),
-  selectedDate.getMonth(),
-  1
-);
+const days = (() => {
+  if (watchPeriod) {
+    const start = new Date(`${watchPeriod.startDate}T12:00:00`);
+    const end = new Date(`${watchPeriod.endDate}T12:00:00`);
+    const result = [];
 
-const daysInMonth = new Date(
-  selectedDate.getFullYear(),
-  selectedDate.getMonth() + 1,
-  0
-).getDate();
+    for (
+      const date = new Date(start);
+      date <= end;
+      date.setDate(date.getDate() + 1)
+    ) {
+      const dayDate = new Date(date);
 
-const days = Array.from(
-  { length: daysInMonth },
-  (_, index) => {
+      const shift = shifts.find((item) =>
+        isSameDay(new Date(item.date), dayDate)
+      );
+
+      const boxes = shift && shift.boxes > 0 ? shift.boxes : null;
+      const blocks = shift && shift.blocks > 0 ? shift.blocks : null;
+      const pallets = shift && shift.pallets > 0 ? shift.pallets : null;
+
+      result.push({
+        date: dayDate,
+        day: dayDate.getDate(),
+        week: weekDays[dayDate.getDay()],
+        shift,
+        boxes,
+        blocks,
+        pallets,
+        dayEarnings: shift?.isWorked
+          ? getDayEarnings(
+              shift,
+              dayDate,
+              shifts,
+              originalMainShiftsByMonth,
+              currentUser
+            )
+          : null,
+        workZone: shift?.workZone,
+        isMentor: shift?.mentor === true,
+        hasWorkingShift:
+          shift?.type === "day" || shift?.type === "night",
+        active: isSameDay(dayDate, selectedDay),
+      });
+    }
+
+    return result;
+  }
+
+  const daysInMonth = new Date(
+    selectedDate.getFullYear(),
+    selectedDate.getMonth() + 1,
+    0
+  ).getDate();
+
+  return Array.from({ length: daysInMonth }, (_, index) => {
     const date = new Date(
       selectedDate.getFullYear(),
       selectedDate.getMonth(),
@@ -112,70 +158,38 @@ const days = Array.from(
     );
 
     const shift = shifts.find((item) =>
-      isSameDay(
-        new Date(item.date),
-        date
-      )
+      isSameDay(new Date(item.date), date)
     );
 
-    const boxes =
-      shift && shift.boxes > 0
-        ? shift.boxes
-        : null;
-
-        const blocks =
-      shift && shift.blocks > 0
-        ? shift.blocks
-        : null;
-
-    const pallets =
-      shift && shift.pallets > 0
-        ? shift.pallets
-        : null;
-
-    const workZone = shift?.workZone;
-
-    const isMentor =
-      shift?.mentor === true;
-
-    const hasWorkingShift =
-      shift?.type === "day" ||
-      shift?.type === "night";
-
-    const dayEarnings =
-  shift?.isWorked
-    ? getDayEarnings(
-        shift,
-        date,
-        shifts,
-        originalMainShiftsByMonth,
-        currentUser
-      )
-    : null;
+    const boxes = shift && shift.boxes > 0 ? shift.boxes : null;
+    const blocks = shift && shift.blocks > 0 ? shift.blocks : null;
+    const pallets = shift && shift.pallets > 0 ? shift.pallets : null;
 
     return {
       date,
       day: date.getDate(),
       week: weekDays[date.getDay()],
-
       shift,
-
-            boxes,
+      boxes,
       blocks,
       pallets,
-      dayEarnings,
-      workZone,
-      isMentor,
-
-      hasWorkingShift,
-
-      active: isSameDay(
-        date,
-        selectedDay
-      ),
+      dayEarnings: shift?.isWorked
+        ? getDayEarnings(
+            shift,
+            date,
+            shifts,
+            originalMainShiftsByMonth,
+            currentUser
+          )
+        : null,
+      workZone: shift?.workZone,
+      isMentor: shift?.mentor === true,
+      hasWorkingShift:
+        shift?.type === "day" || shift?.type === "night",
+      active: isSameDay(date, selectedDay),
     };
-  }
-);
+  });
+})();
 
   useEffect(() => {
     const daysElement = daysRef.current;

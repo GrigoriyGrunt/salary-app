@@ -47,57 +47,159 @@ const payments = useFinanceStore(
 
   today.setHours(0, 0, 0, 0);
 
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
+  const activeScheduleChange = (
+    currentUser?.scheduleChanges ?? []
+  )
+    .filter((change) => {
+      const date = new Date(change.changeDate);
+      date.setHours(0, 0, 0, 0);
+      return date <= today;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.changeDate).getTime() -
+        new Date(b.changeDate).getTime()
+    )
+    .at(-1);
 
-  const monthShifts = shifts.filter((shift) => {
-    const date = new Date(shift.date);
+  const activeSchedule =
+    activeScheduleChange?.schedule ?? currentUser?.schedule;
 
-    return (
-      date.getMonth() === currentMonth &&
-      date.getFullYear() === currentYear
-    );
-  });
+  const watchFirstDate =
+    activeScheduleChange?.firstShiftDate ??
+    currentUser?.firstShiftDate;
 
-  const monthStats =
-  getMonthProductionStats(
-    shifts,
-    today
-  );
+  const watchSecondDate =
+    activeScheduleChange?.secondShiftDate ??
+    currentUser?.secondShiftDate;
 
-const totalBoxes =
-  monthStats.boxes;
+  const isWatchMotivation =
+    currentUser?.position === "Комплектовщик основы" &&
+    activeSchedule === "15/15 вахта";
 
-const totalBaseHours =
-  monthStats.baseHours;
+  const watchStart = watchFirstDate
+    ? new Date(watchFirstDate)
+    : null;
 
-const averageBoxes =
-  totalBaseHours > 0
-    ? Math.round(
-        (totalBoxes / totalBaseHours) * 11
+  const watchEnd = watchSecondDate
+    ? new Date(watchSecondDate)
+    : null;
+
+  watchStart?.setHours(0, 0, 0, 0);
+  watchEnd?.setHours(0, 0, 0, 0);
+
+  const isInsideWatchPeriod =
+    isWatchMotivation &&
+    watchStart !== null &&
+    watchEnd !== null &&
+    today >= watchStart &&
+    today <= watchEnd;
+
+    const periodShifts = isWatchMotivation
+    ? isInsideWatchPeriod
+      ? shifts.filter((shift) => {
+          const date = new Date(shift.date);
+          date.setHours(0, 0, 0, 0);
+
+          return date >= watchStart! && date <= watchEnd!;
+        })
+      : []
+    : shifts;
+
+  const monthShifts = isWatchMotivation
+    ? periodShifts
+    : shifts.filter((shift) => {
+        const date = new Date(shift.date);
+
+        return (
+          date.getMonth() === today.getMonth() &&
+          date.getFullYear() === today.getFullYear()
+        );
+      });
+
+  const monthStats = isWatchMotivation
+    ? periodShifts.reduce(
+        (total, shift) => {
+          if (!shift.isWorked) return total;
+
+          const shiftDate = new Date(shift.date);
+          shiftDate.setHours(0, 0, 0, 0);
+
+          const nextDay = new Date(shiftDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+
+          const isFirstDayInside =
+            isInsideWatchPeriod &&
+            shiftDate >= watchStart! &&
+            shiftDate <= watchEnd!;
+
+          const isSecondDayInside =
+            isInsideWatchPeriod &&
+            nextDay >= watchStart! &&
+            nextDay <= watchEnd!;
+
+          if (shift.transitionDistribution) {
+            const first = isFirstDayInside
+              ? shift.transitionDistribution.firstMonth
+              : undefined;
+
+            const second = isSecondDayInside
+              ? shift.transitionDistribution.secondMonth
+              : undefined;
+
+            return {
+  boxes: total.boxes + (first?.boxes || 0) + (second?.boxes || 0),
+  blocks: total.blocks + (first?.blocks || 0) + (second?.blocks || 0),
+  pallets: total.pallets + (first?.pallets || 0) + (second?.pallets || 0),
+  baseHours: total.baseHours + (first?.baseHours || 0) + (second?.baseHours || 0),
+  tobaccoHours: total.tobaccoHours + (first?.tobaccoHours || 0) + (second?.tobaccoHours || 0),
+};
+          }
+
+          if (!isFirstDayInside) return total;
+
+          return {
+            boxes: total.boxes + (shift.boxes || 0),
+            blocks: total.blocks + (shift.blocks || 0),
+            pallets: total.pallets + (shift.pallets || 0),
+            baseHours: total.baseHours + (shift.baseHours || 0),
+            tobaccoHours: total.tobaccoHours + (shift.tobaccoHours || 0),
+          };
+        },
+        {
+          boxes: 0,
+          blocks: 0,
+          pallets: 0,
+          baseHours: 0,
+          tobaccoHours: 0,
+        }
       )
-    : 0;
-const totalBlocks =
-  monthStats.blocks;
+    : getMonthProductionStats(shifts, today);
 
-const totalTobaccoHours =
-  monthStats.tobaccoHours;
+  const totalBoxes = monthStats.boxes;
 
-const averageBlocks =
-  totalTobaccoHours > 0
-    ? Math.round(
-        (totalBlocks / totalTobaccoHours) * 11
-      )
-    : 0;
-const totalPallets =
-  monthStats.pallets;
+  const totalBaseHours = monthStats.baseHours;
 
-const averagePallets =
-  totalBaseHours > 0
-    ? Math.round(
-        (totalPallets / totalBaseHours) * 11
-      )
-    : 0;    
+  const averageBoxes =
+    totalBaseHours > 0
+      ? Math.round((totalBoxes / totalBaseHours) * 11)
+      : 0;
+
+  const totalBlocks = monthStats.blocks;
+
+  const totalTobaccoHours = monthStats.tobaccoHours;
+
+  const averageBlocks =
+    totalTobaccoHours > 0
+      ? Math.round((totalBlocks / totalTobaccoHours) * 11)
+      : 0;
+
+  const totalPallets = monthStats.pallets;
+
+  const averagePallets =
+    totalBaseHours > 0
+      ? Math.round((totalPallets / totalBaseHours) * 11)
+      : 0;
 const boxPrice =
   tariffs?.boxes
     .filter((tier) => averageBoxes >= tier.minAverage)
@@ -125,17 +227,25 @@ const nonProfileHours = monthShifts.reduce(
   0
 );
 
-const futureShifts = monthShifts.filter(
-  (shift) =>
-    !shift.isWorked &&
-    (
-      shift.type === "day" ||
-      shift.type === "night"
-    )
-);
+const futureShifts = monthShifts.filter((shift) => {
+  if (
+    shift.isWorked ||
+    (shift.type !== "day" && shift.type !== "night")
+  ) {
+    return false;
+  }
 
-const futureBaseHours =
-  futureShifts.length * 11;
+  if (isWatchMotivation) {
+    const shiftDate = new Date(shift.date);
+    shiftDate.setHours(0, 0, 0, 0);
+
+    return shiftDate >= today && shiftDate <= watchEnd!;
+  }
+
+  return true;
+});
+
+const futureBaseHours = futureShifts.length * 11;
 
 const goalPerHour =
   goal / 11;
@@ -328,9 +438,11 @@ const storekeeperRequiredPallets =
 
   <div className={styles.statCard}>
   <span className={styles.label}>
-  {isStorekeeper
-    ? "Цель заработка в месяц"
-    : "Цель средняя в месяц"}
+  {isWatchMotivation
+    ? "Цель средняя в текущей вахте"
+    : isStorekeeper
+      ? "Цель заработка в месяц"
+      : "Цель средняя в месяц"}
 </span>
 
   <strong className={styles.value}>
@@ -347,7 +459,7 @@ const storekeeperRequiredPallets =
 </div>
 
 <div className={styles.notice}>
-  До конца месяца{" "}
+  {isWatchMotivation ? "До конца вахты" : "До конца месяца"}{" "}
   {isStorekeeper
   ? "принимайте и отгружайте по"
   : isStacker

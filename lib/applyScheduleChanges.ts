@@ -244,7 +244,8 @@ function getShiftType(
 function applySingleChange(
   shifts: Shift[],
   change: ScheduleChange,
-  nextChangeDate?: Date
+  nextChangeDate?: Date,
+  watchType?: "main" | "extra"
 ): Shift[] {
   const changeDate =
     startOfDay(change.changeDate);
@@ -291,8 +292,8 @@ function applySingleChange(
           ? "day"
           : "off",
         workType: isWatchDay
-          ? "main"
-          : null,
+  ? watchType ?? "main"
+  : null,
       };
     });
   }
@@ -333,7 +334,9 @@ function applySingleChange(
 
 export function applyScheduleChanges(
   shifts: Shift[],
-  scheduleChanges: ScheduleChange[]
+  scheduleChanges: ScheduleChange[],
+  watchType?: "main" | "extra",
+  watchChangeDate?: Date
 ): Shift[] {
   if (
     scheduleChanges.length === 0
@@ -365,12 +368,19 @@ export function applyScheduleChanges(
     const next =
       changes[i + 1];
 
-    result =
-      applySingleChange(
-        result,
-        current,
-        next?.changeDate
-      );
+    const isSelectedWatch =
+  current.schedule === "15/15 вахта" &&
+  watchChangeDate &&
+  startOfDay(current.changeDate).getTime() ===
+    startOfDay(watchChangeDate).getTime();
+
+result =
+  applySingleChange(
+    result,
+    current,
+    next?.changeDate,
+    isSelectedWatch ? watchType : undefined
+  );
   }
 
   return result;

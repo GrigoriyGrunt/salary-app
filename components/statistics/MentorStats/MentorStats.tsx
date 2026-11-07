@@ -6,10 +6,15 @@ import { useUsersStore } from "@/store/usersStore";
 
 type MentorStatsProps = {
   selectedDate: Date;
+  watchPeriod?: {
+    startDate: string;
+    endDate: string;
+  };
 };
 
 export default function MentorStats({
   selectedDate,
+  watchPeriod,
 }: MentorStatsProps) {
   const shifts = useScheduleStore(
     (state) => state.shifts
@@ -21,21 +26,23 @@ export default function MentorStats({
 const isStorekeeper =
   currentUser?.position === "Кладовщик";
 
-  const mentorShifts = shifts
-    .filter((shift) => {
-      const date = new Date(shift.date);
+const mentorShifts = shifts
+  .filter((shift) => {
+    const date = new Date(shift.date);
 
-      return (
-        shift.mentor === true &&
-        date.getMonth() === selectedDate.getMonth() &&
-        date.getFullYear() === selectedDate.getFullYear()
-      );
-    })
-    .sort(
-      (a, b) =>
-        new Date(a.date).getTime() -
-        new Date(b.date).getTime()
-    );
+    const isInPeriod = watchPeriod
+      ? date >= new Date(`${watchPeriod.startDate}T00:00:00`) &&
+        date <= new Date(`${watchPeriod.endDate}T23:59:59`)
+      : date.getMonth() === selectedDate.getMonth() &&
+        date.getFullYear() === selectedDate.getFullYear();
+
+    return shift.mentor === true && isInPeriod;
+  })
+  .sort(
+    (a, b) =>
+      new Date(a.date).getTime() -
+      new Date(b.date).getTime()
+  );
 
   return isStorekeeper ? null : (
   <section className={styles.wrapper}>

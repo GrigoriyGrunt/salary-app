@@ -63,7 +63,8 @@ function isSameMonth(
 
 export function calculateMonthlyReport(
   input: ReportInput,
-  selectedDate: Date
+  selectedDate: Date,
+  watchPeriod?: { startDate: Date; endDate: Date } | null
 ) {
   const {
     user,
@@ -87,26 +88,37 @@ export function calculateMonthlyReport(
   const monthKey =
     getMonthKey(selectedDate);
 
-  const monthShifts =
-    shifts.filter((shift) =>
-      isSameMonth(
-        new Date(shift.date),
-        selectedDate
-      )
-    );
+  const monthShifts = shifts.filter((shift) => {
+  const date = new Date(shift.date);
+
+  if (watchPeriod) {
+    const start = new Date(watchPeriod.startDate);
+    const end = new Date(watchPeriod.endDate);
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    return date >= start && date <= end;
+  }
+
+  return isSameMonth(date, selectedDate);
+});
 
   const storedOriginalMainShifts =
     originalMainShiftsByMonth[
       monthKey
     ];
 
-  const originalMainShifts =
-    storedOriginalMainShifts !== undefined
-      ? storedOriginalMainShifts
-      : getOriginalMainShiftsForMonth(
-          user,
-          selectedDate
-        );
+ const originalMainShifts = watchPeriod
+  ? monthShifts.filter(
+      (shift) => shift.workType === "main"
+    ).length
+  : storedOriginalMainShifts !== undefined
+    ? storedOriginalMainShifts
+    : getOriginalMainShiftsForMonth(
+        user,
+        selectedDate
+      );
 
   const workedMonthShiftData =
     shifts.reduce(
@@ -114,12 +126,43 @@ export function calculateMonthlyReport(
         result,
         shift
       ) => {
-        if (!shift.isWorked) {
+                if (!shift.isWorked) {
           return result;
         }
 
         const shiftDate =
           new Date(shift.date);
+
+        if (watchPeriod) {
+          const periodStart = new Date(watchPeriod.startDate);
+          const periodEnd = new Date(watchPeriod.endDate);
+
+          periodStart.setHours(0, 0, 0, 0);
+          periodEnd.setHours(23, 59, 59, 999);
+          shiftDate.setHours(0, 0, 0, 0);
+
+          if (
+            shiftDate < periodStart ||
+            shiftDate > periodEnd
+          ) {
+            return result;
+          }
+
+          result.push({
+            shift,
+            salaryHours: shift.salaryHours ?? 0,
+            baseHours: shift.baseHours ?? 0,
+            tobaccoHours: shift.tobaccoHours ?? 0,
+            boxes: shift.boxes ?? 0,
+            blocks: shift.blocks ?? 0,
+            pallets: shift.pallets ?? 0,
+            returnHours: shift.returnHours ?? 0,
+            nonProfileHours: shift.nonProfileHours ?? 0,
+            transitionPart: null,
+          });
+
+          return result;
+        }
 
         const isCurrentMonth =
           isSameMonth(
@@ -705,6 +748,31 @@ const hourBreakdown =
         const shiftDate =
           new Date(shift.date);
 
+        if (watchPeriod) {
+          const dateKey = [
+            shiftDate.getFullYear(),
+            String(shiftDate.getMonth() + 1).padStart(2, "0"),
+            String(shiftDate.getDate()).padStart(2, "0"),
+          ].join("-");
+
+          const startDateKey = [
+            watchPeriod.startDate.getFullYear(),
+            String(watchPeriod.startDate.getMonth() + 1).padStart(2, "0"),
+            String(watchPeriod.startDate.getDate()).padStart(2, "0"),
+          ].join("-");
+
+          const endDateKey = [
+            watchPeriod.endDate.getFullYear(),
+            String(watchPeriod.endDate.getMonth() + 1).padStart(2, "0"),
+            String(watchPeriod.endDate.getDate()).padStart(2, "0"),
+          ].join("-");
+
+          return dateKey >= startDateKey &&
+            dateKey <= endDateKey
+            ? total + mentorSalaryPerShift
+            : total;
+        }
+
         const isCurrentMonth =
           isSameMonth(
             shiftDate,
@@ -715,8 +783,7 @@ const hourBreakdown =
           !shift.transitionDistribution
         ) {
           return isCurrentMonth
-            ? total +
-                mentorSalaryPerShift
+            ? total + mentorSalaryPerShift
             : total;
         }
 
@@ -736,18 +803,14 @@ const hourBreakdown =
         if (isCurrentMonth) {
           return (
             total +
-            (mentorSalaryPerShift *
-              4) /
-              11
+            (mentorSalaryPerShift * 4) / 11
           );
         }
 
         if (isSecondMonth) {
           return (
             total +
-            (mentorSalaryPerShift *
-              7) /
-              11
+            (mentorSalaryPerShift * 7) / 11
           );
         }
 
@@ -819,18 +882,25 @@ const dayOffCount =
     tariffs.experienceBonus
   );
 
+  const isMonthInWatchPeriod = (key: string) => {
+    if (!watchPeriod) {
+      return key === monthKey;
+    }
+
+    const startKey = getMonthKey(watchPeriod.startDate);
+    const endKey = getMonthKey(watchPeriod.endDate);
+
+    return key >= startKey && key <= endKey;
+  };
+
   const currentMonthDeductions =
-    deductions.filter(
-      (deduction) =>
-        deduction.monthKey ===
-        monthKey
+    deductions.filter((deduction) =>
+      isMonthInWatchPeriod(deduction.monthKey)
     );
 
   const currentMonthPremiums =
-    premiums.filter(
-      (premium) =>
-        premium.monthKey ===
-        monthKey
+    premiums.filter((premium) =>
+      isMonthInWatchPeriod(premium.monthKey)
     );
 
   const currentMonthPayments =
@@ -866,7 +936,9 @@ const errorsDeduction =
 
 const salaryWithoutErrors =
   !isStorekeeper &&
-  workedMonthShifts.length > 0 &&
+  (watchPeriod
+  ? workedMonthShiftData.length > 0
+  : workedMonthShifts.length > 0) &&
   (isStacker
     ? totalErrors === 0
     : totalErrors <= 2)
@@ -909,13 +981,28 @@ const salaryWithoutErrors =
         0
       );
 
-  const absenceCount =
-    monthShifts.filter(
-      (shift) =>
-        shift.status ===
-        "absence"
-    ).length;
+    const absenceCount =
+    (watchPeriod
+      ? shifts.filter((shift) => {
+          const date = new Date(shift.date);
+          date.setHours(0, 0, 0, 0);
 
+          const start = new Date(watchPeriod.startDate);
+          start.setHours(0, 0, 0, 0);
+
+          const end = new Date(watchPeriod.endDate);
+          end.setHours(23, 59, 59, 999);
+
+          return (
+            shift.status === "absence" &&
+            date >= start &&
+            date <= end
+          );
+        })
+      : monthShifts.filter(
+          (shift) => shift.status === "absence"
+        )
+    ).length;
   const absenceDeduction =
   absenceCount *
   tariffs.bonuses.absenceDeduction;
