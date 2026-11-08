@@ -39,6 +39,9 @@ salary-app
 │   │   ├── page.module.css
 │   │   └── page.tsx
 │   ├── profile
+│   │   ├── edit
+│   │   │   ├── page.module.css
+│   │   │   └── page.tsx
 │   │   ├── page.module.css
 │   │   └── page.tsx
 │   ├── report

@@ -252,8 +252,14 @@
   color: #ffffff;
 }
 
+.createProfileConfirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .createProfileCancel:active,
-.createProfileConfirm:active {
+.createProfileConfirm:not(:disabled):active {
   transform: scale(0.98);
 }
 

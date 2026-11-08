@@ -7,7 +7,9 @@ import {
   requireAdmin,
   requireUser,
 } from "@/lib/auth";
-
+const nameRegex = /^[А-Яа-яЁё]+(?:[ -][А-Яа-яЁё]+)*$/;
+const loginRegex = /^[A-Za-z0-9.!]+$/;
+const accessCodeRegex = /^\d+$/;
 const userSelect = {
   id: true,
 
@@ -111,7 +113,30 @@ export async function POST(
         }
       );
     }
+if (
+  !nameRegex.test(lastName) ||
+  !nameRegex.test(firstName) ||
+  !nameRegex.test(middleName)
+) {
+  return NextResponse.json(
+    { error: "ФИО должно содержать только русские буквы, пробелы и дефисы" },
+    { status: 400 }
+  );
+}
 
+if (!loginRegex.test(login)) {
+  return NextResponse.json(
+    { error: "Логин может содержать только английские буквы, цифры, точку и восклицательный знак" },
+    { status: 400 }
+  );
+}
+
+if (!accessCodeRegex.test(accessCode)) {
+  return NextResponse.json(
+    { error: "Код входа должен содержать только цифры" },
+    { status: 400 }
+  );
+}
     const existingUser =
       await prisma.user.findUnique({
         where: {
@@ -243,7 +268,30 @@ export async function PATCH(
         }
       );
     }
+if (
+  (lastName !== undefined && !nameRegex.test(lastName)) ||
+  (firstName !== undefined && !nameRegex.test(firstName)) ||
+  (middleName !== undefined && !nameRegex.test(middleName))
+) {
+  return NextResponse.json(
+    { error: "ФИО должно содержать только русские буквы, пробелы и дефисы" },
+    { status: 400 }
+  );
+}
 
+if (login !== undefined && !loginRegex.test(login)) {
+  return NextResponse.json(
+    { error: "Логин может содержать только английские буквы, цифры, точку и восклицательный знак" },
+    { status: 400 }
+  );
+}
+
+if (accessCode !== undefined && !accessCodeRegex.test(accessCode)) {
+  return NextResponse.json(
+    { error: "Код входа должен содержать только цифры" },
+    { status: 400 }
+  );
+}
     if (login) {
       const existingUser =
         await prisma.user.findUnique({

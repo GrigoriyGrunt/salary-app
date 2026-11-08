@@ -31,12 +31,21 @@ export async function POST(request: Request) {
         }
       );
     }
-
-    if (!/^[a-zA-Z0-9]+$/.test(login.trim())) {
+if (
+  !/^[А-Яа-яЁё]+(?:[ -][А-Яа-яЁё]+)*$/.test(lastName.trim()) ||
+  !/^[А-Яа-яЁё]+(?:[ -][А-Яа-яЁё]+)*$/.test(firstName.trim()) ||
+  !/^[А-Яа-яЁё]+(?:[ -][А-Яа-яЁё]+)*$/.test(middleName.trim())
+) {
+  return NextResponse.json(
+    { error: "ФИО должно содержать только русские буквы, пробелы и дефисы" },
+    { status: 400 }
+  );
+}
+    if (!/^[A-Za-z0-9.!]+$/.test(login.trim())) {
       return NextResponse.json(
         {
           error:
-            "Логин должен содержать только английские буквы и цифры",
+            "Логин может содержать только английские буквы, цифры, точку и восклицательный знак",
         },
         {
           status: 400,

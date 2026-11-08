@@ -45,12 +45,6 @@ function getExperienceLabel(years: number) {
 export default function ProfilePage() {
   const [isResetOpen, setIsResetOpen] =
   useState(false);
-const [isChangeCodeOpen, setIsChangeCodeOpen] =
-  useState(false);
-const [oldCode, setOldCode] = useState("");
-const [newCode, setNewCode] = useState("");
-const [isForgotCodeOpen, setIsForgotCodeOpen] =
-  useState(false);
   const [isSupportOpen, setIsSupportOpen] =
   useState(false);
   const [isAboutOpen, setIsAboutOpen] =
@@ -110,10 +104,6 @@ const faqItems = [
   const [isQrOpen, setIsQrOpen] =
   useState(false);
   const [isLogoutOpen, setIsLogoutOpen] =
-  useState(false);
-  const [isOldCodeVisible, setIsOldCodeVisible] =
-  useState(false);
-const [isNewCodeVisible, setIsNewCodeVisible] =
   useState(false);
   const [isUsersManagementOpen, setIsUsersManagementOpen] =
   useState(false);
@@ -255,55 +245,6 @@ const currentSchedule = (() => {
     user.schedule ||
     "-";
 })();
-async function handleChangeCode() {
-  if (!user) return;
-
-  if (oldCode.trim() === "") {
-    alert("Введите старый код");
-    return;
-  }
-
-  if (newCode.trim() === "") {
-    alert("Введите новый код");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      "/api/users",
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type":
-            "application/json",
-        },
-        body: JSON.stringify({
-          id: user.id,
-          oldAccessCode: oldCode.trim(),
-          accessCode: newCode.trim(),
-        }),
-      }
-    );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      alert(
-        result.error ||
-          "Не удалось изменить код"
-      );
-      return;
-    }
-
-    setOldCode("");
-    setNewCode("");
-    setIsChangeCodeOpen(false);
-
-    alert("Код входа успешно изменён");
-  } catch {
-    alert("Не удалось изменить код");
-  }
-}
 async function handleResetProfile() {
   if (!user) return;
 
@@ -412,11 +353,11 @@ async function handleResetProfile() {
           <h3 className={styles.title}>Настройки</h3>
           
           <div className={styles.card}>
-            <button
+<button
   className={styles.item}
-  onClick={() => setIsChangeCodeOpen(true)}
+  onClick={() => router.push("/profile/edit")}
 >
-  Сменить код входа
+  Редактировать профиль
 </button>
             <button
   className={styles.item}
@@ -977,77 +918,6 @@ async function handleResetProfile() {
           </div>
         </div>
       )}
-
-      {isChangeCodeOpen && (
-        <div className={styles.overlay}>
-          <div className={styles.resetModal}>
-            <h2>Сменить код входа</h2>
-
-            <div className={styles.codeInputWrapper}>
-  <input
-    className={styles.codeInput}
-    type={isOldCodeVisible ? "text" : "password"}
-    value={oldCode}
-    onChange={(e) => setOldCode(e.target.value)}
-    placeholder="Введите старый код"
-  />
-
-  <button
-    type="button"
-    className={styles.eyeButton}
-    onClick={() => setIsOldCodeVisible(!isOldCodeVisible)}
-  >
-    {isOldCodeVisible ? "👁" : "👁"}
-  </button>
-</div>
-
-            <div className={styles.codeInputWrapper}>
-  <input
-    className={styles.codeInput}
-    type={isNewCodeVisible ? "text" : "password"}
-    value={newCode}
-    onChange={(e) => setNewCode(e.target.value)}
-    placeholder="Введите новый код"
-  />
-
-  <button
-    type="button"
-    className={styles.eyeButton}
-    onClick={() => setIsNewCodeVisible(!isNewCodeVisible)}
-  >
-    {isNewCodeVisible ? "👁" : "👁"}
-  </button>
-</div>
-
-            <button
-              className={styles.forgotCode}
-              onClick={() => setIsForgotCodeOpen(true)}
-            >
-              Забыли код?
-            </button>
-
-            <div className={styles.modalActions}>
-              <button
-                className={styles.cancelButton}
-                onClick={() => {
-                  setIsChangeCodeOpen(false);
-                  setOldCode("");
-                  setNewCode("");
-                }}
-              >
-                Отмена
-              </button>
-
-              <button
-                className={styles.confirmButton}
-                onClick={handleChangeCode}
-              >
-                Сменить
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {isSupportOpen && (
         <div className={styles.overlay}>
           <div className={styles.resetModal}>
@@ -1174,28 +1044,6 @@ async function handleResetProfile() {
           </div>
         </div>
       )}           
-      {isForgotCodeOpen && (
-        <div className={styles.overlay}>
-          <div className={styles.resetModal}>
-            <h2>Забыли код?</h2>
-
-            <p>
-              Напишите администратору
-              <br />
-              89990894573 Григорий
-            </p>
-
-            <div className={styles.modalActions}>
-              <button
-                className={styles.confirmButton}
-                onClick={() => setIsForgotCodeOpen(false)}
-              >
-                Понятно
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

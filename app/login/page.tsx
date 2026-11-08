@@ -62,12 +62,13 @@ const [newProfileCode, setNewProfileCode] =
   };
 
   function transliterate(value: string) {
-    return value
-      .toLowerCase()
-      .split("")
-      .map((char) => transliteration[char] ?? char)
-      .join("");
-  }
+  return value
+    .toLowerCase()
+    .replace(/[ -]/g, "")
+    .split("")
+    .map((char) => transliteration[char] ?? char)
+    .join("");
+}
 
   const lastNameLatin = transliterate(lastName.trim());
 
@@ -328,7 +329,7 @@ setNotificationCurrentUser(user.id);
   placeholder="Фамилия"
   value={newProfileLastName}
   onChange={(event) => {
-  const value = event.target.value;
+  const value = event.target.value.replace(/[^А-Яа-яЁё -]/g, "");
   setNewProfileLastName(value);
 
   setNewProfileLogin(
@@ -347,7 +348,7 @@ setNotificationCurrentUser(user.id);
   placeholder="Имя"
   value={newProfileFirstName}
   onChange={(event) => {
-  const value = event.target.value;
+  const value = event.target.value.replace(/[^А-Яа-яЁё -]/g, "");
   setNewProfileFirstName(value);
 
   setNewProfileLogin(
@@ -365,8 +366,8 @@ setNotificationCurrentUser(user.id);
   type="text"
   placeholder="Отчество"
   value={newProfileMiddleName}
-  onChange={(event) => {
-  const value = event.target.value;
+onChange={(event) => {
+  const value = event.target.value.replace(/[^А-Яа-яЁё -]/g, "");
   setNewProfileMiddleName(value);
 
   setNewProfileLogin(
@@ -386,7 +387,7 @@ setNotificationCurrentUser(user.id);
   value={newProfileLogin}
 onChange={(event) =>
   setNewProfileLogin(
-    event.target.value.replace(/[^a-zA-Z0-9]/g, "")
+    event.target.value.replace(/[^a-zA-Z0-9.!]/g, "")
   )
 }
 />
@@ -420,8 +421,15 @@ onChange={(event) =>
   </button>
 
   <button
-    className={styles.createProfileConfirm}
-    onClick={async () => {
+  className={styles.createProfileConfirm}
+  disabled={
+    !newProfileLastName.trim() ||
+    !newProfileFirstName.trim() ||
+    !newProfileMiddleName.trim() ||
+    !newProfileLogin.trim() ||
+    newProfileCode.length < 4
+  }
+  onClick={async () => {
   if (
     !newProfileLastName.trim() ||
     !newProfileFirstName.trim() ||
@@ -436,9 +444,9 @@ onChange={(event) =>
     return;
   }
 
-  if (!/^[a-zA-Z0-9]+$/.test(newProfileLogin.trim())) {
+  if (!/^[a-zA-Z0-9.!]+$/.test(newProfileLogin.trim())) {
     alert(
-      "Логин должен содержать только английские буквы и цифры"
+      "Логин может содержать только английские буквы, цифры, точку и восклицательный знак"
     );
     return;
   }

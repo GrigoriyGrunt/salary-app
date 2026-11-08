@@ -24,15 +24,15 @@
   transform: scale(0.98);
 }
 .button:disabled {
-  background: #d9d9d9;
-  color: #888888;
+  background: #E30613;
+  color: white;
   cursor: not-allowed;
-  opacity: 1;
+  opacity: 0.4;
   transform: none;
 }
 
 .button:disabled:hover {
-  opacity: 1;
+  opacity: 0.4;
 }
 
 .button:disabled:active {

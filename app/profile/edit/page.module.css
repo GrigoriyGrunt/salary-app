@@ -1,0 +1,166 @@
+.page {
+  height: 100dvh;
+  background: #f5f6f8;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.card {
+  overflow: hidden;
+  background: #fff;
+  border-radius: 20px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 18px 20px;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  color: #111;
+  text-align: left;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.arrow {
+  color: #999;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-bottom: 20px;
+}
+
+.actions > * {
+  flex: 1;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.resetModal {
+  width: 100%;
+  max-width: 360px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 24px;
+}
+
+.resetModal h2 {
+  margin: 0 0 12px;
+  color: #111;
+  font-size: 22px;
+}
+
+.codeInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  margin-top: 12px;
+  border: 1px solid #d7d7d7;
+  border-radius: 14px;
+  outline: none;
+  font-size: 16px;
+}
+
+.codeInput:focus {
+  border-color: #d71920;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cancelButton,
+.confirmButton {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background: #f0f0f0;
+  color: #111;
+}
+
+.confirmButton {
+  background: #d71920;
+  color: #fff;
+}
+
+.resetModal p {
+  margin: 0;
+  color: #6f6f6f;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.forgotCode {
+  padding: 0;
+  margin-top: 14px;
+  border: none;
+  background: transparent;
+  color: #d71920;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.codeInputWrapper {
+  position: relative;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.codeInputWrapper .codeInput {
+  margin-top: 0;
+  padding-right: 50px;
+}
+
+.eyeButton {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
