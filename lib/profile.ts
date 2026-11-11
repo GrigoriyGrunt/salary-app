@@ -16,6 +16,18 @@ export type ScheduleChange = {
   secondShiftType?: "day" | "night";
 };
 
+export type PositionChange = {
+  id: string;
+  changeDate: Date;
+  position: string;
+  schedule: WorkSchedule;
+  firstShiftDate?: Date | null;
+  firstShiftType?: "day" | "night" | null;
+  secondShiftDate?: Date | null;
+  secondShiftType?: "day" | "night" | null;
+  keepsSchedule: boolean;
+};
+
 export const profile = {
   warehouse: "",
   position: "",

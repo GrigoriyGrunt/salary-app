@@ -1,4 +1,4 @@
-import type { ScheduleChange } from "@/lib/profile";
+import type { ScheduleChange, PositionChange } from "@/lib/profile";
 export type UserRole = "admin" | "employee";
 
 export type User = {
@@ -20,4 +20,5 @@ firstShiftType: "day" | "night";
 secondShiftDate: string;
 secondShiftType: "day" | "night";
 scheduleChanges: ScheduleChange[];
+positionChanges: PositionChange[];
 };

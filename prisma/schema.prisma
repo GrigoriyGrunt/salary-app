@@ -13,33 +13,34 @@ enum UserRole {
 }
 
 model User {
-  id               String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  lastName         String
-  firstName        String
-  middleName       String
+  lastName   String
+  firstName  String
+  middleName String
 
-  login            String   @unique
-  accessCodeHash   String
+  login          String @unique
+  accessCodeHash String
 
   role             UserRole @default(employee)
   isSetupCompleted Boolean  @default(false)
 
-  warehouse        String   @default("")
-  position         String   @default("")
-  schedule         String   @default("")
-  hireDate         String   @default("")
+  warehouse String @default("")
+  position  String @default("")
+  schedule  String @default("")
+  hireDate  String @default("")
 
-  firstShiftDate   String   @default("")
-  firstShiftType   String   @default("")
+  firstShiftDate String @default("")
+  firstShiftType String @default("")
 
-  secondShiftDate  String   @default("")
-  secondShiftType  String   @default("")
+  secondShiftDate String @default("")
+  secondShiftType String @default("")
 
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   scheduleChanges        ScheduleChange[]
+  positionChanges        PositionChange[]
   shifts                 Shift[]
   originalMainShifts     OriginalMainShift[]
   financeSettings        FinanceSettings?
@@ -48,14 +49,14 @@ model User {
   deductions             Deduction[]
   premiums               Premium[]
   dismissedNotifications DismissedNotification[]
-  sessions Session[]
+  sessions               Session[]
 }
 
 model Session {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId    String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
   createdAt DateTime @default(now())
@@ -65,67 +66,87 @@ model Session {
 }
 
 model ScheduleChange {
-  id              String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  changeDate      DateTime
-  schedule        String
+  changeDate DateTime
+  schedule   String
 
-  firstShiftDate  String?
-  firstShiftType  String?
+  firstShiftDate String?
+  firstShiftType String?
 
   secondShiftDate String?
   secondShiftType String?
 
-  createdAt       DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([userId, changeDate])
+}
+
+model PositionChange {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  changeDate DateTime
+  position   String
+  schedule   String
+
+  firstShiftDate  String?
+  firstShiftType  String?
+  secondShiftDate String?
+  secondShiftType String?
+
+  keepsSchedule Boolean  @default(true)
+  createdAt     DateTime @default(now())
 
   @@index([userId, changeDate])
 }
 
 model Shift {
-  id                     String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId                 String
-  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date                   DateTime
+  date DateTime
 
-  type                   String
-  workType               String?
-  status                 String?
+  type     String
+  workType String?
+  status   String?
 
-  workZone               String?
+  workZone String?
 
-  salaryHours            Float    @default(0)
-  baseHours              Float    @default(0)
-  tobaccoHours           Float    @default(0)
+  salaryHours  Float @default(0)
+  baseHours    Float @default(0)
+  tobaccoHours Float @default(0)
 
-  boxes                  Float    @default(0)
-  blocks                 Float    @default(0)
-  pallets                Int?     @default(0)
-  returnHours            Float    @default(0)
-  nonProfileHours        Float    @default(0)
+  boxes           Float @default(0)
+  blocks          Float @default(0)
+  pallets         Int?  @default(0)
+  returnHours     Float @default(0)
+  nonProfileHours Float @default(0)
 
-  mentor                 Boolean  @default(false)
-  returnReception        Boolean  @default(false)
+  mentor          Boolean @default(false)
+  returnReception Boolean @default(false)
 
   transitionDistribution Json?
 
-  isWorked               Boolean  @default(false)
+  isWorked Boolean @default(false)
 
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, date])
 }
 
 model OriginalMainShift {
-  id       String @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   monthKey String
   count    Int
@@ -134,23 +155,23 @@ model OriginalMainShift {
 }
 
 model FinanceSettings {
-  id           String @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId       String @unique
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  totalSalary  Float  @default(0)
+  totalSalary Float @default(0)
 
-  goal         Float  @default(0)
-  goalMonthKey String?
+  goal          Float   @default(0)
+  goalMonthKey  String?
   goalPeriodKey String?
 }
 
 model Payment {
-  id       String @id
+  id String @id
 
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   date     String
   type     String
@@ -161,10 +182,10 @@ model Payment {
 }
 
 model Deduction {
-  id       String @id
+  id String @id
 
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   type     String
   amount   String
@@ -174,10 +195,10 @@ model Deduction {
 }
 
 model Premium {
-  id       String @id
+  id String @id
 
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   amount   String
   comment  String
@@ -187,10 +208,10 @@ model Premium {
 }
 
 model DismissedNotification {
-  id             String @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId         String
-  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   notificationId String
 
@@ -198,10 +219,10 @@ model DismissedNotification {
 }
 
 model WatchMotivationGoal {
-  id        String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   startDate DateTime
   endDate   DateTime

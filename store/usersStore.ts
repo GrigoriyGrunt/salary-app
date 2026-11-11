@@ -112,6 +112,7 @@ setCurrentUserFromServer: (user: User) =>
                 secondShiftDate: "",
                 secondShiftType: "day" as const,
                 scheduleChanges: [],
+                positionChanges: [],
               }
             : user
         );
@@ -147,6 +148,18 @@ setCurrentUserFromServer: (user: User) =>
           changeDate: new Date(change.changeDate),
           firstShiftDate: new Date(change.firstShiftDate),
           secondShiftDate: new Date(change.secondShiftDate),
+        }))
+      : [],
+    positionChanges: Array.isArray(user.positionChanges)
+      ? user.positionChanges.map((change) => ({
+          ...change,
+          changeDate: new Date(change.changeDate),
+          firstShiftDate: change.firstShiftDate
+            ? new Date(change.firstShiftDate)
+            : null,
+          secondShiftDate: change.secondShiftDate
+            ? new Date(change.secondShiftDate)
+            : null,
         }))
       : [],
   }));

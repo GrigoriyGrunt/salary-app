@@ -38,7 +38,11 @@ const userSelect = {
       changeDate: "asc",
     },
   },
-
+  positionChanges: {
+    orderBy: {
+      changeDate: "asc",
+    },
+  },
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -235,8 +239,9 @@ export async function PATCH(
       secondShiftDate,
       secondShiftType,
 
-      isSetupCompleted,
+            isSetupCompleted,
       scheduleChanges,
+      positionChanges,
     } = body;
 
     if (!id) {
@@ -512,7 +517,38 @@ if (accessCode !== undefined && !accessCodeRegex.test(accessCode)) {
               change.secondShiftType ??
               null,
           })
-        ),
+                ),
+      };
+    }
+
+    if (positionChanges !== undefined) {
+      if (!Array.isArray(positionChanges)) {
+        return NextResponse.json(
+          {
+            error: "Некорректные изменения должности",
+          },
+          {
+            status: 400,
+          }
+        );
+      }
+
+      data.positionChanges = {
+        deleteMany: {},
+        create: positionChanges.map((change) => ({
+          changeDate: new Date(change.changeDate),
+          position: change.position,
+          schedule: change.schedule,
+          firstShiftDate: change.firstShiftDate
+            ? new Date(change.firstShiftDate).toISOString()
+            : null,
+          firstShiftType: change.firstShiftType ?? null,
+          secondShiftDate: change.secondShiftDate
+            ? new Date(change.secondShiftDate).toISOString()
+            : null,
+          secondShiftType: change.secondShiftType ?? null,
+          keepsSchedule: change.keepsSchedule ?? true,
+        })),
       };
     }
 

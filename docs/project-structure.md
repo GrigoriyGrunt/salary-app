@@ -232,6 +232,7 @@ salary-app
 │   │       │   ├── FinanceSettings.ts
 │   │       │   ├── OriginalMainShift.ts
 │   │       │   ├── Payment.ts
+│   │       │   ├── PositionChange.ts
 │   │       │   ├── Premium.ts
 │   │       │   ├── ScheduleChange.ts
 │   │       │   ├── Session.ts
@@ -282,6 +283,8 @@ salary-app
 │   │   ├── 20261104130000_add_watch_motivation_goals
 │   │   │   └── migration.sql
 │   │   ├── 20261107044635_add_goal_period_key
+│   │   │   └── migration.sql
+│   │   ├── 20261108093846_add_position_changes
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   └── schema.prisma
