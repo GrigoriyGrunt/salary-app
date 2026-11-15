@@ -190,21 +190,22 @@ const originalMainShifts =
     user?.position === "Кладовщик";
 
   const hourlyRate =
-  getOriginalMainShiftsForDate(user, selectedDate) > 0
+  originalMainShifts > 0
     ? (isStorekeeper
         ? tariffs.monthlySalary.storekeeper
         : tariffs.monthlySalary.default) /
-      getOriginalMainShiftsForDate(user, selectedDate) /
+      originalMainShifts /
       11
     : 0;
 
   let salaryFromHours = 0;
 
   if (
-    shift?.workType === "main" ||
-    shift?.workType === "overtime" ||
-    shift?.workType === "extra"
-  ) {
+  shift?.mentor ||
+  shift?.workType === "main" ||
+  shift?.workType === "overtime" ||
+  shift?.workType === "extra"
+) {
     if (shift?.type === "night") {
       const normalHours =
         Math.min(salaryHours, 2);
@@ -368,18 +369,16 @@ const originalMainShifts =
     nonProfileHours * tariffs.nonProfileHourRate;
 
     const mentorEarnings =
-    shift?.mentor
-      ? averageBoxes === 0
-        ? tariffs.mentor.zeroAverage.boxes *
-          tariffs.mentor.zeroAverage.rate
-        : (() => {
-            const tier = tariffs.mentor.tiers
-              .filter((item) => averageBoxes >= item.minAverage)
-              .at(-1);
-
-            return tier ? tier.boxes * tier.rate : 0;
-          })()
-      : 0;
+  shift?.mentor
+    ? averageBoxes === 0
+      ? 1200 * 3.6
+      : averageBoxes *
+        (averageBoxes >= 1800
+          ? 4
+          : averageBoxes >= 1200
+            ? 3.6
+            : 2.7)
+    : 0;
 
         return (
     salaryFromHours +
