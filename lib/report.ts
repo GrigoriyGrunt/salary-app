@@ -704,16 +704,13 @@ const hourBreakdown =
 
   const mentorSalaryPerShift =
   averageBoxes === 0
-    ? tariffs.mentor.zeroAverage.boxes *
-      tariffs.mentor.zeroAverage.rate
-    : [...tariffs.mentor.tiers]
-        .reverse()
-        .find((tier) => averageBoxes >= tier.minAverage)!
-        .boxes *
-      [...tariffs.mentor.tiers]
-        .reverse()
-        .find((tier) => averageBoxes >= tier.minAverage)!
-        .rate;
+    ? 1200 * 3.6
+    : averageBoxes *
+      (averageBoxes >= 1800
+        ? 4
+        : averageBoxes >= 1200
+          ? 3.6
+          : 2.7);
 
   const mentorShifts =
     monthShifts

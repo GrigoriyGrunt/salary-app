@@ -498,18 +498,13 @@ const salaryFromReturnHours =
     : 0;    
 const mentorSalaryPerShift =
   averageBoxes === 0
-    ? (tariffs?.mentor.zeroAverage.boxes ?? 1200) *
-      (tariffs?.mentor.zeroAverage.rate ?? 3.6)
-    : (() => {
-        const tier = tariffs?.mentor.tiers
-          .filter((item) => averageBoxes >= item.minAverage)
-          .at(-1);
-
-        return (
-          (tier?.boxes ?? 1000) *
-          (tier?.rate ?? 2.7)
-        );
-      })();
+    ? 1200 * 3.6
+    : averageBoxes *
+      (averageBoxes >= 1800
+        ? 4
+        : averageBoxes >= 1200
+          ? 3.6
+          : 2.7);
 
 const salaryFromMentoring = shifts.reduce(
   (total, shift) => {

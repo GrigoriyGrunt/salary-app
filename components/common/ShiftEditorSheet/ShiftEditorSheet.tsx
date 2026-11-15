@@ -216,8 +216,7 @@ const canSave =
     workZone === "none" ||
     (
   isMentor &&
-  salaryHours !== "" &&
-  nonProfileHours !== ""
+salaryHours !== ""
 ) ||
 
     (
@@ -397,18 +396,23 @@ const distributeAutomatically = useCallback(() => {
     )
   );
 
-    if (isMentor) {
-    setFirstMentorHours(
-      String(firstMentor)
-    );
+if (!isMentor) {
+  setFirstNonProfileHours(
+    String(firstNonProfile)
+  );
 
-    setSecondMentorHours(
-      String(secondHours)
-    );
-  } else {
-    setFirstMentorHours("");
-    setSecondMentorHours("");
-  }
+  setSecondNonProfileHours(
+    String(
+      getSecondValue(
+        nonProfileHours,
+        firstNonProfile
+      )
+    )
+  );
+} else {
+  setFirstNonProfileHours("");
+  setSecondNonProfileHours("");
+}
 }, [
   salaryHours,
 baseHours,
@@ -972,16 +976,13 @@ function handleMentorChange(checked: boolean) {
 
   if (checked) {
     setSalaryHours("11");
-    setNonProfileHours("11");
+    setNonProfileHours("");
 
     setBaseHours("");
     setBoxes("");
 
     if (isTransitionShift) {
       setTransitionMode("auto");
-
-      setFirstNonProfileHours("4");
-      setSecondNonProfileHours("7");
 
       setFirstMentorHours("4");
       setSecondMentorHours("7");
