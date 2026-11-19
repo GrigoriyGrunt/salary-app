@@ -25,6 +25,17 @@ export function detectShiftPosition(
 
   if (
     firstType === "day" &&
+    secondType === "day" &&
+    daysBetween === 3
+  ) {
+    return {
+      first: "secondDay",
+      second: "firstDay",
+    };
+  }
+
+  if (
+    firstType === "day" &&
     secondType === "night" &&
     daysBetween === 3
   ) {
@@ -42,6 +53,17 @@ export function detectShiftPosition(
     return {
       first: "firstNight",
       second: "secondNight",
+    };
+  }
+
+  if (
+    firstType === "night" &&
+    secondType === "night" &&
+    daysBetween === 3
+  ) {
+    return {
+      first: "secondNight",
+      second: "firstNight",
     };
   }
 

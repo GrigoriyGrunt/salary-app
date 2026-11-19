@@ -11,7 +11,10 @@ import {
 import { useFinanceStore } from "@/store/financeStore";
 import { useEffect, useState } from "react";
 import BottomSheet from "@/components/BottomSheet/BottomSheet";
-import { getWarehouseConfig } from "@/lib/warehouses/config";
+import {
+  getMonthlySalaryForDate,
+  getWarehouseConfig,
+} from "@/lib/warehouses/config";
 
 type Props = {
   selectedDate: Date;
@@ -313,9 +316,11 @@ const shiftOriginalMainShifts =
 
 const hourlyRate =
   shiftOriginalMainShifts > 0
-    ? (isStorekeeper
-        ? tariffs?.monthlySalary.storekeeper ?? 27000
-        : tariffs?.monthlySalary.default ?? 23750) /
+    ? getMonthlySalaryForDate(
+        user?.warehouse,
+        user?.position,
+        rateDate
+      ) /
       shiftOriginalMainShifts /
       11
     : 0;

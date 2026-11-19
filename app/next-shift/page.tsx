@@ -305,10 +305,10 @@ updateUser(currentUser.id, {
   isDayNight={isDayNight}
   isWatch1515={isWatch1515}
   showScheduleChangeHint={false}
-  minDate={
+ minDate={
   currentUser?.hireDate
     ? (() => {
-        const date = new Date(currentUser.hireDate);
+        const date = parseCalendarDate(currentUser.hireDate);
         date.setDate(date.getDate() + 1);
         return date;
       })()

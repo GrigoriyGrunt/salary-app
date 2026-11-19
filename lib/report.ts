@@ -5,7 +5,10 @@ import {
   getOriginalMainShiftsForMonth,
 } from "@/lib/getOriginalMainShiftsForMonth";
 import { getExperienceBonus } from "@/lib/experience";
-import { getWarehouseConfig } from "@/lib/warehouses/config";
+import {
+  getMonthlySalaryForDate,
+  getWarehouseConfig,
+} from "@/lib/warehouses/config";
 
 export type ReportFinanceItem = {
   id: number;
@@ -472,11 +475,13 @@ const salaryFromReturnHours =
             rateDate
           );
 
-        const hourlyRate =
+const hourlyRate =
   shiftOriginalMainShifts > 0
-    ? tariffs.monthlySalary[
-  isStorekeeper ? "storekeeper" : "default"
-] /
+    ? getMonthlySalaryForDate(
+        user?.warehouse,
+        user?.position,
+        rateDate
+      ) /
       shiftOriginalMainShifts /
       11
     : 0;
@@ -590,11 +595,13 @@ const hourBreakdown =
           rateDate
         );
 
-      const hourlyRate =
+ const hourlyRate =
   shiftOriginalMainShifts > 0
-    ? tariffs.monthlySalary[
-  isStorekeeper ? "storekeeper" : "default"
-] /
+    ? getMonthlySalaryForDate(
+        user?.warehouse,
+        user?.position,
+        rateDate
+      ) /
       shiftOriginalMainShifts /
       11
     : 0;

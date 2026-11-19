@@ -20,12 +20,25 @@ const updateUser = useUsersStore(
   (state) => state.updateUser
 );
 
- const [date, setDate] = useState<Date | undefined>(
+function parseHireDate(value: string): Date {
+  const datePart = value.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+
+  return new Date(year, month - 1, day);
+}
+
+const [date, setDate] = useState<Date | undefined>(
   currentUser?.hireDate
-    ? new Date(currentUser.hireDate)
+    ? parseHireDate(currentUser.hireDate)
     : undefined
 );
+function formatCalendarDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
+  return `${year}-${month}-${day}`;
+}
   async function handleContinue() {
   if (!date) return;
   if (!currentUser) return;
@@ -38,7 +51,7 @@ const updateUser = useUsersStore(
       },
       body: JSON.stringify({
         id: currentUser.id,
-        hireDate: date.toISOString(),
+        hireDate: formatCalendarDate(date),
       }),
     });
 
@@ -48,7 +61,7 @@ const updateUser = useUsersStore(
     }
 
     updateUser(currentUser.id, {
-      hireDate: date.toISOString(),
+      hireDate: formatCalendarDate(date),
     });
 
     router.push("/next-shift");

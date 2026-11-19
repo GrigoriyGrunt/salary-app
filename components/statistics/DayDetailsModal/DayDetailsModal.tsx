@@ -1,13 +1,15 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { getWarehouseConfig } from "@/lib/warehouses/config";
+import {
+  getMonthlySalaryForDate,
+  getWarehouseConfig,
+} from "@/lib/warehouses/config";
 import styles from "./DayDetailsModal.module.css";
 import { useUsersStore } from "@/store/usersStore";
 import { useScheduleStore } from "@/store/scheduleStore";
 import InfoRow from "@/components/common/InfoRow/InfoRow";
 import {
-  getOriginalMainShiftsForMonth,
   getOriginalMainShiftsForDate,
 } from "@/lib/getOriginalMainShiftsForMonth";
 import type { User } from "@/types/user";
@@ -150,19 +152,10 @@ export function getDayEarnings(
       selectedDate.getMonth() + 1
     ).padStart(2, "0")}`;
 
-  const storedOriginalMainShifts =
-  originalMainShiftsByMonth[
-    currentMonthKey
-  ];
-
-
-const originalMainShifts =
-  storedOriginalMainShifts !== undefined
-    ? storedOriginalMainShifts
-    : getOriginalMainShiftsForMonth(
-        user,
-        selectedDate
-      );
+const originalMainShifts = getOriginalMainShiftsForDate(
+  user,
+  selectedDate
+);
 
   const monthShifts = shifts.filter(
     (monthShift) => {
@@ -189,13 +182,15 @@ const originalMainShifts =
     const isStorekeeper =
     user?.position === "Кладовщик";
 
-  const hourlyRate =
+  const monthlySalary = getMonthlySalaryForDate(
+  user?.warehouse,
+  user?.position,
+  selectedDate
+);
+
+const hourlyRate =
   originalMainShifts > 0
-    ? (isStorekeeper
-        ? tariffs.monthlySalary.storekeeper
-        : tariffs.monthlySalary.default) /
-      originalMainShifts /
-      11
+    ? monthlySalary / originalMainShifts / 11
     : 0;
 
   let salaryFromHours = 0;

@@ -286,23 +286,19 @@ const secondShiftDate = parseCalendarDate(
 
   let pattern: ShiftType[];
 
-  if (user.schedule === "2/2 день") {
-    pattern = [
-      "day",
-      "day",
-      "off",
-      "off",
-    ];
-  } else if (user.schedule === "2/2 ночь") {
-    pattern = [
-      "night",
-      "night",
-      "off",
-      "off",
-    ];
-  } else {
-    pattern = getPattern(position.first);
-  }
+if (user.schedule === "2/2 день") {
+  pattern =
+    position.first === "secondDay"
+      ? ["day", "off", "off", "day"]
+      : ["day", "day", "off", "off"];
+} else if (user.schedule === "2/2 ночь") {
+  pattern =
+    position.first === "secondNight"
+      ? ["night", "off", "off", "night"]
+      : ["night", "night", "off", "off"];
+} else {
+  pattern = getPattern(position.first);
+}
 
   for (let i = 0; i < 730; i++) {
     const date = new Date(startDate);

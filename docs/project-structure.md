@@ -237,6 +237,8 @@ salary-app
 │   │       │   ├── ScheduleChange.ts
 │   │       │   ├── Session.ts
 │   │       │   ├── Shift.ts
+│   │       │   ├── SuperAdmin.ts
+│   │       │   ├── SuperAdminSession.ts
 │   │       │   ├── User.ts
 │   │       │   └── WatchMotivationGoal.ts
 │   │       ├── browser.ts

@@ -12,9 +12,15 @@ export type WarehouseConfig = {
   aliases: string[];
 
   tariffs: {
-    monthlySalary: {
+  monthlySalary: {
   default: number;
   storekeeper: number;
+  changes: Array<{
+    date: string;
+    default?: number;
+    stacker?: number;
+    storekeeper?: number;
+  }>;
 };
 
 experienceBonus: {
@@ -65,9 +71,17 @@ experienceBonus: {
 
 const commonTariffs: WarehouseConfig["tariffs"] = {
   monthlySalary: {
-    default: 23750,
-    storekeeper: 27000,
-  },
+  default: 23750,
+  storekeeper: 27000,
+  changes: [
+    {
+      date: "2026-11-01",
+      default: 30000,
+      stacker: 35000,
+      storekeeper: 35000,
+    },
+  ],
+},
 experienceBonus: {
   firstYear: 2000,
   additionalYear: 1000,
@@ -174,4 +188,41 @@ export function getWarehouseConfig(
         config.aliases.includes(value)
     ) ?? null
   );
+}
+export function getMonthlySalaryForDate(
+  warehouse: string | null | undefined,
+  position: string | null | undefined,
+  date: Date
+): number {
+  const monthlySalary = getWarehouseConfig(warehouse)?.tariffs.monthlySalary;
+  if (!monthlySalary) return 0;
+
+  const isStorekeeper = position === "Кладовщик";
+  const isStacker = position === "Штабелер (водитель погрузчика)";
+  const rateKey = isStorekeeper
+    ? "storekeeper"
+    : isStacker
+      ? "stacker"
+      : "default";
+
+  let salary = isStorekeeper
+    ? monthlySalary.storekeeper
+    : monthlySalary.default;
+
+  const dateKey = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  for (const change of [...monthlySalary.changes].sort(
+    (a, b) => a.date.localeCompare(b.date)
+  )) {
+    if (change.date > dateKey) break;
+
+    const changedRate = change[rateKey];
+    if (changedRate !== undefined) salary = changedRate;
+  }
+
+  return salary;
 }
